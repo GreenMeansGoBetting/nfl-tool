@@ -355,6 +355,8 @@ jobs:
           npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS trial_cards (fingerprint TEXT PRIMARY KEY, email TEXT NOT NULL, created INTEGER)"
           # "Request a feature" ideas from members (owner reads them from the same button).
           npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS feature_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, uid TEXT NOT NULL, name TEXT, text TEXT NOT NULL, created INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'new')"
+          # Member Activity (the owner's DAU / MAU): one row per member per Eastern day.
+          npx -y wrangler@3 d1 execute gmg-nfl-users --remote --command "CREATE TABLE IF NOT EXISTS member_activity (day TEXT NOT NULL, uid TEXT NOT NULL, PRIMARY KEY (day, uid))"
 
       # Email members sign in through the database. If the step above could
       # not even name it, publishing would lock them out -- stop instead and

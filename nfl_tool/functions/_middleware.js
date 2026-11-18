@@ -32,7 +32,7 @@ const SPORT_HOSTS = { "nba.gmgsports.org": "nba", "nhl.gmgsports.org": "nhl" };
 // address answers it from the sport's folder (missing): ytd.js was left out
 // 2026-10-22 and the NHL prop pages drew no plays. tests/test_sport_hosts.py.
 const SHARED_FILES = ["/style.css", "/suite.css", "/sync.js", "/book-odds.js", "/ytd.js", "/version.json"]; // + /brand/
-const NFL_PAGES = ["game-overview", "player-props", "possible-plays", "my-plays", "support", "first-td"];
+const NFL_PAGES = ["game-overview", "player-props", "possible-plays", "my-plays", "support", "first-td", "activity"];
 // On since 2026-10-14 (both addresses answer): nfl.gmgsports.org/nhl/
 // pages then move to nhl.gmgsports.org. Data files are never moved (the build reads them).
 const SPORT_HOSTS_LIVE = true;
@@ -575,9 +575,65 @@ async function handleNbaLineups(request, json) {
   return out;
 }
 
+// ---- Member activity: the owner's DAU / MAU (activity.html, 2026-11-18) ----
+// One row per member per Eastern day, written when a signed-in member's page
+// asks for their profile (sync.js, every page load). The owner isn't counted.
+// Counting must never get in a member's way: it runs after the reply and a
+// failure is ignored. The page only ever gets counts, never who.
+const ACTIVITY_DAYS = 30; // MAU's window, and how many days the page lists
+function easternDay(ms = Date.now()) {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(ms);
+  const part = (type) => parts.find((p) => p.type === type).value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+const dayShift = (day, n) => new Date(Date.parse(`${day}T12:00:00Z`) + n * 86400000).toISOString().slice(0, 10);
+
+function noteActive(context, session) {
+  const { env } = context;
+  if (!env.DB || isOwnerSession(session)) return;
+  try {
+    const job = env.DB.prepare("INSERT OR IGNORE INTO member_activity (day, uid) VALUES (?, ?)").bind(easternDay(), session.uid).run().catch(() => {});
+    if (context.waitUntil) context.waitUntil(job);
+  } catch (e) {
+    // no table yet, or the database is down: this visit just isn't counted
+  }
+}
+
+async function handleActivity(request, env, session, json) {
+  if (!isOwnerSession(session)) return json({ error: "owner only" }, 403);
+  if (request.method !== "GET") return json({ error: "method" }, 405);
+  const today = easternDay();
+  let rows;
+  try {
+    // The oldest day listed needs its own 30 days behind it.
+    ({ results: rows } = await env.DB.prepare("SELECT day, uid FROM member_activity WHERE day >= ?").bind(dayShift(today, 2 - 2 * ACTIVITY_DAYS)).all());
+  } catch (e) {
+    return json({ error: "activity" }, 503);
+  }
+  const byDay = new Map();
+  for (const r of rows || []) {
+    if (!byDay.has(r.day)) byDay.set(r.day, new Set());
+    byDay.get(r.day).add(r.uid);
+  }
+  const first = [...byDay.keys()].sort()[0] || null;
+  const days = [];
+  for (let i = 0; first && i < ACTIVITY_DAYS; i++) {
+    const day = dayShift(today, -i);
+    if (day < first) break;
+    const month = new Set();
+    for (let j = 0; j < ACTIVITY_DAYS; j++) for (const uid of byDay.get(dayShift(day, -j)) || []) month.add(uid);
+    days.push({ day, dau: (byDay.get(day) || new Set()).size, mau: month.size });
+  }
+  return json({ today, first, window: ACTIVITY_DAYS, days });
+}
+
 async function handleApi(request, env, session, json) {
   const url = new URL(request.url);
   if (url.pathname === "/api/nba-lineups") return handleNbaLineups(request, json);
+  if (url.pathname === "/api/activity") {
+    if (!env.DB) return json({ error: "no database" }, 503);
+    return handleActivity(request, env, session, json);
+  }
   if (url.pathname === "/api/nba-outs") {
     if (!env.DB) return json({ error: "no database" }, 503);
     return handleNbaOuts(request, env, session, json);
@@ -1420,6 +1476,7 @@ async function gate(context, url, next) {
       refreshed = await sign(env, { ...session, checked: Date.now() });
     }
   }
+  if (url.pathname === "/api/state" && request.method === "GET") noteActive(context, session);
   const res = isApi ? await handleApi(request, env, session, json) : await next();
   if (!refreshed) return res;
   const out = new Response(res.body, res);

@@ -382,6 +382,12 @@ Required" screen (shown for products with a Discord role) and land signed in. Th
 - **Owner-only controls:** `OWNER_IDS` (the user's Discord ID `613105360286253076`) makes
   `/api/state` return `user.owner`. sync.js then adds `html.is-owner` (owner-only boxes: payouts, SGP
   price log). The Update Odds button that used to hang on it is gone.
+- **Member Activity** (`activity.html/.js`, 2026-11-18; the owner's DAU / MAU, a link in the owner's account
+  menu): a member's `GET /api/state` (every page load, sync.js) writes one row per Eastern day to the D1 table
+  `member_activity(day, uid)` (created by deploy.yml), after the reply, a failure ignored; the owner isn't
+  counted. Owner-only `/api/activity` sends counts, never who: last 30 days, MAU = different members in the 30
+  days ending that day. No history before launch. Today is never colored or averaged in (the day isn't over).
+  Tests: `test_ci_member_activity.py`, `test_activity_site.py`.
 - **Request a feature:** an item in the account menu (logged-in members only; the 2026-10-17 header
   moved it there from its own yellow button). It opens a box titled "Have an idea
   for a tool, data point, or feature? I will do my best to get it added!". The idea is POSTed to

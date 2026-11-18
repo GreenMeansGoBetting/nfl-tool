@@ -4229,6 +4229,12 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .od-all th.bp-sort { cursor: pointer; }
 .od-sub-title { margin-top: 6px; }
 .od-prime { display: block; margin-top: 2px; padding: 0 5px; border-radius: 4px; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--on-accent); background: var(--accent); }
+/* Member Activity (owner only; activity.js) */
+.act-page h2 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; margin: 4px 0; }
+.act-note { color: var(--text); font-family: var(--font-body); margin: 0 0 12px; }
+.act-box { width: fit-content; max-width: 100%; overflow-x: auto; margin-bottom: 14px; }
+.act-tile { min-width: 76px; }
+.data-table.od-grid td.act-day { padding: 3px 10px; font-weight: 600; }
 @media (max-width: 760px) {
   .page-nav a, .page-nav-current { padding: 6px 10px; font-size: 0.8rem; }
   .bp-game-pick { margin-left: 0; }

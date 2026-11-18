@@ -824,6 +824,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       <button type="button" class="promo-item" data-act="updates"><span class="promo-name">What's new</span>${updatesDue() ? '<span class="acct-dot" aria-label="New"></span>' : ""}</button>
       <button type="button" class="promo-item" data-act="settings"><span class="promo-name">Settings</span></button>
       <a class="promo-item${onSupport ? " promo-current" : ""}" href="${siteHref("nfl", "support.html")}"><span class="promo-name">Support</span></a>
+      ${user.owner ? `<a class="promo-item${/activity\.html$/.test(location.pathname) ? " promo-current" : ""}" href="${siteHref("nfl", "activity.html")}"><span class="promo-name">Member Activity</span></a>` : ""}
       ${user.email ? '<a class="promo-item" href="/account"><span class="promo-name">Manage membership</span></a><a class="promo-item" href="/set-password"><span class="promo-name">Password</span></a>' : ""}
       ${user.buildr ? '<a class="promo-item" href="https://gmgsports.buildr.bet/" target="_blank" rel="noopener"><span class="promo-name">Manage Membership</span></a>' : ""}
       <a class="promo-item" href="/auth/logout"><span class="promo-name">Log out</span></a>`, { right: true });

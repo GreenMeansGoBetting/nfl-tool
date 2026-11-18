@@ -49,6 +49,7 @@ PAGES = [
     ("My Plays", "my-plays.html", None),
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),
+    ("Member Activity", "activity.html", None),
     ("NBA Dunk Digest", "nba/dunk-digest.html", None),
     ("NBA Slate Standouts", "nba/standouts.html", None),
     ("NBA League Stats Chart", "nba/league.html", None),
