@@ -3044,12 +3044,12 @@
  "401909308": {
   "away": "TOR",
   "date": "2026-11-20",
-  "first_home": 0.485,
+  "first_home": 0.442,
   "home": "DET",
   "jumpers": [
    [
-    "5093267",
-    "Collin Murray-Boyles"
+    "3134908",
+    "Jakob Poeltl"
    ],
    [
     "4278562",
@@ -3057,78 +3057,78 @@
    ]
   ],
   "players": {
+   "3134908": [
+    "Jakob Poeltl",
+    0.085,
+    null,
+    false,
+    null
+   ],
    "3908845": [
     "John Collins",
-    0.091,
+    0.083,
     null,
     false,
     null
    ],
    "4278562": [
     "Paul Reed",
-    0.083,
+    0.076,
     null,
     false,
     null
    ],
    "4395625": [
     "RJ Barrett",
-    0.109,
+    0.127,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.087,
+    0.101,
     null,
     false,
     null
    ],
    "4432166": [
     "Cade Cunningham",
-    0.094,
-    null,
-    false,
-    null
-   ],
-   "4433134": [
-    "Scottie Barnes",
-    0.106,
+    0.086,
     null,
     false,
     null
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.092,
+    0.106,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.093,
+    0.085,
     null,
     false,
     null
    ],
    "5093267": [
     "Collin Murray-Boyles",
-    0.101,
+    0.116,
     null,
     false,
     null
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.104,
+    0.095,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.455
+  "tip_home": 0.326
  },
  "401909309": {
   "away": "WSH",
@@ -19014,7 +19014,7 @@
  "401910012": {
   "away": "WSH",
   "date": "2026-11-18",
-  "first_home": 0.476,
+  "first_home": 0.52,
   "home": "TOR",
   "jumpers": [
    [
@@ -19022,83 +19022,83 @@
     "Anthony Davis"
    ],
    [
-    "5093267",
-    "Collin Murray-Boyles"
+    "3134908",
+    "Jakob Poeltl"
    ]
   ],
   "players": {
+   "3134908": [
+    "Jakob Poeltl",
+    0.079,
+    850,
+    false,
+    "hard_rock"
+   ],
    "4277905": [
     "Trae Young",
-    0.088,
+    0.08,
     1100,
     false,
     "bet365"
    ],
    "4395625": [
     "RJ Barrett",
-    0.1,
+    0.118,
     750,
     false,
     "bet365"
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.08,
+    0.095,
     850,
     false,
     "bet365"
    ],
-   "4433134": [
-    "Scottie Barnes",
-    0.098,
-    800,
-    false,
-    "fanduel"
-   ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.085,
+    0.099,
     950,
     false,
     "bet365"
    ],
    "5093267": [
     "Collin Murray-Boyles",
-    0.093,
+    0.108,
     700,
     false,
     "fanduel"
    ],
    "5142718": [
     "AJ Dybantsa",
-    0.101,
+    0.093,
     980,
     false,
     "draftkings"
    ],
    "5160992": [
     "Alex Sarr",
-    0.101,
+    0.092,
     840,
     false,
     "draftkings"
    ],
    "5174563": [
     "Kyshawn George",
-    0.101,
+    0.092,
     1000,
-    true,
+    false,
     "thescore"
    ],
    "6583": [
     "Anthony Davis",
-    0.113,
+    0.103,
     525,
     false,
     "hard_rock"
    ]
   },
-  "tip_home": 0.426
+  "tip_home": 0.561
  },
  "401910013": {
   "away": "DET",
