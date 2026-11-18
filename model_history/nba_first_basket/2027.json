@@ -18776,7 +18776,7 @@
    ],
    "3133628": [
     "Myles Turner",
-    0.087,
+    0.086,
     1300,
     true,
     "fanduel"
@@ -18811,17 +18811,17 @@
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.113,
+    0.112,
     1100,
     true,
     "bet365"
    ],
-   "4591725": [
-    "Ryan Rollins",
-    0.079,
-    null,
-    false,
-    null
+   "5082206": [
+    "Brayden Burries",
+    0.08,
+    1300,
+    true,
+    "fanduel"
    ],
    "6475": [
     "Klay Thompson",
@@ -19741,14 +19741,14 @@
   "players": {
    "3133628": [
     "Myles Turner",
-    0.079,
+    0.078,
     null,
     false,
     null
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.066,
+    0.067,
     null,
     false,
     null
@@ -19769,14 +19769,7 @@
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.103,
-    null,
-    false,
-    null
-   ],
-   "4591725": [
-    "Ryan Rollins",
-    0.071,
+    0.102,
     null,
     false,
     null
@@ -19791,6 +19784,13 @@
    "5081727": [
     "Sidy Cissoko",
     0.103,
+    null,
+    false,
+    null
+   ],
+   "5082206": [
+    "Brayden Burries",
+    0.073,
     null,
     false,
     null
