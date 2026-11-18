@@ -366,6 +366,15 @@ window.GMGSettings = { open: openGmgSettings };
 // "only when people click into nhl today").
 const GMG_UPDATES = [
   {
+    id: "2026-11-18",
+    heading: "Wednesday Updates",
+    items: [
+      ["🏒", "<b>NHL Vs Position Redesign</b>: each position now reads straight across on one line: what the defense allows, then the players at that position."],
+      ["🎯", "<b>Points Vs Position</b>: a new Points button sits next to Shots and Goals. Goals and Points show each player's number per game with his season total beside it."],
+      ["📊", "<b>League Snapshot</b>: on a computer, every team's numbers now sit across the top of the page. Phones keep the tall list. Use Today's Teams Only to narrow it to the day's games."],
+    ],
+  },
+  {
     id: "2026-11-17",
     heading: "Tuesday Updates",
     items: [
