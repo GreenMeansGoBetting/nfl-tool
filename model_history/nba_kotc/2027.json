@@ -10930,7 +10930,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3339,
+    "lead": 0.3338,
     "name": "Luka Doncic",
     "proj": 55.1,
     "team": "LAL"
@@ -10944,7 +10944,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0731,
+    "lead": 0.073,
     "name": "Alperen Sengun",
     "proj": 42.9,
     "team": "HOU"
@@ -10986,7 +10986,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0234,
+    "lead": 0.0233,
     "name": "Darius Acuff Jr.",
     "proj": 37.6,
     "team": "SAC"
@@ -11013,18 +11013,18 @@
     "team": "DEN"
    },
    {
+    "id": "4701230",
+    "lead": 0.0122,
+    "name": "Jalen Johnson",
+    "proj": 35.1,
+    "team": "ATL"
+   },
+   {
     "id": "4066261",
     "lead": 0.0122,
     "name": "Bam Adebayo",
     "proj": 34.5,
     "team": "MIA"
-   },
-   {
-    "id": "4701230",
-    "lead": 0.012,
-    "name": "Jalen Johnson",
-    "proj": 35.0,
-    "team": "ATL"
    },
    {
     "id": "3064514",
@@ -11191,7 +11191,7 @@
     "id": "4395712",
     "lead": 0.0007,
     "name": "Andrew Nembhard",
-    "proj": 25.8,
+    "proj": 25.7,
     "team": "IND"
    },
    {
@@ -11205,7 +11205,7 @@
     "id": "5144091",
     "lead": 0.0006,
     "name": "Jeremiah Fears",
-    "proj": 25.3,
+    "proj": 25.2,
     "team": "NO"
    },
    {
@@ -11279,18 +11279,18 @@
     "team": "ATL"
    },
    {
-    "id": "4684740",
-    "lead": 0.0002,
-    "name": "Amen Thompson",
-    "proj": 25.6,
-    "team": "HOU"
-   },
-   {
     "id": "4066383",
     "lead": 0.0002,
     "name": "Miles Bridges",
     "proj": 25.6,
     "team": "PHX"
+   },
+   {
+    "id": "4684740",
+    "lead": 0.0002,
+    "name": "Amen Thompson",
+    "proj": 25.5,
+    "team": "HOU"
    },
    {
     "id": "4222252",
@@ -11331,7 +11331,7 @@
     "id": "4278039",
     "lead": 0.0001,
     "name": "Nickeil Alexander-Walker",
-    "proj": 27.0,
+    "proj": 27.1,
     "team": "ATL"
    },
    {
