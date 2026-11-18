@@ -10930,7 +10930,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3227,
+    "lead": 0.3224,
     "name": "Luka Doncic",
     "proj": 55.1,
     "team": "LAL"
@@ -10951,7 +10951,7 @@
    },
    {
     "id": "4065648",
-    "lead": 0.052,
+    "lead": 0.0519,
     "name": "Jayson Tatum",
     "proj": 41.1,
     "team": "BOS"
@@ -11049,9 +11049,9 @@
    },
    {
     "id": "3908809",
-    "lead": 0.009,
+    "lead": 0.0093,
     "name": "Donovan Mitchell",
-    "proj": 34.0,
+    "proj": 34.1,
     "team": "CLE"
    },
    {
@@ -11170,7 +11170,7 @@
     "id": "4277905",
     "lead": 0.0013,
     "name": "Trae Young",
-    "proj": 28.9,
+    "proj": 28.8,
     "team": "WSH"
    },
    {
@@ -11293,18 +11293,18 @@
     "team": "ATL"
    },
    {
-    "id": "5174563",
-    "lead": 0.0002,
-    "name": "Kyshawn George",
-    "proj": 25.7,
-    "team": "WSH"
-   },
-   {
     "id": "4431680",
     "lead": 0.0002,
     "name": "Onyeka Okongwu",
     "proj": 25.7,
     "team": "ATL"
+   },
+   {
+    "id": "5174563",
+    "lead": 0.0002,
+    "name": "Kyshawn George",
+    "proj": 25.6,
+    "team": "WSH"
    },
    {
     "id": "4709138",
