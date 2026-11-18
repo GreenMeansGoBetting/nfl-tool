@@ -589,7 +589,7 @@ position"; the owner: its own page under Line Matchups, a Shots / Goals toggle, 
   game card (the first unstarted opens) shows both directions, offense banner "vs <DEF> Defense": per
   position the defense's tile and the offense's players (data.json skaters, his SOG a game or goals,
   colored vs the league's players at his position with 3+ games; Out faded). Below, all 32 teams (the
-  game's two first, never grayed), a header sorts. Allows the most = green (the shooter's side).
+  game's two first, never grayed), a header sorts. Defense tiles are graded from the defense's side (the owner, 2026-11-17: "isn't good defense colored green site wide"): allows the fewest = 1st green, allows the most = 32nd red; the table still lists the most allowed first. Player tiles: more = green.
 - The box score's positions list many wingers as C (it's the roster's position, not tonight's line).
 - Tests: `tests/test_nhl_vs_position.py`.
 

@@ -3,8 +3,8 @@
 // to each position. LW/C/RW/D"; the owner, 2026-11-17: its own page with a Shots / Goals toggle, and a
 // game opens the players in tonight's matchup). The build counts it (build_nhl.py compute_vs_position
 // -> data.json vs_position: per team and window [games, C shots, C goals, L ..., R ..., D ...]); the
-// page only divides and ranks. Colors from the shooter's view like every NHL page (nhl.md): the
-// defense that allows the most = green, the fewest = red; a player with the most = green.
+// page only divides and ranks. A defense is graded from its own side (the owner, 2026-11-17, as on the
+// NBA pages): allows the fewest = 1st and green, allows the most = 32nd and red; a player with the most = green.
 
 let dayIndex = 0;
 let gameId = null;
@@ -40,13 +40,13 @@ function vpVal(abbr, i) {
   return row[1 + 2 * i + (vpView.stat === "g" ? 1 : 0)] / row[0];
 }
 const vpGames = (abbr) => ((((DATA.vs_position || {}).teams || {})[abbr] || {})[vpView.window] || [0])[0];
-// {team: {r, n}}: 1st = allows the most (green)
+// {team: {r, n}}: 1st = allows the fewest (green), last = allows the most (red)
 function vpRanks(i) {
   const vals = Object.keys((DATA.vs_position || {}).teams || {}).map((t) => [t, vpVal(t, i)]).filter(([, v]) => has(v));
-  return Object.fromEntries(vals.map(([t, v]) => [t, { r: 1 + vals.filter(([, x]) => x > v).length, n: vals.length }]));
+  return Object.fromEntries(vals.map(([t, v]) => [t, { r: 1 + vals.filter(([, x]) => x < v).length, n: vals.length }]));
 }
-const vpTile = (v, rk, tip) => `<div class="od-tile vp-tile"${rk ? cellOnStep(rankStep(rk.r, rk.n)) : ""} title="${tip}"><b>${vpFmt(v)}</b>${rk ? `<small>${ordinal(rk.r <= rk.n / 2 ? rk.r : rk.n + 1 - rk.r)} ${rk.r <= rk.n / 2 ? "Most" : "Fewest"}</small>` : ""}</div>`;
-const vpAllowTip = (abbr, i, v, rk) => `${team(abbr).name} allows ${vpFmt(v)} ${vpWord()} a game to ${VP_POS[i][2].toLowerCase()} (${VP_WINDOWS.find((w) => w[0] === vpView.window)[1]}, ${vpGames(abbr)} games)${rk ? `: ${rankWords(rk.r, rk.n)} of ${rk.n}` : ""}`;
+const vpTile = (v, rk, tip) => `<div class="od-tile vp-tile"${rk ? cellOnStep(rankStep(rk.r, rk.n)) : ""} title="${tip}"><b>${vpFmt(v)}</b>${rk ? `<small>${ordinal(rk.r)}</small>` : ""}</div>`;
+const vpAllowTip = (abbr, i, v, rk) => `${team(abbr).name} allows ${vpFmt(v)} ${vpWord()} a game to ${VP_POS[i][2].toLowerCase()} (${VP_WINDOWS.find((w) => w[0] === vpView.window)[1]}, ${vpGames(abbr)} games)${rk ? `: ${rankWords(rk.n + 1 - rk.r, rk.n)} of ${rk.n} (ranked ${ordinal(rk.r)})` : ""}`;
 
 // ---- schedule ----
 function days() {

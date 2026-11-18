@@ -3,8 +3,8 @@
 Pinned (a member, 2026-11-13: "the shots that each team gives to each position. LW/C/RW/D"; the owner,
 2026-11-17: its own page, a Shots / Goals toggle, and a game shows the players in tonight's matchup):
 the build counts the shots on goal and goals each defense allows to the other team's C / L / R / D,
-in all games, at home, on the road and its last 10; the page divides by games and ranks (1st = allows
-the most, green, the shooter's side like every NHL page); a game shows both offenses' players at
+in all games, at home, on the road and its last 10; the page divides by games and ranks from the
+defense's side (1st = allows the fewest, green; the most allowed = last, red; the owner, 2026-11-17); a game shows both offenses' players at
 each position beside what the other defense allows; Out players are faded; the page is in the NHL menu."""
 import sys
 import unittest
@@ -90,11 +90,17 @@ class Page(unittest.TestCase):
     def test_every_team_most_allowed_first_and_green(self):
         got = PAGE.evaluate("""() => {
             const rows = [...document.querySelectorAll('.vp-grid tbody tr:not(.vp-spacer):not(.vp-top)')];
-            return { n: rows.length, c: rows.map((tr) => Number(tr.querySelectorAll('.vp-tile b')[0].textContent)),
-                     first: rows[0].querySelectorAll('.vp-tile small')[0].textContent };
+            const got = { rows: rows.length, c:rows.map((tr) => Number(tr.querySelectorAll('.vp-tile b')[0].textContent)),
+                     first: rows[0].querySelectorAll('.vp-tile small')[0].textContent,
+                     n: Object.keys(DATA.vs_position.teams).length,
+                     style: rows[0].querySelector('.vp-tile').getAttribute('style') };
+            got.last = ordinal(got.n);
+            got.red = ` style="${got.style}"` === cellOnStep(rankStep(got.n, got.n));
+            return got;
         }""")
         self.assertEqual(got["c"], sorted(got["c"], reverse=True))
-        self.assertTrue(got["first"].endswith("Most"))
+        self.assertEqual(got["first"], got["last"])  # the leakiest defense ranks last
+        self.assertTrue(got["red"])  # and is red
 
     def test_a_game_shows_both_offenses_players_by_position(self):
         got = PAGE.evaluate("""() => {
