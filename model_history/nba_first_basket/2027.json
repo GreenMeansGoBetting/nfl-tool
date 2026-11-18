@@ -2984,14 +2984,14 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.107,
+    0.111,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.084,
+    0.088,
     null,
     false,
     null
@@ -3010,6 +3010,13 @@
     false,
     null
    ],
+   "4066757": [
+    "Sam Merrill",
+    0.069,
+    null,
+    false,
+    null
+   ],
    "4396909": [
     "Aaron Nesmith",
     0.088,
@@ -3017,16 +3024,9 @@
     false,
     null
    ],
-   "4576087": [
-    "Peyton Watson",
-    0.082,
-    null,
-    false,
-    null
-   ],
    "5041951": [
     "Meleek Thomas",
-    0.101,
+    0.105,
     null,
     false,
     null
@@ -18584,14 +18584,14 @@
   "players": {
    "3908809": [
     "Donovan Mitchell",
-    0.11,
+    0.114,
     500,
     false,
     "fanduel"
    ],
    "3992": [
     "James Harden",
-    0.086,
+    0.091,
     950,
     false,
     "fanduel"
@@ -18603,19 +18603,19 @@
     false,
     "fliff"
    ],
+   "4066757": [
+    "Sam Merrill",
+    0.071,
+    null,
+    false,
+    null
+   ],
    "4433083": [
     "Cam Spencer",
     0.088,
     670,
     false,
     "draftkings"
-   ],
-   "4576087": [
-    "Peyton Watson",
-    0.084,
-    null,
-    false,
-    null
    ],
    "4600663": [
     "Zach Edey",
@@ -18640,7 +18640,7 @@
    ],
    "5041951": [
     "Meleek Thomas",
-    0.104,
+    0.108,
     1140,
     true,
     "draftkings"
@@ -18851,24 +18851,24 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.086,
+    0.085,
     700,
     false,
     "fanduel"
    ],
+   "2581018": [
+    "Kentavious Caldwell-Pope",
+    0.078,
+    null,
+    false,
+    null
+   ],
    "3059318": [
     "Joel Embiid",
-    0.1,
+    0.098,
     553,
     false,
     "draftkings"
-   ],
-   "3912848": [
-    "Dean Wade",
-    0.072,
-    1300,
-    false,
-    "fanduel"
    ],
    "4066320": [
     "Desmond Bane",
@@ -18886,7 +18886,7 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.114,
+    0.112,
     620,
     false,
     "draftkings"
@@ -18914,7 +18914,7 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.086,
+    0.085,
     1100,
     false,
     "fanduel"
