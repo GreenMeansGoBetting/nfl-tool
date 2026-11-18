@@ -25026,35 +25026,35 @@
     "Luka Doncic",
     "LAL",
     "CHA",
-    0.0756,
+    0.0733,
     "over",
     false,
     36.5,
-    -103,
-    "4cx"
+    -105,
+    "prophetx"
    ],
    [
     "4278580",
     "Sandro Mamukelashvili",
     "LAL",
     "CHA",
-    0.0982,
+    0.0992,
     "over",
     false,
     12.5,
-    -104,
-    "prophetx"
+    106,
+    "fanduel"
    ],
    [
     "4397014",
     "Quentin Grimes",
     "LAL",
     "CHA",
-    0.0718,
+    0.0715,
     "over",
     false,
     12.5,
-    -112,
+    -111,
     "4cx"
    ],
    [
@@ -25062,23 +25062,23 @@
     "Ziaire Williams",
     "LAL",
     "CHA",
-    0.0663,
+    0.0672,
     "over",
     false,
     9.5,
-    102,
-    "fanduel"
+    103,
+    "prophetx"
    ],
    [
     "4433249",
     "Moussa Diabate",
     "CHA",
     "LAL",
-    0.0699,
+    0.0678,
     "over",
     false,
     8.5,
-    101,
+    -111,
     "prophetx"
    ],
    [
@@ -25086,7 +25086,7 @@
     "Ryan Kalkbrenner",
     "CHA",
     "LAL",
-    0.0699,
+    0.0675,
     "over",
     false,
     4.5,
@@ -25096,23 +25096,11 @@
   ],
   "threes": [
    [
-    "3135045",
-    "Grayson Allen",
-    "CHA",
-    "LAL",
-    0.1959,
-    "over",
-    true,
-    2.5,
-    -119,
-    "4cx"
-   ],
-   [
     "3945274",
     "Luka Doncic",
     "LAL",
     "CHA",
-    0.0881,
+    0.0902,
     "over",
     false,
     4.5,
@@ -25124,48 +25112,48 @@
     "Collin Sexton",
     "LAL",
     "CHA",
-    0.1234,
+    0.1243,
     "over",
     true,
     1.5,
-    126,
-    "fanduel"
+    132,
+    "draftkings"
    ],
    [
     "4278580",
     "Sandro Mamukelashvili",
     "LAL",
     "CHA",
-    0.1729,
+    0.1777,
     "over",
     true,
     1.5,
-    -127,
-    "4cx"
+    -133,
+    "prophetx"
    ],
    [
     "4397014",
     "Quentin Grimes",
     "LAL",
     "CHA",
-    0.0892,
+    0.0881,
     "over",
     false,
     1.5,
-    101,
-    "4cx"
+    100,
+    "prophetx"
    ],
    [
     "4602025",
     "Sion James",
     "CHA",
     "LAL",
-    0.3036,
+    0.2997,
     "over",
     true,
     1.5,
-    134,
-    "4cx"
+    128,
+    "draftkings"
    ]
   ]
  },
