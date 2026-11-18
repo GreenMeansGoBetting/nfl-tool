@@ -2970,7 +2970,7 @@
   "players": {
    "3133603": [
     "Kelly Oubre Jr.",
-    0.097,
+    0.098,
     null,
     false,
     null
@@ -2998,7 +2998,7 @@
    ],
    "4017837": [
     "Ivica Zubac",
-    0.091,
+    0.092,
     null,
     false,
     null
@@ -3010,16 +3010,9 @@
     false,
     null
    ],
-   "4395712": [
-    "Andrew Nembhard",
-    0.091,
-    null,
-    false,
-    null
-   ],
    "4396909": [
     "Aaron Nesmith",
-    0.086,
+    0.088,
     null,
     false,
     null
@@ -3034,6 +3027,13 @@
    "5041951": [
     "Meleek Thomas",
     0.101,
+    null,
+    false,
+    null
+   ],
+   "5105854": [
+    "Braden Smith",
+    0.087,
     null,
     false,
     null
@@ -18680,7 +18680,7 @@
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.104,
+    0.105,
     1100,
     true,
     "fanduel"
@@ -18701,21 +18701,14 @@
    ],
    "4017837": [
     "Ivica Zubac",
-    0.098,
+    0.099,
     547,
     false,
     "draftkings"
    ],
-   "4395712": [
-    "Andrew Nembhard",
-    0.097,
-    800,
-    false,
-    "fanduel"
-   ],
    "4396909": [
     "Aaron Nesmith",
-    0.092,
+    0.095,
     1100,
     true,
     "fanduel"
@@ -18740,6 +18733,13 @@
     552,
     false,
     "draftkings"
+   ],
+   "5105854": [
+    "Braden Smith",
+    0.094,
+    null,
+    false,
+    null
    ]
   },
   "tip_home": 0.627
