@@ -3059,7 +3059,7 @@
   "players": {
    "3134908": [
     "Jakob Poeltl",
-    0.085,
+    0.088,
     null,
     false,
     null
@@ -3078,16 +3078,9 @@
     false,
     null
    ],
-   "4395625": [
-    "RJ Barrett",
-    0.127,
-    null,
-    false,
-    null
-   ],
    "4395724": [
     "Immanuel Quickley",
-    0.101,
+    0.105,
     null,
     false,
     null
@@ -3099,9 +3092,16 @@
     false,
     null
    ],
+   "4432241": [
+    "Jamal Shead",
+    0.109,
+    null,
+    false,
+    null
+   ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.106,
+    0.112,
     null,
     false,
     null
@@ -3115,7 +3115,7 @@
    ],
    "5093267": [
     "Collin Murray-Boyles",
-    0.116,
+    0.122,
     null,
     false,
     null
@@ -19029,7 +19029,7 @@
   "players": {
    "3134908": [
     "Jakob Poeltl",
-    0.079,
+    0.082,
     1000,
     false,
     "thescore"
@@ -19041,30 +19041,30 @@
     false,
     "draftkings"
    ],
-   "4395625": [
-    "RJ Barrett",
-    0.118,
-    750,
-    false,
-    "draftkings"
-   ],
    "4395724": [
     "Immanuel Quickley",
-    0.095,
+    0.098,
     760,
     false,
     "draftkings"
    ],
+   "4432241": [
+    "Jamal Shead",
+    0.102,
+    null,
+    false,
+    null
+   ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.099,
+    0.104,
     850,
     false,
     "hard_rock"
    ],
    "5093267": [
     "Collin Murray-Boyles",
-    0.108,
+    0.114,
     750,
     false,
     "fanduel"
