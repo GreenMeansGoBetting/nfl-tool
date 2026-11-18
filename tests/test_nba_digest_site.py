@@ -79,6 +79,33 @@ class DunkDigest(unittest.TestCase):
     def test_narrative_shows_no_made_up_stories(self):
         self.assertEqual(PAGE.evaluate("(g) => [...document.querySelectorAll(`${g} .dd-tale span`)].map((s) => s.textContent)", FIRST), ["No Data Yet"] * 3)
 
+    def test_narrative_shows_the_saved_stories(self):
+        # the owner, 2026-11-18: real storylines; Out players off, an empty spot says so, no data stays "No Data Yet"
+        who = {"id": "1", "name": "Shooter One", "pos": "SG", "team": "AAA"}
+        benched = {"id": "77", "name": "Sits Tonight", "pos": "C", "team": "AAA"}
+        data = copy.deepcopy(DATA)
+        data["injuries"] = {**(data.get("injuries") or {}), "AAA": [{"id": "77", "name": "Sits Tonight", "status": "Out"}]}
+        data["narrative"] = {"games": {"900": {
+            "revenge": [{**who, "opp": "BBB", "gp": 212, "span": "2022-23 To 2025-26", "tag": "First Game Back"}, {**benched, "opp": "BBB", "gp": 90, "span": "2025-26", "tag": None}],
+            "hometown": [{**benched, "place": "Akron, OH", "school": None}],
+            "college": [{**who, "school": "Duke", "years": "2019-2020", "place": "Durham, North Carolina"}]}}}
+        SITE.nba = data
+        page = SITE.open("nba/dunk-digest.html")
+        try:
+            page.wait_for_selector(f"{FIRST} .dd-tale-on")
+            tales = page.locator(f"{FIRST} .dd-tale")
+            revenge = tales.nth(0).inner_text()
+            for text in ("Shooter One", "212 Games", "2022-23 To 2025-26", "First Game Back"):
+                self.assertIn(text, revenge)
+            self.assertNotIn("Sits Tonight", revenge)
+            self.assertIn("None Tonight", tales.nth(1).inner_text())  # his only story, and he's Out
+            self.assertIn("Duke", tales.nth(2).inner_text())
+            self.assertEqual(page.locator(f"{FIRST} .dd-story .player-click").count(), 2)
+            self.assertEqual(page.evaluate("() => [...document.querySelectorAll('.dd-game[data-game=\"901\"] .dd-tale span')].map((s) => s.textContent)"), ["No Data Yet"] * 3)
+        finally:
+            page.close()
+            SITE.nba = DATA
+
     def test_a_matchup_tile_opens_whos_behind_it(self):
         PAGE.click(f"{FIRST} .mks-grid [data-who] >> nth=0")
         PAGE.wait_for_selector("#mb-who-modal:not([hidden])")

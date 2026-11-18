@@ -59,10 +59,25 @@ html.is-owner .dd-locked, html.local-dev .dd-locked { display: none; }
 
 /* 5: Narrative */
 .dd-story .mk-bh { height: 34px; font-size: 1rem; }
-.dd-stories { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.dd-tale { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 38px; padding: 0 12px; border-radius: 6px; background: var(--rs-label);
+.dd-stories { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 6px; align-items: start; }
+.dd-tale { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; box-sizing: border-box; padding: 0 12px; border-radius: 6px; background: var(--rs-label);
   font: 600 0.88rem var(--font-body); }
 .dd-tale b { font: 700 1rem var(--font-display); }
+.dd-tale-on { display: grid; justify-content: stretch; gap: 4px; padding: 8px; }
+.dd-tale-on > b { padding: 0 4px 2px; font-size: 1.1rem; }
+/* a story: the player, then filled boxes (the Revenge columns line up down the list) */
+.dd-sr { display: flex; align-items: center; gap: 7px; min-height: 42px; padding: 2px 6px; border-radius: 6px; background: var(--rs-box); }
+.dd-sr > .dd-st { margin-left: auto; }
+.dd-sr-rev { display: grid; grid-template-columns: 26px minmax(0, 1fr) 54px 96px 124px 146px; }
+.dd-sr-rev > .dd-st { margin-left: 0; padding: 2px 4px; }
+.dd-sr-rev:not(:has(.pt-badge)) .dd-sn { grid-column: span 2; }
+.dd-sn { display: flex; flex-direction: column; min-width: 0; line-height: 1.12; font: 700 1rem var(--font-display); }
+.dd-sn > :first-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dd-sn small { font: 600 0.74rem var(--font-body); }
+.dd-st { display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; min-height: 30px; padding: 2px 8px; border-radius: 6px; text-align: center;
+  background: var(--rs-tile); font: 700 0.9rem var(--font-display); }
+.dd-st-team { background: rgba(var(--team), 0.34); }
+.dd-st-tag { background: rgba(var(--good-rgb), 0.34); }
 
 /* the game list, under the camera */
 .dd-rail { position: sticky; top: 215px; margin-top: 140px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; max-height: calc(100vh - 230px); overflow-y: auto;

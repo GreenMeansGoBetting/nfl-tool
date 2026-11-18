@@ -50,6 +50,7 @@ import sim  # noqa: E402
 import watch  # noqa: E402
 import nba_report  # noqa: E402
 import espn_late  # noqa: E402
+import narrative  # noqa: E402
 
 RELEASES = "https://github.com/sportsdataverse/sportsdataverse-data/releases/download"
 FILES = {
@@ -1485,6 +1486,16 @@ def main():
     except Exception as ex:
         print(f"WARNING: NBA shots failed ({ex!r}).", file=sys.stderr)
     lap("shots")
+    # Dunk Digest's Narrative box (narrative.py): career teams, hometown, college. Biography only, own try;
+    # the injury refresh asks no source and draws from the saved facts.
+    try:
+        neutral = schedule.loc[schedule["neutral_site"].fillna(False).astype(bool), "game_id"] if "neutral_site" in schedule else []
+        blob["narrative"] = narrative.block(args.season, games, shown["players"], teams, rosters["athlete_id"].dropna().astype(int) if rosters is not None else [],
+                                            neutral, today, refresh=not args.fast_odds)
+    except Exception as ex:
+        print(f"WARNING: Narrative failed ({ex!r}).", file=sys.stderr)
+        blob["narrative"] = None
+    lap("narrative")
     # What tonight's sims read about who plays: the Cloudflare timer compares it
     # with ESPN and the NBA every minute and starts nba-refresh.yml on a change.
     today = eastern(now_utc.strftime("%Y-%m-%dT%H:%MZ")).strftime("%Y-%m-%d")

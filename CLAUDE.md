@@ -127,7 +127,7 @@ message, so every line costs usage); detail belongs in a rules file.
 - **Phone layout:** phone-only rules go in the last `@media (max-width: 760px)` block of
   style.css so desktop stays pixel-identical; new wide tables must scroll inside their own box.
 - The TD Data page is considered solid; change it only when asked.
-- **The NHL suite is this season only**: no last-season data in any model or on any page, not even fading out (nhl.md). **NBA: this season only, no exceptions** (the owner, 2026-10-27: "i've told you 10000 times its not relevant"): no 2025-26 in any model, page or starting point, not even fading out; 2025-26 is for backtests only (nba.md).
+- **The NHL suite is this season only**: no last-season data in any model or on any page, not even fading out (nhl.md). **NBA: this season only, no exceptions** (the owner, 2026-10-27: "i've told you 10000 times its not relevant"): no 2025-26 in any model, page or starting point, not even fading out; 2025-26 is for backtests only (nba.md). Dunk Digest's Narrative may read career teams / hometown / college: biography, never a number (the owner, 2026-11-18).
 
 ## Where the detail lives
 

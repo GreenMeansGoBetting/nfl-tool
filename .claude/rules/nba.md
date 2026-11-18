@@ -21,7 +21,7 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   Assists game sim. `positions.py`: PG / SG / SF / PF / C. `shots.py`: shot spots (`nba/shots.json`).
   `zone_matchups.py`: Zone Matchup Targets. `kotc.py`: King of the Court. `first_basket.py`: First
   Basket. `watch.py`: injury / market watch. `nba_report.py`: the NBA's injury report PDF.
-  `espn_late.py`: last night's finals from ESPN before hoopR has them.
+  `espn_late.py`: last night's finals from ESPN before hoopR has them. `narrative.py`: Dunk Digest's Narrative.
 - Pages (`site/nba/`): `league.html` + `league.js` + `league.css` League Stats Chart (first in the menu;
   its columns, formats and ranks in `league-cols.js`, shared with Matchup Keys); `matchup-keys.html/.js/.css` + `matchup-history.js`
   Matchup Keys (rules in `keys.js`);
@@ -38,6 +38,8 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
 
 ## This season only, no exceptions
 
+- **Biography is not stats:** Dunk Digest's Narrative may read a player's career teams, hometown and college (the
+  owner, 2026-11-18). Nothing from it reaches a number, model, tag or any other page.
 - **Every NBA play, projection, tag and pick comes from 2026-27 games only.** 2025-26 is for
   backtests alone (fitting weights, how many games a number needs) and is not on the site at all:
   no season buttons, reference popups, fallbacks or per-player starting points. build_nba.py reads
@@ -693,8 +695,24 @@ the data, sorted by game, on the site so it can be clicked into, without hopping
   camera (`.dd-rail`, sticky at 215 px). Under 1500 px wide the list moves above the column.
 - **Owner only:** an `owner` row in `SPORT_PAGES`, and CSS hides the page unless `html.is-owner` / `.local-dev`
   (a member with the link sees "This page isn't open yet"). A browser-side block: the data is what members have.
-- **Narrative** (Revenge Game, Back To Hometown, Back To College) shows "No Data Yet" until real data exists;
-  never guessed. Tests: `tests/test_nba_digest_site.py`.
+- **Narrative** (`narrative.py`, data.json `narrative`, own try; the owner approved the rules 2026-11-18): talking
+  points, **never a pick** (revenge measured zero in `nba_spots.py`). Rotation players; the page drops Out / Doubtful.
+  No saved data or a neutral site = "No Data Yet"; nothing that fits = "None Tonight". Never guessed.
+  - **Revenge Game** (both teams): 41+ regular-season games for tonight's opponent and left within 3 seasons, or 200+
+    games ever. Tags from ESPN game logs, preseason out: **First Game Back** (road, never played there since leaving),
+    **First Time Facing Them** (home, or a neutral site).
+  - **Back To Hometown** (road players): 2 of ESPN's place, Wikipedia's birthplace and a local high school within
+    `NEAR_MILES` 75; a local school on file must be near too (Bam Adebayo: born Newark, schools in NC); national preps
+    (`PREP`) never count. **ESPN's "birthplace" behaves like a hometown** (54 disagreements with Wikipedia: the high
+    school sat near ESPN's place 48 times, Wikipedia's once).
+  - **Back To College** (road players): any school he attended, Wikipedia for transfers, ESPN's always included.
+  - Both: tonight's arena must be the **closest of the 30** (NY / BKN and LAL / LAC count as one; Danny Wolf's Glencoe
+    is Chicago, not Milwaukee), and his own team's arena not within 75 miles. Home players aren't "going back".
+  - **Saved facts:** `model_history/nba_bios/<season>.json` (bot commits it): each full build re-reads new players and
+    the oldest past `STALE_DAYS` 7, at most `MAX_REFRESH` 80, and tonight + 3 days' game logs once a day; a source
+    down keeps what's saved; the injury refresh asks nothing. Re-read all (about 6 minutes):
+    `py nfl_tool/nba/narrative.py --season 2027 --seed`. A wrong story: add the player to `HIDE`.
+  - Tests: `tests/test_nba_narrative.py`, `tests/test_nba_digest_site.py`.
 
 ## Basketball-Reference cross-check (`bbref_check.py`, `nba-bbref-check.yml`, 2026-11-11)
 

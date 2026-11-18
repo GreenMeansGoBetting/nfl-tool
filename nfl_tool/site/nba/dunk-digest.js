@@ -10,7 +10,7 @@ const DD_STEPS = [["summary", "Summary"], ["edges", "Edges"], ["types", "Player 
 // beside the Summary: each team's own numbers (the ones the Summary doesn't show)
 const DD_NUMBERS = [["net", "Net Rating"], ["margin", "Avg Margin"], ["total", "Avg Total"], ["o_ppg", "Points Per Game"],
   ["ats", "ATS Record"], ["ou", "O/U Record"], ["o_trans_ppp", "Transition Pts"], ["o_ball_move", "Ball Movement"]];
-const DD_STORIES = ["Revenge Game", "Back To Hometown", "Back To College"]; // no data yet: nothing is guessed
+const DD_STORIES = [["revenge", "Revenge Game"], ["hometown", "Back To Hometown"], ["college", "Back To College"]];
 const DD_WIDTH = 1400, DD_RAIL = 380, DD_TYPES_ZOOM = 1.5, DD_TYPES_HEIGHT = 840;
 let ddDrawn = "";
 
@@ -35,6 +35,22 @@ function ddTeamSide(ctx, t, opp) {
     <div class="dd-sh">Injuries</div><div class="dd-inj">${injuryPills(t)}</div>
     <div class="dd-sh">Team Numbers</div><div class="dd-nums">${DD_NUMBERS.map(([k, name]) => ddNumber(ctx, t, opp, k, name)).join("")}</div></div>`;
 }
+// ---- Narrative (narrative.py): talking points, never picks. No saved data = "No Data Yet", nothing guessed ----
+const ddPlaying = (r) => !(DATA.injuries?.[r.team] || []).some((x) => x.id === r.id && SS_OUT.has(x.status));
+const ddWho = (r) => `${logo(r.team, 26)}<span class="dd-sn" title="${esc(r.name)}">${playerClick(r.id, esc(r.name))}<small>${esc(r.pos)} &middot; ${r.team}</small></span>${nbaTypeBadge(r.id)}`;
+const DD_STORY_ROW = {
+  revenge: (r) => `<div class="dd-sr dd-sr-rev">${ddWho(r)}<span class="dd-st dd-st-team" style="--team:${teamRgb(r.opp)}">${logo(r.opp, 20)}${r.gp} Games</span>
+    <span class="dd-st">${esc(r.span)}</span>${r.tag ? `<span class="dd-st dd-st-tag">${esc(r.tag)}</span>` : "<span></span>"}</div>`,
+  hometown: (r) => `<div class="dd-sr"${r.school ? ` title="High School: ${esc(r.school)}"` : ""}>${ddWho(r)}<span class="dd-st">${esc(r.place)}</span></div>`,
+  college: (r) => `<div class="dd-sr" title="${esc([r.place, r.years].filter(Boolean).join(", "))}">${ddWho(r)}<span class="dd-st">${esc(r.school)}</span></div>`,
+};
+function ddTale(g, key, name) {
+  const list = DATA.narrative?.games?.[g.game_id]?.[key];
+  if (!list) return `<div class="dd-tale"><b>${name}</b><span>No Data Yet</span></div>`;
+  const rows = list.filter(ddPlaying);
+  if (!rows.length) return `<div class="dd-tale"><b>${name}</b><span>None Tonight</span></div>`;
+  return `<div class="dd-tale dd-tale-on" data-story="${key}"><b>${name}</b>${rows.map(DD_STORY_ROW[key]).join("")}</div>`;
+}
 const ddSpots = (g, b) => ["more", "less"].map((side) => `<div class="ss-gcard">${ssGameBand(g, b, side, side === "more" ? "Standouts" : "Tough Spots")}</div>`).join("");
 function ddGame(g, i, n, ctx, b) {
   const [a, h] = [g.away, g.home];
@@ -50,8 +66,8 @@ function ddGame(g, i, n, ctx, b) {
     ${numbers}
     <div class="dd-step dd-types" id="${ddStepId(g, "types")}">${typeBox(g)}</div>
     <div class="dd-step dd-ss" id="${ddStepId(g, "spots")}" data-game="${g.game_id}">${ddSpots(g, b)}</div>
-    <div class="dd-step mk-box dd-story" id="${ddStepId(g, "story")}"><div class="mk-bh mk-bh-both">Narrative</div>
-      <div class="dd-stories">${DD_STORIES.map((name) => `<div class="dd-tale"><b>${name}</b><span>No Data Yet</span></div>`).join("")}</div></div>
+    <div class="dd-step mk-box dd-story" id="${ddStepId(g, "story")}"><div class="mk-bh mk-bh-both" title="Career teams and college from ESPN; birthplace and high schools from ESPN and Wikipedia. Talking points, not picks.">Narrative</div>
+      <div class="dd-stories">${DD_STORIES.map(([key, name]) => ddTale(g, key, name)).join("")}</div></div>
   </section>`;
 }
 
