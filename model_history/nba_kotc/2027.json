@@ -10930,70 +10930,70 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3698,
+    "lead": 0.3693,
     "name": "Luka Doncic",
     "proj": 57.1,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.1476,
+    "lead": 0.1474,
     "name": "Giannis Antetokounmpo",
     "proj": 48.4,
     "team": "MIA"
    },
    {
     "id": "4871144",
-    "lead": 0.0646,
+    "lead": 0.0645,
     "name": "Alperen Sengun",
     "proj": 42.9,
     "team": "HOU"
    },
    {
     "id": "4065648",
-    "lead": 0.0438,
+    "lead": 0.0447,
     "name": "Jayson Tatum",
-    "proj": 41.0,
+    "proj": 41.1,
     "team": "BOS"
    },
    {
     "id": "4566434",
-    "lead": 0.042,
+    "lead": 0.0419,
     "name": "Franz Wagner",
     "proj": 40.5,
     "team": "ORL"
    },
    {
     "id": "4432166",
-    "lead": 0.0413,
+    "lead": 0.041,
     "name": "Cade Cunningham",
     "proj": 40.7,
     "team": "DET"
    },
    {
     "id": "3112335",
-    "lead": 0.039,
+    "lead": 0.0396,
     "name": "Nikola Jokic",
-    "proj": 40.0,
+    "proj": 40.1,
     "team": "DEN"
    },
    {
     "id": "4278073",
-    "lead": 0.0356,
+    "lead": 0.0366,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 39.7,
+    "proj": 39.8,
     "team": "OKC"
    },
    {
     "id": "4433134",
-    "lead": 0.0345,
+    "lead": 0.0344,
     "name": "Scottie Barnes",
     "proj": 39.1,
     "team": "TOR"
    },
    {
     "id": "5142620",
-    "lead": 0.0233,
+    "lead": 0.0232,
     "name": "Darius Acuff Jr.",
     "proj": 37.7,
     "team": "SAC"
@@ -11014,14 +11014,14 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0125,
+    "lead": 0.0124,
     "name": "Cooper Flagg",
     "proj": 35.9,
     "team": "DAL"
    },
    {
     "id": "3064514",
-    "lead": 0.0116,
+    "lead": 0.0115,
     "name": "Julius Randle",
     "proj": 34.4,
     "team": "BKN"
@@ -11035,42 +11035,42 @@
    },
    {
     "id": "4395625",
-    "lead": 0.0101,
+    "lead": 0.0098,
     "name": "RJ Barrett",
     "proj": 33.8,
     "team": "TOR"
    },
    {
     "id": "3908809",
-    "lead": 0.0092,
+    "lead": 0.0091,
     "name": "Donovan Mitchell",
     "proj": 34.0,
     "team": "CLE"
    },
    {
     "id": "3136193",
-    "lead": 0.0083,
+    "lead": 0.0082,
     "name": "Devin Booker",
     "proj": 33.8,
     "team": "PHX"
    },
    {
     "id": "4066261",
-    "lead": 0.0078,
+    "lead": 0.0077,
     "name": "Bam Adebayo",
     "proj": 34.5,
     "team": "MIA"
    },
    {
     "id": "4278104",
-    "lead": 0.0067,
+    "lead": 0.0066,
     "name": "Michael Porter Jr.",
     "proj": 32.9,
     "team": "BKN"
    },
    {
     "id": "4431678",
-    "lead": 0.0061,
+    "lead": 0.0059,
     "name": "Tyrese Maxey",
     "proj": 33.5,
     "team": "PHI"
@@ -11154,9 +11154,9 @@
    },
    {
     "id": "4251",
-    "lead": 0.0017,
+    "lead": 0.0018,
     "name": "Paul George",
-    "proj": 30.2,
+    "proj": 30.3,
     "team": "BOS"
    },
    {
@@ -11226,7 +11226,7 @@
     "id": "4900671",
     "lead": 0.0004,
     "name": "Ajay Mitchell",
-    "proj": 25.9,
+    "proj": 26.0,
     "team": "OKC"
    },
    {
