@@ -18851,21 +18851,21 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.085,
+    0.092,
     700,
     false,
     "fanduel"
    ],
    "2581018": [
     "Kentavious Caldwell-Pope",
-    0.078,
+    0.081,
     null,
     false,
     null
    ],
    "3059318": [
     "Joel Embiid",
-    0.098,
+    0.109,
     553,
     false,
     "draftkings"
@@ -18884,19 +18884,19 @@
     false,
     "fanduel"
    ],
-   "4431678": [
-    "Tyrese Maxey",
-    0.112,
-    620,
-    false,
-    "draftkings"
-   ],
    "4432165": [
     "Jalen Suggs",
     0.084,
     1000,
     false,
     "hard_rock"
+   ],
+   "4432446": [
+    "Jabari Walker",
+    0.081,
+    null,
+    false,
+    null
    ],
    "4566434": [
     "Franz Wagner",
@@ -18914,9 +18914,9 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.085,
+    0.094,
     1100,
-    false,
+    true,
     "fanduel"
    ]
   },
