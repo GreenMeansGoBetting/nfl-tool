@@ -17429,7 +17429,7 @@
    ],
    "4431736": [
     "Toumani Camara",
-    0.088,
+    0.093,
     1200,
     true,
     "hard_rock"
@@ -17441,23 +17441,23 @@
     false,
     "hard_rock"
    ],
-   "4683021": [
-    "Deni Avdija",
-    0.134,
-    650,
+   "4683678": [
+    "Scoot Henderson",
+    0.107,
+    null,
     false,
-    "bet365"
+    null
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.102,
+    0.108,
     1750,
     true,
     "hard_rock"
    ],
    "5105565": [
     "Donovan Clingan",
-    0.084,
+    0.09,
     750,
     false,
     "hard_rock"
@@ -17471,9 +17471,9 @@
    ],
    "6606": [
     "Damian Lillard",
-    0.12,
+    0.131,
     800,
-    false,
+    true,
     "fanduel"
    ]
   },
@@ -18930,7 +18930,7 @@
    ],
    "4431736": [
     "Toumani Camara",
-    0.091,
+    0.097,
     null,
     false,
     null
@@ -18949,30 +18949,30 @@
     false,
     null
    ],
-   "4683021": [
-    "Deni Avdija",
-    0.14,
+   "4683678": [
+    "Scoot Henderson",
+    0.112,
     null,
     false,
     null
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.106,
+    0.112,
     null,
     false,
     null
    ],
    "5105565": [
     "Donovan Clingan",
-    0.088,
+    0.094,
     null,
     false,
     null
    ],
    "6606": [
     "Damian Lillard",
-    0.126,
+    0.137,
     null,
     false,
     null
