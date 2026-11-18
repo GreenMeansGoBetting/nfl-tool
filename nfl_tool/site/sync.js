@@ -366,6 +366,19 @@ window.GMGSettings = { open: openGmgSettings };
 // "only when people click into nhl today").
 const GMG_UPDATES = [
   {
+    id: "2026-11-17",
+    heading: "Tuesday Updates",
+    items: [
+      ["🏒", "<b>New NHL Page: Vs Position</b>: shots on goal (or goals) each defense allows a game to centers, left wings, right wings and defensemen, for the season, home, away or last 10. Pick a game to see both teams' players at each position next to what the other defense gives up. Red = a leaky defense. (Member request)"],
+      ["🥅", "<b>No Goal Prices</b>: the NHL Goals page now shows the price for a player NOT to score under his Anytime price, and you can save it to My Plays. (Member request)"],
+      ["✅", "<b>Slate Standouts Check Marks</b>: save a player's line from Slate Standouts and his box gets a check, so you can see who you're already on. (Member request)"],
+      ["📊", "<b>Every Team By Quarter</b>: on the H2H tab, click any quarter row to see all 30 teams ranked for that quarter. (Member request)"],
+      ["🏀", "<b>Rebounds Read Both Glasses</b>: Slate Standouts now flags defenses that own the defensive glass, and Matchup Keys' Rebounding box adds missed shots a game. More misses = more boards to grab."],
+      ["👑", "<b>King of the Court Defense Board</b>: each row is now the offense, with the defense it faces tonight. Click a 40+ to 60+ cell to see who reached it against that defense."],
+      ["🏈", "<b>Props Summary Prices</b>: lines now show the best price across your books, not just Novig's."],
+    ],
+  },
+  {
     id: "2026-11-13",
     sport: "nba",
     heading: "Player Types Update",
