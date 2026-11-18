@@ -107,6 +107,22 @@ class MyPlays(unittest.TestCase):
         finally:
             page.close()
 
+    def test_a_no_goal_play_wins_when_he_doesnt_score(self):
+        # a member, 2026-10-23: the Under side of Goals. No goal = under 0.5 goals, its own play (":no").
+        no = {**GAME, "game_id": "2026019999", "id": "nhl:goal:2026019999:1:no", "market": "goal", "category": "No goal",
+              "player_id": "1", "side": "under", "line": 0.5, "odds": -300, "description": "A no goal"}
+        page = SITE.open("my-plays.html")
+        try:
+            got = page.evaluate("""(play) => {
+                const real = nhlGameRow;
+                try {
+                    return [0, 1, 2].map((g) => { nhlGameRow = () => ({ g, a: 0, sog: 4 }); return gradeNhlPlay(play); });
+                } finally { nhlGameRow = real; }
+            }""", no)
+            self.assertEqual(got, ["win", "loss", "loss"])
+        finally:
+            page.close()
+
     def test_a_game_off_the_schedule_still_grades(self):
         # nhl/data.json's schedule starts yesterday, so a play two days old has no
         # schedule game: it grades from the box score (it stayed Pending, 2026-10-27).

@@ -807,7 +807,7 @@ function oddsView(id, game) {
     };
     return lines.map((l) => `<tr class="nba-pc-altrow"><td>${label} <span class="nba-pc-alttag">Alt</span></td><td class="num props-line">${fmt(l)}</td><td class="num">${side("o", l)}</td><td class="num">${market === "goal" ? "--" : side("u", l)}</td><td class="num">--</td></tr>`).join("");
   };
-  if (o.goal) rows.push(`<tr><td>Anytime goal${thin(o.goal)}</td><td class="num props-line">--</td><td class="num">${oddsSide(row, game, "goal", "goals", "over", 0.5, o.goal.odds)}</td><td class="num">${odds(o.goal.no_odds) || "--"}</td><td class="num">${chance(o.goal.chance)}</td></tr>`);
+  if (o.goal) rows.push(`<tr><td>Anytime goal${thin(o.goal)}</td><td class="num props-line">--</td><td class="num">${oddsSide(row, game, "goal", "goals", "over", 0.5, o.goal.odds)}</td><td class="num">${oddsSide(row, game, "goal", "goals", "under", 0.5, o.goal.no_odds)}</td><td class="num">${chance(o.goal.chance)}</td></tr>`);
   if (o.goal || o.goal_alts) rows.push(altRows("goals", "Goals", "goal", o.goal_alts, 0.5));
   if (o.first_goal) rows.push(`<tr><td>First goal${thin(o.first_goal)}</td><td class="num props-line">--</td><td class="num"><b>${odds(o.first_goal.odds)}</b></td><td class="num">--</td><td class="num">${chance(o.first_goal.chance)}</td></tr>`);
   ODDS_MARKETS.forEach(([key, label, market, stat]) => {
@@ -1239,6 +1239,16 @@ const nhlPlayId = (market, gameId, who, rung) => `nhl:${market}:${gameId}:${who}
 // (Goals: none, but a 2+ goals rung is an over); legs: a stack's players [{id, name, team}].
 function nhlPlayEntry({ market, g, r, side, line, price, legs, book, rung }) {
   const sideWord = side === "under" ? "Under" : "Over";
+  // No goal (a member, 2026-10-23: "the option to choose which side ... playing under Goals"): the
+  // anytime's other side, under 0.5 goals, its own play beside the Yes (id ends ":no")
+  if (market === "goal" && !rung && side === "under") {
+    return {
+      id: nhlPlayId("goal", g.game_id, r.id, "no"), sport: "nhl", market: "goal", category: "No goal",
+      date: g.date, game_id: g.game_id, matchup: `${g.away} @ ${g.home}`, team: r.team, player_id: r.id,
+      side: "under", line: 0.5, odds: has(price) ? price : null, description: `${r.name} no goal`, legs: null,
+      ...(book ? { book } : {}),
+    };
+  }
   const goals = market === "goal" && rung; // 2+ goals, a hat trick: an over his goals line
   const description = goals ? `${r.name} ${Math.ceil(line)}+ goals`
     : market === "goal" ? `${r.name} anytime goal`

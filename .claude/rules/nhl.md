@@ -19,7 +19,7 @@ in `docs/history.md`: "NHL", and "2026-10-29: the NHL rules file before the trim
   `lines_model.py` (Line Matchups, `nhl/lines.json`). `stacks_model.py` (retired Line Stacks) stays
   for the replays.
 - Pages (`site/nhl/`): `index.html` + `nhl.js` Game Previews; `shots`, `goals`, `points`, `saves`
-  (`.html` + `.js` each); `lines.html/.js` Line Matchups; `best.html/.js` Best Plays;
+  (`.html` + `.js` each); `lines.html/.js` Line Matchups; `vs-position.html/.js` Vs Position; `best.html/.js` Best Plays;
   `promo-tools.html/.js` King of the Crease + `icebreaker.js` + `hattrick.js`; `nhl-common.js` shared by every page;
   `nhl.css`.
 - Records (`model_history/`): `nhl_shots/<month>.json`, `nhl_goals/`, `nhl_points/`, `nhl_saves/`,
@@ -154,7 +154,7 @@ in `docs/history.md`: "NHL", and "2026-10-29: the NHL rules file before the trim
 - **Styles:** hockey-only rules in `site/nhl/nhl.css` (`.nhl-*`; never style.css); the layout shared
   with NBA is `site/suite.css` (`.nba-two`, `.nba-box`, `.nba-tile`, `.nba-app` / `.nba-soon`).
 - **Top bar** (`SPORT_PAGES` / `addTopMenu` in sync.js): NFL, NBA, NHL, Promo Tools on every page.
-  The NHL list: Game Previews, Line Matchups, then "Player props" over Best Plays, Shots, Goals,
+  The NHL list: Game Previews, Line Matchups, Vs Position, then "Player props" over Best Plays, Shots, Goals,
   Points, Saves (`PROPS`). A new prop tool = one line in `PROPS`. No "More tools coming". Tests:
   every NHL page's bar, `test_header_site.py`.
 - **Save to My Plays:** every priced play on Shots, Goals, Points, Saves and Best Plays has an
@@ -376,6 +376,10 @@ until it has more games graded.
 **Page** (`goals.html` + `goals.js`; reuses `#shots-app` / `.shots-*`, own `.goals-*`):
 - No goal math: everything from goals.json; the edge cell is colored by `size`, never the rounded
   edge. Loads shots.json for rink boxes and linemates.
+- **No goal** (a member, 2026-10-23: the Under side of Goals): under the anytime price, "No" + its price
+  (best book at under 0.5 on the member's books, else Novig's `no_odds`) and its own save box
+  (`noGoalChip`); also the card's Odds tab. Saved as market `goal`, side under, line 0.5, id ending `:no`
+  (its own play beside the Yes); My Plays grades it a win at 0 goals.
 - Columns: #, Player, Line, Anytime (Novig chip; **"No odds"** outlined chip), **Rating** (Strong /
   Lean / Check / New line), **Zone** (blue chip), G (/gp), xG, Fair, Edge; advanced: Min, Opp,
   Goalie, Finish, EV/PP, **Style**, Home/rest. Result column once final.
@@ -573,6 +577,21 @@ Previews.
   and record (`game_ice` / `ice`). Kept: `model_history/nhl_stacks/`, `stacks_model.py` +
   `tools/backtest/nhl_stacks.py` + `tests/test_nhl_stacks.py`, the SGP price log endpoint and D1 rows
   (members-and-hosting.md); My Plays still grades saved stacks.
+
+## Vs Position (`vs-position.html` + `vs-position.js`, 2026-11-17)
+
+What each defense allows to C / LW / RW / D (a member: "the shots that each team gives to each
+position"; the owner: its own page under Line Matchups, a Shots / Goals toggle, a game shows its players).
+- Build: `compute_vs_position(records)` -> data.json `vs_position` {positions, teams {T: {season,
+  home, away, "10": [games, C sog, C g, L sog, L g, R sog, R g, D sog, D g]}}}: the OTHER team's
+  skaters by the box score's position; home / away = the defense's venue. The page only divides and ranks.
+- Page: Shots | Goals and Season / Home / Away / Last 10 (per-device `nhl-tool.vs-position.v1`); a
+  game card (the first unstarted opens) shows both directions, offense banner "vs <DEF> Defense": per
+  position the defense's tile and the offense's players (data.json skaters, his SOG a game or goals,
+  colored vs the league's players at his position with 3+ games; Out faded). Below, all 32 teams (the
+  game's two first, never grayed), a header sorts. Allows the most = green (the shooter's side).
+- The box score's positions list many wingers as C (it's the roster's position, not tonight's line).
+- Tests: `tests/test_nhl_vs_position.py`.
 
 ## King of the Crease (Promo Tools)
 

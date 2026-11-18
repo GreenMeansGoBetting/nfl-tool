@@ -1192,6 +1192,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     ] },
     nhl: { label: "NHL", home: "", items: [
       pills(["Game Previews", "", 140], ["Line Matchups", "lines.html", 240]),
+      // Vs Position: what each defense allows to C / LW / RW / D, shots or goals (a member, 2026-11-13)
+      pills(["Vs Position", "vs-position.html", 45]),
       { head: "Player Props" },
       pills(["Best Plays", PROPS[0].href, 300]),
       pills(...PROPS.slice(1, 3).map((p, i) => [p.name, p.href, [210, 330][i]])),

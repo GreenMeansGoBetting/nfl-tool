@@ -3723,6 +3723,40 @@ def fetch_teams() -> tuple:
     return teams, standings
 
 
+VS_POS = ("C", "L", "R", "D")  # the box score's positions: center, left wing, right wing, defense
+VS_POS_LAST = 10
+
+
+def compute_vs_position(records: list) -> dict:
+    """What each defense allows to each skater position (the Vs Position page; a member, 2026-11-13:
+    "the shots that each team gives to each position. LW/C/RW/D"): shots on goal and goals by the
+    other team's centers, left wings, right wings and defensemen, in all its games, at home, on
+    the road and its last 10. Per team and window: [games, C shots, C goals, L shots, L goals,
+    R shots, R goals, D shots, D goals]. The box score's skater lines leave shootouts out."""
+    width = 1 + 2 * len(VS_POS)
+    games = {}
+    for r in records:  # oldest first (load_games sorts by date)
+        for team, other in ((r["home"], r["away"]), (r["away"], r["home"])):
+            row = [1] + [0] * (width - 1)
+            for s in r["skaters"].values():
+                if s["team"] == other and s["pos"] in VS_POS:
+                    i = 1 + 2 * VS_POS.index(s["pos"])
+                    row[i] += s.get("sog") or 0
+                    row[i + 1] += s.get("g") or 0
+            games.setdefault(team, []).append((team == r["home"], row))
+
+    def add(rows):
+        return [sum(x[k] for x in rows) for k in range(width)]
+
+    teams = {team: {
+        "season": add([x for _, x in rows]),
+        "home": add([x for home, x in rows if home]),
+        "away": add([x for home, x in rows if not home]),
+        "10": add([x for _, x in rows[-VS_POS_LAST:]]),
+    } for team, rows in games.items()}
+    return {"positions": list(VS_POS), "teams": teams}
+
+
 def season_stats(season: int, data_dir: Path, standings: dict, team_ids: dict) -> dict:
     """Everything worked out from one season's finished games."""
     listing = _request(f"{REST}/game?cayenneExp=season={season_id(season)}%20and%20gameType={REGULAR_SEASON}").get("data") or []
@@ -3734,6 +3768,7 @@ def season_stats(season: int, data_dir: Path, standings: dict, team_ids: dict) -
         "records": records,
         "debug": debug,
         "team_stats": compute_team_stats(records, standings, reports, team_ids),
+        "vs_position": compute_vs_position(records),
         "skaters": compute_skaters(records, fetch_report("skater/timeonice", season, "playerId")),
         "goalies": compute_goalies(records),
         "detail": compute_player_details(records),
@@ -3819,6 +3854,7 @@ def main():
         "league": {"season": stats["league"]},
         "teams": teams,
         "team_stats": stats["team_stats"],
+        "vs_position": stats["vs_position"],
         "recent_games": compute_recent_games(stats["records"]),
         "skaters": lineups,
         "goalies": goalies,

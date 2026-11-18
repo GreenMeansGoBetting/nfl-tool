@@ -57,7 +57,7 @@ class TopMenu(unittest.TestCase):
             self.assertIn("prop research", page.inner_text(".nba-menu").lower())  # the research pages (2026-11-03)
             self.assertNotIn("under construction", page.inner_text(".nba-menu").lower())  # First Basket joined them (2026-11-03)
             page.click(".page-nav .nhl-trigger")
-            self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nhl-menu")], ["Game Previews", "Line Matchups", "Best Plays", "Shots", "Goals", "Points", "Saves"])
+            self.assertEqual([x[0] for x in page.evaluate(LINKS % ".nhl-menu")], ["Game Previews", "Line Matchups", "Vs Position", "Best Plays", "Shots", "Goals", "Points", "Saves"])
             self.assertIn("player props", page.inner_text(".nhl-menu").lower())
             page.keyboard.press("Escape")
             self.assertTrue(page.locator(".nhl-menu").is_hidden())

@@ -190,6 +190,15 @@ function priceChip(r) {
     ? `<span class="shots-play shots-play-over goals-price" title="Best anytime goal price across your books"><b>${odds(r.odds)}</b></span>`
     : `<span class="goals-noodds" title="Novig has no anytime price for him yet. The fair price is there to shop elsewhere; prices fill in through the day.">No odds</span>`;
 }
+// The other side, No goal (a member, 2026-10-23: "the option to choose which side of the play to bet
+// on ... playing under Goals"): its price (the best book's at under 0.5, else Novig's No) and its own
+// save box, under the anytime price. Colored red like an Under chip.
+function noGoalChip(x) {
+  if (!has(x.r.no_odds)) return "";
+  const best = memberPrice(x, "goals", "under", 0.5, x.r.no_odds, "novig");
+  const price = best ? best.price : x.r.no_odds;
+  return `<div class="goals-no-row"><span class="shots-play shots-play-under goals-price goals-no" title="No goal: the price for him NOT to score"><b>No ${odds(price)}</b></span>${nhlPlayBox(nhlPlayEntry({ market: "goal", g: x.game, r: x.r, side: "under", price, book: best ? best.book : "novig" }))}</div>`;
+}
 function zoneCell(r) {
   return `<td class="goals-zone-cell">${r.zone ? `<span class="goals-zone" title="${zoneTip(r)}">${ZONE_WORD[r.zone.area].toUpperCase()}</span>` : `<span class="muted-label">--</span>`}</td>`;
 }
@@ -377,7 +386,7 @@ const COLUMNS = [
   { key: null, label: "#", cell: (x, i) => `<td class="num shots-rank">${i + 1}</td>` },
   { key: null, label: "Player", search: true, cls: "shots-th-player", cell: (x) => `<td class="nba-player shots-player">${playerClick(x.r.id, `${headshot(x.season || {})}<span>${x.r.name}</span>`)}<span class="muted-label">${x.r.pos}</span><span class="shots-vs">${logo(x.r.team, 30)}<span class="at">${x.r.home ? "vs" : "@"}</span>${logo(x.r.opp, 30)}</span></td>` },
   { key: "line", label: "Line", title: "His line (L1 to L4) or pair (D1 to D3) in the NHL's projected lineup for tonight. An arrow = above or below the line his minutes say he has been on. -- = not posted yet.", cell: (x) => lineCell(x.r) },
-  { key: null, label: "Anytime", title: "The best price across books for him to score (No odds = not priced yet)", cell: (x) => `<td class="shots-play-cell">${priceChip(x.r)}${has(x.r.odds) ? nhlPlayBox(nhlPlayEntry({ market: "goal", g: x.game, r: x.r, price: x.r.odds })) : ""}</td>` },
+  { key: null, label: "Anytime", title: "The best price across books for him to score (No odds = not priced yet)", cell: (x) => `<td class="shots-play-cell">${priceChip(x.r)}${has(x.r.odds) ? nhlPlayBox(nhlPlayEntry({ market: "goal", g: x.game, r: x.r, price: x.r.odds })) : ""}${noGoalChip(x)}</td>` },
   { key: null, label: "Rating", title: "How the record files the play: Strong (an edge of 6 to 12 points), Lean (3 to 6), Check (12+, or moved down a line tonight: look for news first)", cell: ratingCell },
   { key: null, label: "Zone", title: "Zone Match: his heavy shooting area (low slot or slot) against a defense that allows a lot from it. Tracked in the record, not in the number", cell: (x) => zoneCell(x.r) },
   { key: "goals", label: "G", title: "His goals this season", cell: (x) => `<td class="num" title="${x.r.goals} goals in ${x.r.games} games this season">${x.r.goals}<small class="muted-label"> /${x.r.games}gp</small></td>` },

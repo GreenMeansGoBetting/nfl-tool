@@ -95,6 +95,34 @@ class Rows(unittest.TestCase):
             rating = {"strong": "Strong", "lean": "Lean", "none": "--", "check": "Check" if (r["edge"] or 0) >= nhl_goals()["edges"]["check"] else "New line"}.get(r["size"], "--")
             self.assertEqual(row["rating"], rating, (r["name"], r["size"], r["edge"]))
 
+    def test_the_no_goal_side_saves_its_own_play(self):
+        # a member, 2026-10-23: "the option to choose which side of the play to bet on ... playing under Goals".
+        # Under the anytime price: No and its price, with its own box; saving it leaves the Yes box clear.
+        reset()
+        got = PAGE.evaluate("""() => {
+            localStorage.removeItem('nfl-tool.nhl-plays.v1');
+            const x = sortedRows(days()[dayIndex], goalsView.lineup, true).find((r) => r.r.no_odds != null);
+            if (!x) return null;
+            const tr = document.querySelector(`.shots-row[data-row="${x.game.game_id}:${x.r.id}"]`);
+            const no = tr.querySelector('.goals-no-row');
+            no.querySelector('.nhl-play-toggle').click();
+            const saved = JSON.parse(localStorage.getItem('nfl-tool.nhl-plays.v1') || '[]');
+            const after = document.querySelector(`.shots-row[data-row="${x.game.game_id}:${x.r.id}"]`);
+            const out = { text: no.textContent.trim(), saved: saved.map((p) => [p.id, p.side, p.line, p.odds, p.description]),
+                          noChecked: after.querySelector('.goals-no-row input').checked,
+                          yesChecked: !!after.querySelector('td.shots-play-cell > label input:checked'),
+                          want: [`nhl:goal:${x.game.game_id}:${x.r.id}:no`, 'under', 0.5, x.r.no_odds, `${x.r.name} no goal`] };
+            localStorage.removeItem('nfl-tool.nhl-plays.v1');
+            render();
+            return out;
+        }""")
+        self.assertIsNotNone(got, "the sample has no No goal price")
+        self.assertTrue(got["text"].startswith("No "))
+        self.assertEqual(got["saved"], [got["want"]])
+        self.assertTrue(got["noChecked"])
+        self.assertFalse(got["yesChecked"])
+        self.assertEqual(SITE.errors, [])
+
     def test_the_columns(self):
         """The owner, 2026-10-15: no Proj or Model % (the fair price tells it), Rating beside Anytime,
         Zone in its own column, the advanced stats folded away until asked for."""

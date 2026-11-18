@@ -263,7 +263,7 @@ class Nav(unittest.TestCase):
         reset()
         PAGE.click(".page-nav .nhl-trigger")
         items = PAGE.evaluate("() => [...document.querySelectorAll('.nhl-menu a')].map((a) => [a.textContent, a.classList.contains('promo-current')])")
-        self.assertEqual(items, [["Game Previews", False], ["Line Matchups", False], ["Best Plays", False], ["Shots", False], ["Goals", False], ["Points", True], ["Saves", False]])
+        self.assertEqual(items, [["Game Previews", False], ["Line Matchups", False], ["Vs Position", False], ["Best Plays", False], ["Shots", False], ["Goals", False], ["Points", True], ["Saves", False]])
         PAGE.keyboard.press("Escape")
 
 
