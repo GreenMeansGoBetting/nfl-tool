@@ -3518,14 +3518,14 @@
    ],
    "3907498": [
     "Matisse Thybulle",
-    0.081,
+    0.083,
     null,
     false,
     null
    ],
    "3945274": [
     "Luka Doncic",
-    0.166,
+    0.173,
     null,
     false,
     null
@@ -3537,23 +3537,23 @@
     false,
     null
    ],
-   "4066457": [
-    "Austin Reaves",
-    0.12,
+   "4397014": [
+    "Quentin Grimes",
+    0.108,
     null,
     false,
     null
    ],
    "4433136": [
     "Walker Kessler",
-    0.086,
+    0.088,
     null,
     false,
     null
    ],
    "4592691": [
     "Jake LaRavia",
-    0.077,
+    0.079,
     null,
     false,
     null
@@ -19474,24 +19474,17 @@
   "players": {
    "3907498": [
     "Matisse Thybulle",
-    0.082,
+    0.084,
     1080,
     false,
     "draftkings"
    ],
    "3945274": [
     "Luka Doncic",
-    0.168,
+    0.175,
     425,
     false,
     "thescore"
-   ],
-   "4066457": [
-    "Austin Reaves",
-    0.122,
-    561,
-    false,
-    "draftkings"
    ],
    "4277919": [
     "Mo Bamba",
@@ -19499,6 +19492,13 @@
     860,
     false,
     "draftkings"
+   ],
+   "4397014": [
+    "Quentin Grimes",
+    0.109,
+    null,
+    false,
+    null
    ],
    "4397077": [
     "Jaxson Hayes",
@@ -19509,7 +19509,7 @@
    ],
    "4433136": [
     "Walker Kessler",
-    0.087,
+    0.089,
     610,
     false,
     "draftkings"
@@ -19523,7 +19523,7 @@
    ],
    "4592691": [
     "Jake LaRavia",
-    0.078,
+    0.08,
     1200,
     false,
     "draftkings"
