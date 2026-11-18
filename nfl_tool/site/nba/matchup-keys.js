@@ -14,7 +14,7 @@
 // Show All Summaries = every game's Matchup Summary, two a row, for the owner's video screenshots.
 // Data: nba/data.json `league_chart` (columns in league-cols.js), `injuries`, `schedule`. No common.js.
 
-let DATA = null;
+var DATA = null; // var: Dunk Digest loads this file and standouts.js on one page (window.NBA_DIGEST stops both booting)
 let dayIndex = 0;
 let gameId = null;
 const view = { window: "season", all: false, tab: "overview", open: new Set(["scoring"]) };
@@ -398,13 +398,13 @@ function lineTiles(game) {
   if (am && hm) tiles.push(rsT(`<small>ML</small>${game.away} ${am} / ${game.home} ${hm}`));
   return tiles.join("");
 }
+function injuryPills(t) {
+  const shown = ((DATA.injuries || {})[t] || []).filter((p) => p.status !== "Probable");
+  const pills = shown.map((p) => `<span class="mk-ip" title="${esc([p.injury, p.note].filter(Boolean).join(": "))}"><i class="${p.status === "Out" ? "" : "q"}">${p.status === "Out" ? "Out" : "DTD"}</i>${playerClick(p.id, esc(p.name))}<small>${esc(p.position || "")}</small></span>`).join("");
+  return pills || `<span class="mk-ip mk-healthy">None Listed</span>`;
+}
 function injuries(game) {
-  return `<div class="mk-inj">${[game.away, game.home].map((t) => {
-    const list = (DATA.injuries || {})[t] || [];
-    const shown = list.filter((p) => p.status !== "Probable");
-    const pills = shown.map((p) => `<span class="mk-ip" title="${esc([p.injury, p.note].filter(Boolean).join(": "))}"><i class="${p.status === "Out" ? "" : "q"}">${p.status === "Out" ? "Out" : "DTD"}</i>${playerClick(p.id, esc(p.name))}<small>${esc(p.position || "")}</small></span>`).join("");
-    return `<div class="mk-injt" style="--team:${teamRgb(t)}"><b>${logo(t, 22)}${t} Injuries</b>${pills || `<span class="mk-ip mk-healthy">None Listed</span>`}</div>`;
-  }).join("")}</div>`;
+  return `<div class="mk-inj">${[game.away, game.home].map((t) => `<div class="mk-injt" style="--team:${teamRgb(t)}"><b>${logo(t, 22)}${t} Injuries</b>${injuryPills(t)}</div>`).join("")}</div>`;
 }
 
 function renderAll(ctx) {
@@ -466,6 +466,7 @@ function toggleCat(id) {
 }
 
 document.addEventListener("keydown", (e) => {
+  if (window.NBA_DIGEST) return;
   const line = e.target.closest && e.target.closest(".mk-cline[data-cat]");
   if (line && (e.key === "Enter" || e.key === " ")) {
     e.preventDefault();
@@ -473,6 +474,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 document.addEventListener("click", (e) => {
+  if (window.NBA_DIGEST) return; // dunk-digest.js has its own clicks
   const card = e.target.closest(".matchup-card");
   if (card) {
     view.all = false; // a game card opens that game's keys
@@ -524,7 +526,7 @@ document.addEventListener("click", (e) => {
   }
 });
 
-fetch("data.json")
+if (!window.NBA_DIGEST) fetch("data.json")
   .then((r) => r.json())
   .then((data) => {
     DATA = data;

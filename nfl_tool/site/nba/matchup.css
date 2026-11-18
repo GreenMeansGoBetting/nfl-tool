@@ -92,6 +92,9 @@
 /* the defense box hugs its table: a narrow position column, logo + "Allowed By Position" on top (the owner, 2026-11-09) */
 .mb-who-defbox { flex: 0 0 auto; width: fit-content; }
 .mb-who-defbox .mb-who-table { width: auto; margin: 0 auto; }
+/* Allowed By Position over Allowed By Type, one width, beside the tall player box */
+.mb-who-stack { flex: 0 0 auto; display: flex; flex-direction: column; gap: 12px; width: fit-content; max-width: 100%; }
+.mb-who-stack .mb-who-defbox { width: auto; }
 .mb-who-table td.mb-who-pos { width: 1%; padding: 0 6px 0 4px; white-space: nowrap; }
 .mb-whobox { padding-bottom: 6px; }
 .mb-who-table .mb-heads th { padding: 4px 6px 2px; font-size: 0.74rem; white-space: nowrap; }

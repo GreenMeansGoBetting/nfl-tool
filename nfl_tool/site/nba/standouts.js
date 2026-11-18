@@ -15,7 +15,7 @@
 // Stacked = a player spot and a team spot of the same category in the same game, pointing the
 // same way (shown as parts, never blended). Numbers, not picks: no projections, no record.
 
-let DATA = null;
+var DATA = null; // var: Dunk Digest loads this file and matchup-keys.js on one page
 let ssDay = 0;
 let ssLast = null; // the night drawn last (its rows, for a line tile's click)
 // open: the player row whose drop-down is open; byGame: Sort By Game (a display pref, kept on this device)
@@ -402,17 +402,19 @@ function ssSection(title, side, b) {
 }
 
 // ---- Sort By Game: one card per game ----
+// One side of a game's spots (also Dunk Digest's): by category, then the page's order inside each
+// (players first, strongest first).
+function ssGameBand(g, b, side, title) {
+  const mine = b.shown.filter((r) => r.game === g && r.side === side);
+  const list = SS_CATS.flatMap(([c]) => mine.filter((r) => r.cat === c));
+  return `<div class="ss-band ss-${side} ss-cband">${ssArrow(side)} ${title} <span class="ss-n">${list.length}</span></div>
+    <div class="ss-cbody">${list.length ? list.map((r) => `<div class="ss-crow ss-${r.kind === "player" ? "p" : "t"}"><span class="ss-cat-chip" style="${ssDirStyle(r)}">${SS_SHORT[r.cat]}</span>
+      <div class="ss-cwho">${ssWho(r)}</div><div class="ss-cread">${ssReadOf(r, b.stacks.get(r))}</div>${ssTiles(r, b)}</div>${ssDropFor(r)}`).join("")
+      : `<p class="ss-none">Nothing ${side === "more" ? "stands out" : "tough"} in this game.</p>`}</div>`;
+}
 function ssGameCard(g, b) {
   const mine = b.shown.filter((r) => r.game === g);
-  // by category, then the page's order inside each (players first, strongest first)
-  const order = (side) => SS_CATS.flatMap(([c]) => mine.filter((r) => r.side === side && r.cat === c));
-  const band = (side, title) => {
-    const list = order(side);
-    return `<div class="ss-band ss-${side} ss-cband">${ssArrow(side)} ${title} <span class="ss-n">${list.length}</span></div>
-      <div class="ss-cbody">${list.length ? list.map((r) => `<div class="ss-crow ss-${r.kind === "player" ? "p" : "t"}"><span class="ss-cat-chip" style="${ssDirStyle(r)}">${SS_SHORT[r.cat]}</span>
-        <div class="ss-cwho">${ssWho(r)}</div><div class="ss-cread">${ssReadOf(r, b.stacks.get(r))}</div>${ssTiles(r, b)}</div>${ssDropFor(r)}`).join("")
-        : `<p class="ss-none">Nothing ${side === "more" ? "stands out" : "tough"} in this game.</p>`}</div>`;
-  };
+  const band = (side, title) => ssGameBand(g, b, side, title);
   const team = (abbr) => `<div class="ss-gteam" data-game="${g.game_id}" style="--team:${ssRgb(abbr)}" title="Open this game in Matchup Keys">${ssLogoBox(abbr, "ss-logo-lg")}<div><b>${ssEsc(ssTeam(abbr).name)}</b><small>${abbr === g.away ? "Away" : "Home"}</small></div></div>`;
   return `<section class="ss-gcard" data-game="${g.game_id}"><header class="ss-ghead">${team(g.away)}<div class="ss-gmid"><b>${ssTime(g)}</b><small>${ssEsc(g.tv || "")}</small>${ssCounts(mine)}</div>${team(g.home)}</header>
     ${band("more", "Standouts")}${band("less", "Tough Spots")}</section>`;
@@ -535,7 +537,7 @@ document.addEventListener("change", (e) => {
   if (e.target.closest(".nba-pc-toggle") && DATA) setTimeout(ssRender, 0);
 });
 
-fetch("data.json")
+if (!window.NBA_DIGEST) fetch("data.json")
   .then((r) => r.json())
   .then((data) => {
     DATA = data;

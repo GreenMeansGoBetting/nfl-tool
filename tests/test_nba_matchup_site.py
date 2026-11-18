@@ -200,6 +200,9 @@ class WhoIsBehindIt(unittest.TestCase):
             bos, det_def, det, bos_def = boxes  # both directions: BOS offense | DET defense, then DET offense | BOS defense
             heads = PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .team-banner-name')].map((b) => b.textContent)")
             self.assertEqual(heads, ["Boston Celtics Offense", "Allowed By Position", "Detroit Pistons Offense", "Allowed By Position"])
+            # the defense's boxes stack beside the player box, never in a row (the owner, 2026-11-18)
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#mb-who-modal .mb-who-pair > .mb-who-stack')].map((s) => [getComputedStyle(s).flexDirection, s.querySelectorAll('.mb-who-defbox').length])"),
+                             [["column", 1], ["column", 1]])
             # DET's defense: what it allowed PGs (Big Guard, 20 points on 8 of 20 a game in 3 games), and BOS's PGs' paint shots
             self.assertEqual(det_def[0][0], "PG")
             self.assertEqual(det_def[0][-1], "12.0")

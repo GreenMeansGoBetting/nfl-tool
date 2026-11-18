@@ -32,7 +32,7 @@ in `docs/history.md`: "NBA", and "2026-10-29: the NBA rules file before the trim
   `first-basket.html/.js/.css`;
   `shot-charts.html/.js/.css`; `zones.html/.js/.css`; `nba-card.js` player card (+ `shot-chart.js`);
   `promo-tools.html` + `kotc.js` + `kotc.css` King of the Court; `extremes.js`; `types.html/.js/.css` Player Types
-  (`shot_types.py`). (Dunk Digest was removed 2026-11-11.)
+  (`shot_types.py`); `dunk-digest.html/.js/.css` Dunk Digest (owner only, below).
 - Records (`model_history/`): `nba_props/sim_<season>.json`, `nba_zones/<season>.json`,
   `nba_first_basket/<season>.json`, `nba_kotc/` (nightly boards, `lines_<season>.json`).
 
@@ -676,6 +676,26 @@ projections, no line / "priced in" check, no record or tracking** (the owner: "a
   It only orders headliners and shades category chips (Standouts the 3 greens, Tough the 3 reds).
 - Tests: `test_nba_standouts_site.py`.
 
+## Dunk Digest (`dunk-digest.html/.js/.css`, 2026-11-18; owner only for now)
+
+The owner's nightly walk-through for videos (an older page of this name was removed 2026-11-11): members want
+the data, sorted by game, on the site so it can be clicked into, without hopping between pages.
+- **Every game in tip order, top to bottom:** game bar; Matchup Summary (zoom 1.6) with each team's Injuries and
+  Team Numbers beside it (each box titled with its stat, the owner: "its not clear what these are"); both Edges
+  side by side (zoom 1.2); a small Both Teams; Player Types (zoomed to its row by `ddFit`; its note on game 1
+  only); **Standouts, then Tough Spots under them, full width, zoom 1.4** (the owner: side by side was "too
+  small"); Narrative.
+- **Nothing is worked out here.** It loads matchup-keys.js and standouts.js and calls their drawing functions
+  (`summaryCard`, `edgeBox`, `bothBox`, `typeBox`, `ssBuild`, `ssGameBand`), so numbers and clicks stay theirs.
+  `window.NBA_DIGEST` stops those two files booting; `DATA` is `var` in both so they can share a page;
+  `ssRender` is swapped for `ddRefresh` (a drop-down or saved play redraws only the Standouts boxes).
+- **Camera:** a 1400 px column on the left (`--dd-z` shrinks it to fit) and the game list under the owner's
+  camera (`.dd-rail`, sticky at 215 px). Under 1500 px wide the list moves above the column.
+- **Owner only:** an `owner` row in `SPORT_PAGES`, and CSS hides the page unless `html.is-owner` / `.local-dev`
+  (a member with the link sees "This page isn't open yet"). A browser-side block: the data is what members have.
+- **Narrative** (Revenge Game, Back To Hometown, Back To College) shows "No Data Yet" until real data exists;
+  never guessed. Tests: `tests/test_nba_digest_site.py`.
+
 ## Basketball-Reference cross-check (`bbref_check.py`, `nba-bbref-check.yml`, 2026-11-11)
 
 - **An alarm, never a source** (no shot types there). Mondays 15:23 UTC: our per-player average
@@ -761,7 +781,8 @@ the same framework next ("once we have the framework down").
   (the owner: "add that matchup sheet to a fourth tab called summary ... then i believe we can remove
   matchup data"): the NBA menu has no Matchup Data, the NBA home (`/nba/`, `SPORT_PAGES` home) and
   `identity.html` forward to Matchup Keys.
-  - **Who's behind it also shows Allowed By Type** (`whoTypeBox`, 2026-11-11): beside Allowed By Position, the
+  - **Who's behind it also shows Allowed By Type** (`whoTypeBox`, 2026-11-11): stacked under Allowed By Position beside the
+    player box (`.mb-who-stack`; the owner, 2026-11-18: in a row it "stretched" the pop-up), the
     defense against each letter in the offense's rotation (over their own averages; threes on Threes, points
     elsewhere), beat-average x / y, the offense's shot share per letter; 1st = allows the least, 6+ games.
   - **Every colored box with a player split opens who's behind it** (`who.js` `whoOpen(topic, game)`;

@@ -299,11 +299,13 @@ function whoRender(topic, g, dirs) {
     : !ready ? `<p class="no-data-note">Player numbers aren't available right now.</p>`
     : dirs.map((d) => {
       const base = spec.own || topic;
-      const df = whoDefBox(d.def, d.off, base), tb = whoTypeBox(d.def, d.off, base, g);
+      // the two short boxes stacked beside the tall player box (the owner, 2026-11-18: side by side
+      // stretched the pop-up wide and left the space under them empty)
+      const stack = `<div class="mb-who-stack">${whoDefBox(d.def, d.off, base)}${whoTypeBox(d.def, d.off, base, g)}</div>`;
       // the defense's own players: that team's boxes together, its players first
-      if (spec.own) return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.def} Defense vs ${d.off} Offense</div><div class="mb-who-pair">${whoTeam(d.def, spec) + df + tb}</div></div>`;
+      if (spec.own) return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.def} Defense vs ${d.off} Offense</div><div class="mb-who-pair">${whoTeam(d.def, spec) + stack}</div></div>`;
       const o = whoTeam(d.off, spec);
-      return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.off} Offense vs ${d.def} Defense</div><div class="mb-who-pair">${d.left === "d" ? df + tb + o : o + df + tb}</div></div>`;
+      return `<div class="mb-who-dir"><div class="mb-who-dirhead">${d.off} Offense vs ${d.def} Defense</div><div class="mb-who-pair">${d.left === "d" ? stack + o : o + stack}</div></div>`;
     }).join("");
   document.getElementById("mb-who-content").innerHTML = `<h2 class="section-title mb-who-title">${spec.title}: Who's Behind It</h2>
     <p class="mb-who-note">This season. Players: everyone who has played for the team, its rotation (${WHO_MIN}+ minutes, ${WHO_GP}+ games) first and the rest faded, a game, colored by where he sits among the league's rotation players (green = more; turnovers red = more). Defense: what it allows each position a game, ranked of 30 (1st = stingiest, green; 30th = allows the most, red). The last column: the offense's numbers at that position. Allowed By Type: what the defense gives up to each Player Type in the offense's rotation, over those players' own averages (threes on Threes, points elsewhere), ranked the same way, and how much of the offense's shooting each type takes.</p>${body}`;

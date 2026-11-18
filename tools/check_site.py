@@ -49,6 +49,7 @@ PAGES = [
     ("My Plays", "my-plays.html", None),
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),
+    ("NBA Dunk Digest", "nba/dunk-digest.html", None),
     ("NBA Slate Standouts", "nba/standouts.html", None),
     ("NBA League Stats Chart", "nba/league.html", None),
     ("NBA Matchup Keys", "nba/matchup-keys.html", None),
@@ -190,6 +191,8 @@ def ready_for(path, summary_btn):
         return "#pt-body table"
     if path == "nba/standouts.html":
         return "#ss-body .ss-grid, #ss-body .no-data-note"
+    if path == "nba/dunk-digest.html":
+        return "#dd-body .dd-game, #dd-body .no-data-note"
     return GAME_CARDS if summary_btn or path.startswith(SUITE_FOLDERS) else None
 
 
