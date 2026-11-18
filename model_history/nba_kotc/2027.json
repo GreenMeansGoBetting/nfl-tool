@@ -10944,7 +10944,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0656,
+    "lead": 0.0655,
     "name": "Alperen Sengun",
     "proj": 42.9,
     "team": "HOU"
@@ -11007,14 +11007,14 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0144,
+    "lead": 0.0142,
     "name": "Jamal Murray",
     "proj": 35.7,
     "team": "DEN"
    },
    {
     "id": "4066261",
-    "lead": 0.0124,
+    "lead": 0.0123,
     "name": "Bam Adebayo",
     "proj": 34.5,
     "team": "MIA"
@@ -11042,9 +11042,9 @@
    },
    {
     "id": "3136193",
-    "lead": 0.0092,
+    "lead": 0.0099,
     "name": "Devin Booker",
-    "proj": 33.6,
+    "proj": 33.7,
     "team": "PHX"
    },
    {
@@ -11090,18 +11090,18 @@
     "team": "IND"
    },
    {
-    "id": "4066457",
-    "lead": 0.0046,
-    "name": "Austin Reaves",
-    "proj": 32.9,
-    "team": "LAL"
-   },
-   {
     "id": "5175737",
     "lead": 0.0046,
     "name": "Yaxel Lendeborg",
     "proj": 32.2,
     "team": "GS"
+   },
+   {
+    "id": "4066457",
+    "lead": 0.0045,
+    "name": "Austin Reaves",
+    "proj": 32.9,
+    "team": "LAL"
    },
    {
     "id": "4395628",
@@ -11233,7 +11233,7 @@
     "id": "3064440",
     "lead": 0.0005,
     "name": "Zach LaVine",
-    "proj": 27.4,
+    "proj": 27.5,
     "team": "SAC"
    },
    {

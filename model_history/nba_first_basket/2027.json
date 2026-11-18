@@ -18585,21 +18585,21 @@
    "3908809": [
     "Donovan Mitchell",
     0.11,
-    625,
+    650,
     false,
     "bet365"
    ],
    "3992": [
     "James Harden",
     0.086,
-    1100,
+    1000,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4066328": [
     "Jarrett Allen",
     0.104,
-    600,
+    625,
     false,
     "bet365"
    ],
@@ -18613,28 +18613,28 @@
    "4576087": [
     "Peyton Watson",
     0.084,
-    950,
+    900,
     false,
     "fanduel"
    ],
    "4600663": [
     "Zach Edey",
     0.1,
-    800,
+    860,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4903027": [
     "Cedric Coward",
     0.086,
-    1000,
+    1040,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "5041935": [
     "Cameron Boozer",
     0.114,
-    800,
+    850,
     false,
     "fanduel"
    ],
@@ -18648,9 +18648,9 @@
    "5112087": [
     "Jaylen Wells",
     0.084,
-    1000,
+    1160,
     false,
-    "bet365"
+    "draftkings"
    ]
   },
   "tip_home": 0.526
@@ -18674,23 +18674,23 @@
    "2991230": [
     "Fred VanVleet",
     0.087,
-    1750,
-    true,
-    "hard_rock"
+    1010,
+    false,
+    "fliff"
    ],
    "3133603": [
     "Kelly Oubre Jr.",
     0.104,
     1100,
     true,
-    "thescore"
+    "fanduel"
    ],
    "3149673": [
     "Pascal Siakam",
     0.128,
-    650,
-    false,
-    "fanduel"
+    770,
+    true,
+    "draftkings"
    ],
    "3202": [
     "Kevin Durant",
@@ -18702,16 +18702,16 @@
    "4017837": [
     "Ivica Zubac",
     0.098,
-    575,
+    650,
     false,
-    "hard_rock"
+    "bet365"
    ],
    "4395712": [
     "Andrew Nembhard",
     0.097,
-    800,
+    750,
     false,
-    "hard_rock"
+    "thescore"
    ],
    "4396909": [
     "Aaron Nesmith",
@@ -18723,23 +18723,23 @@
    "4432639": [
     "Jabari Smith Jr.",
     0.079,
-    1000,
+    1100,
     false,
-    "hard_rock"
+    "bet365"
    ],
    "4684740": [
     "Amen Thompson",
     0.08,
-    850,
+    930,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4871144": [
     "Alperen Sengun",
     0.095,
-    550,
+    559,
     false,
-    "fanduel"
+    "draftkings"
    ]
   },
   "tip_home": 0.627
@@ -18763,9 +18763,9 @@
    "3032977": [
     "Giannis Antetokounmpo",
     0.133,
-    375,
+    356,
     false,
-    "hard_rock"
+    "draftkings"
    ],
    "3059319": [
     "Andrew Wiggins",
@@ -18777,44 +18777,44 @@
    "3133628": [
     "Myles Turner",
     0.087,
-    1300,
+    1180,
     true,
-    "hard_rock"
+    "draftkings"
    ],
    "3134907": [
     "Kyle Kuzma",
     0.073,
-    1000,
+    1300,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4066261": [
     "Bam Adebayo",
     0.114,
-    525,
+    475,
     false,
     "hard_rock"
    ],
    "4278053": [
     "Davion Mitchell",
     0.104,
-    900,
+    800,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4395725": [
     "Tyler Herro",
     0.094,
-    750,
+    1000,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
     0.113,
-    null,
-    false,
-    null
+    1000,
+    true,
+    "bet365"
    ],
    "4591725": [
     "Ryan Rollins",
@@ -18826,9 +18826,9 @@
    "6475": [
     "Klay Thompson",
     0.079,
-    1750,
-    true,
-    "hard_rock"
+    830,
+    false,
+    "draftkings"
    ]
   },
   "tip_home": 0.609
@@ -18852,49 +18852,49 @@
    "1966": [
     "LeBron James",
     0.086,
-    650,
+    660,
     false,
-    "hard_rock"
+    "draftkings"
    ],
    "3059318": [
     "Joel Embiid",
     0.1,
-    550,
+    600,
     false,
     "fanduel"
    ],
    "3912848": [
     "Dean Wade",
     0.072,
-    2000,
-    true,
-    "hard_rock"
+    1375,
+    false,
+    "fliff"
    ],
    "4066320": [
     "Desmond Bane",
     0.092,
-    800,
+    750,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4277847": [
     "Wendell Carter Jr.",
     0.098,
-    850,
+    800,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4431678": [
     "Tyrese Maxey",
     0.114,
-    650,
+    600,
     false,
     "fanduel"
    ],
    "4432165": [
     "Jalen Suggs",
     0.084,
-    1100,
+    1000,
     false,
     "hard_rock"
    ],
@@ -18908,9 +18908,9 @@
    "4712849": [
     "Anthony Black",
     0.086,
-    900,
+    910,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "5124612": [
     "VJ Edgecombe",
@@ -18943,21 +18943,21 @@
     0.08,
     650,
     false,
-    "bet365"
+    "fanduel"
    ],
    "3064514": [
     "Julius Randle",
     0.13,
-    625,
+    600,
     false,
-    "bet365"
+    "fanduel"
    ],
    "4278104": [
     "Michael Porter Jr.",
     0.115,
-    500,
+    493,
     false,
-    "bet365"
+    "draftkings"
    ],
    "4397189": [
     "Jalen Smith",
@@ -18983,16 +18983,16 @@
    "4711294": [
     "Matas Buzelis",
     0.068,
-    900,
+    850,
     false,
-    "bet365"
+    "fanduel"
    ],
    "4871145": [
     "Josh Giddey",
     0.093,
-    1100,
-    true,
-    "bet365"
+    800,
+    false,
+    "thescore"
    ],
    "5107173": [
     "Danny Wolf",
@@ -19004,9 +19004,9 @@
    "5175643": [
     "Egor Demin",
     0.097,
-    1200,
-    true,
-    "hard_rock"
+    820,
+    false,
+    "fliff"
    ]
   },
   "tip_home": 0.678
@@ -19030,23 +19030,23 @@
    "4277905": [
     "Trae Young",
     0.088,
-    1100,
+    780,
     false,
-    "hard_rock"
+    "draftkings"
    ],
    "4395625": [
     "RJ Barrett",
     0.1,
-    800,
+    720,
     false,
-    "bet365"
+    "draftkings"
    ],
    "4395724": [
     "Immanuel Quickley",
     0.08,
-    850,
+    750,
     false,
-    "bet365"
+    "fanduel"
    ],
    "4433134": [
     "Scottie Barnes",
@@ -19058,9 +19058,9 @@
    "4684272": [
     "Ja'Kobe Walter",
     0.085,
-    1750,
-    true,
-    "hard_rock"
+    900,
+    false,
+    "fanduel"
    ],
    "5093267": [
     "Collin Murray-Boyles",
@@ -19072,23 +19072,23 @@
    "5142718": [
     "AJ Dybantsa",
     0.101,
-    850,
-    false,
-    "bet365"
+    990,
+    true,
+    "draftkings"
    ],
    "5160992": [
     "Alex Sarr",
     0.101,
-    1000,
-    true,
-    "hard_rock"
+    850,
+    false,
+    "draftkings"
    ],
    "5174563": [
     "Kyshawn George",
     0.101,
-    1100,
+    1000,
     true,
-    "hard_rock"
+    "fanduel"
    ],
    "6583": [
     "Anthony Davis",
@@ -19119,16 +19119,16 @@
    "3908845": [
     "John Collins",
     0.093,
-    550,
+    680,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4277813": [
     "Herbert Jones",
     0.087,
-    1300,
+    1280,
     true,
-    "fanduel"
+    "draftkings"
    ],
    "4278562": [
     "Paul Reed",
@@ -19147,16 +19147,16 @@
    "4432166": [
     "Cade Cunningham",
     0.096,
-    550,
+    600,
     false,
     "fanduel"
    ],
    "4684742": [
     "Ausar Thompson",
     0.096,
-    900,
+    1000,
     false,
-    "fanduel"
+    "thescore"
    ],
    "4997538": [
     "Karlo Matkovic",
@@ -19168,21 +19168,21 @@
    "5061589": [
     "Yves Missi",
     0.095,
-    1100,
+    1120,
     true,
-    "fanduel"
+    "draftkings"
    ],
    "5107199": [
     "Daniss Jenkins",
     0.107,
-    800,
+    920,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "5144091": [
     "Jeremiah Fears",
     0.111,
-    1000,
+    950,
     true,
     "fanduel"
    ]
@@ -19208,51 +19208,51 @@
    "3133626": [
     "Kenrich Williams",
     0.087,
-    1200,
-    true,
-    "hard_rock"
+    1080,
+    false,
+    "draftkings"
    ],
    "4222252": [
     "Isaiah Hartenstein",
     0.104,
     800,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4278039": [
     "Nickeil Alexander-Walker",
     0.101,
-    800,
+    810,
     false,
-    "bet365"
+    "draftkings"
    ],
    "4278073": [
     "Shai Gilgeous-Alexander",
     0.107,
-    700,
+    650,
     false,
     "bet365"
    ],
    "4397020": [
     "Luguentz Dort",
     0.082,
-    1400,
-    true,
-    "hard_rock"
+    1100,
+    false,
+    "fanduel"
    ],
    "4431680": [
     "Onyeka Okongwu",
     0.083,
-    900,
+    1040,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4683778": [
     "Jared McCain",
     0.107,
-    1000,
+    930,
     true,
-    "hard_rock"
+    "draftkings"
    ],
    "4701230": [
     "Jalen Johnson",
@@ -19264,16 +19264,16 @@
    "4869342": [
     "Dyson Daniels",
     0.085,
-    1100,
+    1140,
     false,
-    "thescore"
+    "draftkings"
    ],
    "4900671": [
     "Ajay Mitchell",
     0.1,
-    700,
+    750,
     false,
-    "thescore"
+    "fanduel"
    ]
   },
   "tip_home": 0.577
@@ -19297,14 +19297,14 @@
    "3064290": [
     "Aaron Gordon",
     0.094,
-    1000,
+    950,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "3078576": [
     "Derrick White",
     0.087,
-    1060,
+    1140,
     false,
     "draftkings"
    ],
@@ -19318,51 +19318,51 @@
    "3138196": [
     "Cameron Johnson",
     0.084,
-    1140,
+    1160,
     false,
     "draftkings"
    ],
    "3936299": [
     "Jamal Murray",
     0.111,
-    550,
+    500,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "4065648": [
     "Jayson Tatum",
     0.128,
-    650,
+    610,
     false,
     "draftkings"
    ],
    "4251": [
     "Paul George",
     0.12,
-    750,
+    650,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4397424": [
     "Neemias Queta",
     0.071,
-    800,
+    790,
     false,
-    "hard_rock"
+    "draftkings"
    ],
    "4431767": [
     "Christian Braun",
     0.088,
-    1100,
+    1000,
     false,
     "fanduel"
    ],
    "4683689": [
     "Jordan Walsh",
     0.065,
-    1400,
+    1380,
     false,
-    "hard_rock"
+    "draftkings"
    ]
   },
   "tip_home": 0.528
@@ -19386,9 +19386,9 @@
    "3138160": [
     "Caleb Martin",
     0.079,
-    1100,
-    false,
-    "fanduel"
+    1300,
+    true,
+    "hard_rock"
    ],
    "4066436": [
     "De'Anthony Melton",
@@ -19400,23 +19400,23 @@
    "4278049": [
     "Daniel Gafford",
     0.096,
-    700,
+    750,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4278078": [
     "P.J. Washington",
     0.105,
-    900,
+    750,
     false,
-    "hard_rock"
+    "bet365"
    ],
    "4709138": [
     "Brandin Podziemski",
     0.125,
-    800,
-    true,
-    "hard_rock"
+    650,
+    false,
+    "fanduel"
    ],
    "4997536": [
     "Gui Santos",
@@ -19428,30 +19428,30 @@
    "5041939": [
     "Cooper Flagg",
     0.114,
-    550,
+    571,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "5175737": [
     "Yaxel Lendeborg",
     0.097,
-    600,
+    700,
     false,
-    "fanduel"
+    "bet365"
    ],
    "6442": [
     "Kyrie Irving",
     0.114,
-    750,
+    800,
     false,
     "fanduel"
    ],
    "6589": [
     "Draymond Green",
     0.065,
-    750,
+    1500,
     false,
-    "fanduel"
+    "bet365"
    ]
   },
   "tip_home": 0.589
@@ -19475,30 +19475,30 @@
    "3907498": [
     "Matisse Thybulle",
     0.082,
-    null,
+    1200,
     false,
-    null
+    "bet365"
    ],
    "3945274": [
     "Luka Doncic",
     0.168,
-    null,
+    440,
     false,
-    null
+    "fanduel"
    ],
    "4066457": [
     "Austin Reaves",
     0.122,
-    null,
+    650,
     false,
-    null
+    "fanduel"
    ],
    "4277919": [
     "Mo Bamba",
     0.09,
-    null,
+    860,
     false,
-    null
+    "draftkings"
    ],
    "4397077": [
     "Jaxson Hayes",
@@ -19510,37 +19510,37 @@
    "4433136": [
     "Walker Kessler",
     0.087,
-    null,
+    750,
     false,
-    null
+    "thescore"
    ],
    "4433627": [
     "Keyonte George",
     0.099,
-    null,
+    950,
     false,
-    null
+    "bet365"
    ],
    "4592691": [
     "Jake LaRavia",
     0.078,
-    null,
+    1240,
     false,
-    null
+    "draftkings"
    ],
    "4873138": [
     "Ace Bailey",
     0.089,
-    null,
+    850,
     false,
-    null
+    "bet365"
    ],
    "5041955": [
     "Darryn Peterson",
     0.087,
-    null,
+    950,
     false,
-    null
+    "bet365"
    ]
   },
   "tip_home": 0.678
@@ -19564,49 +19564,49 @@
    "3064440": [
     "Zach LaVine",
     0.094,
-    1000,
-    false,
+    1100,
+    true,
     "fanduel"
    ],
    "3136193": [
     "Devin Booker",
     0.119,
-    550,
+    480,
     false,
     "fanduel"
    ],
    "3155526": [
     "Dillon Brooks",
     0.081,
-    750,
+    710,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "3155942": [
     "Domantas Sabonis",
     0.113,
-    550,
+    650,
     false,
     "hard_rock"
    ],
    "4065732": [
     "De'Andre Hunter",
     0.088,
-    850,
+    1040,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4066383": [
     "Miles Bridges",
     0.094,
     850,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4437244": [
     "Jalen Green",
     0.085,
-    750,
+    650,
     false,
     "fanduel"
    ],
@@ -19620,14 +19620,14 @@
    "4601023": [
     "Oso Ighodaro",
     0.07,
-    1300,
+    1100,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "5142620": [
     "Darius Acuff Jr.",
     0.12,
-    550,
+    700,
     false,
     "fanduel"
    ]
