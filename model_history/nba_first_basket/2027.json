@@ -2861,7 +2861,7 @@
     null
    ]
   },
-  "tip_home": 0.573
+  "tip_home": 0.572
  },
  "401909306": {
   "away": "ORL",
@@ -2950,7 +2950,7 @@
     null
    ]
   },
-  "tip_home": 0.409
+  "tip_home": 0.41
  },
  "401909307": {
   "away": "IND",
@@ -3128,7 +3128,7 @@
     null
    ]
   },
-  "tip_home": 0.458
+  "tip_home": 0.457
  },
  "401909309": {
   "away": "WSH",
@@ -3279,7 +3279,7 @@
    ],
    "4900671": [
     "Ajay Mitchell",
-    0.101,
+    0.1,
     null,
     false,
     null
@@ -3311,88 +3311,91 @@
  "401909311": {
   "away": "PHX",
   "date": "2026-11-20",
-  "first_home": 0.5,
+  "first_home": 0.534,
   "home": "UTAH",
   "jumpers": [
    [
     "4601023",
     "Oso Ighodaro"
    ],
-   null
+   [
+    "4277919",
+    "Mo Bamba"
+   ]
   ],
   "players": {
    "3136193": [
     "Devin Booker",
-    0.127,
+    0.118,
     null,
     false,
     null
    ],
    "3155526": [
     "Dillon Brooks",
-    0.086,
+    0.08,
     null,
     false,
     null
    ],
    "4065663": [
     "Josh Okogie",
-    0.091,
+    0.099,
     null,
     false,
     null
    ],
    "4066383": [
     "Miles Bridges",
-    0.101,
+    0.094,
     null,
     false,
     null
    ],
    "4277919": [
     "Mo Bamba",
-    0.103,
+    0.104,
     null,
     false,
     null
    ],
    "4433627": [
     "Keyonte George",
-    0.102,
+    0.111,
     null,
     false,
     null
    ],
    "4437244": [
     "Jalen Green",
-    0.091,
+    0.085,
     null,
     false,
     null
    ],
    "4601023": [
     "Oso Ighodaro",
-    0.075,
+    0.07,
     null,
     false,
     null
    ],
    "4873138": [
     "Ace Bailey",
-    0.092,
+    0.099,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.092,
+    0.099,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.5
+  "tip_home": 0.601
  },
  "401909312": {
   "away": "HOU",
@@ -18548,6 +18551,11 @@
     "fanduel"
    ]
   },
+  "result": {
+   "scorer": "4432811",
+   "team": "UTAH",
+   "tip": "LAC"
+  },
   "tip_home": 0.5
  },
  "401910007": {
@@ -18802,7 +18810,7 @@
    ],
    "4591725": [
     "Ryan Rollins",
-    0.079,
+    0.078,
     null,
     false,
     null
@@ -18815,7 +18823,7 @@
     null
    ]
   },
-  "tip_home": 0.609
+  "tip_home": 0.61
  },
  "401910010": {
   "away": "PHI",
@@ -19082,12 +19090,12 @@
     null
    ]
   },
-  "tip_home": 0.424
+  "tip_home": 0.425
  },
  "401910013": {
   "away": "DET",
   "date": "2026-11-18",
-  "first_home": 0.502,
+  "first_home": 0.503,
   "home": "NO",
   "jumpers": [
    [
@@ -19165,13 +19173,13 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.11,
+    0.111,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.507
+  "tip_home": 0.508
  },
  "401910014": {
   "away": "ATL",
@@ -19446,7 +19454,10 @@
   "first_home": 0.5,
   "home": "LAL",
   "jumpers": [
-   null,
+   [
+    "4277919",
+    "Mo Bamba"
+   ],
    null
   ],
   "players": {
@@ -19466,14 +19477,14 @@
    ],
    "4065663": [
     "Josh Okogie",
-    0.091,
+    0.093,
     null,
     false,
     null
    ],
    "4277919": [
     "Mo Bamba",
-    0.103,
+    0.097,
     null,
     false,
     null
@@ -19494,7 +19505,7 @@
    ],
    "4433627": [
     "Keyonte George",
-    0.102,
+    0.104,
     null,
     false,
     null
@@ -19508,14 +19519,14 @@
    ],
    "4873138": [
     "Ace Bailey",
-    0.092,
+    0.093,
     null,
     false,
     null
    ],
    "5041955": [
     "Darryn Peterson",
-    0.092,
+    0.093,
     null,
     false,
     null
@@ -19610,7 +19621,7 @@
     null
    ]
   },
-  "tip_home": 0.596
+  "tip_home": 0.595
  },
  "401910019": {
   "away": "GS",
@@ -19882,7 +19893,7 @@
  "401910022": {
   "away": "LAC",
   "date": "2026-11-19",
-  "first_home": 0.558,
+  "first_home": 0.552,
   "home": "SA",
   "jumpers": [
    [
@@ -19904,21 +19915,21 @@
    ],
    "3448": [
     "Brook Lopez",
-    0.078,
+    0.079,
     null,
     false,
     null
    ],
    "3936099": [
     "Derrick Jones Jr.",
-    0.08,
+    0.079,
     null,
     false,
     null
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.113,
+    0.114,
     null,
     false,
     null
@@ -19932,40 +19943,40 @@
    ],
    "4395630": [
     "Devin Vassell",
-    0.101,
+    0.1,
     null,
     false,
     null
    ],
    "4396907": [
     "Darius Garland",
-    0.11,
-    null,
-    false,
-    null
-   ],
-   "4592479": [
-    "Julian Champagnie",
-    0.09,
+    0.117,
     null,
     false,
     null
    ],
    "4845367": [
     "Stephon Castle",
-    0.094,
+    0.091,
+    null,
+    false,
+    null
+   ],
+   "5037871": [
+    "Dylan Harper",
+    0.085,
     null,
     false,
     null
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.139,
+    0.14,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.675
+  "tip_home": 0.657
  }
 }
