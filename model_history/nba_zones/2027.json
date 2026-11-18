@@ -25238,8 +25238,58 @@
  },
  "401910007": {
   "date": "2026-11-18",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4433083",
+    "Cam Spencer",
+    "MEM",
+    "CLE",
+    -0.093,
+    "under",
+    false,
+    12.5,
+    100,
+    "prophetx"
+   ],
+   [
+    "4600663",
+    "Zach Edey",
+    "MEM",
+    "CLE",
+    -0.1957,
+    "under",
+    true,
+    9.5,
+    -120,
+    "fliff"
+   ]
+  ],
+  "threes": [
+   [
+    "3908809",
+    "Donovan Mitchell",
+    "CLE",
+    "MEM",
+    -0.1655,
+    "under",
+    true,
+    2.5,
+    100,
+    "fliff"
+   ],
+   [
+    "3992",
+    "James Harden",
+    "CLE",
+    "MEM",
+    -0.2269,
+    "under",
+    true,
+    2.5,
+    -120,
+    "fliff"
+   ]
+  ]
  },
  "401910008": {
   "date": "2026-11-18",
@@ -25249,36 +25299,36 @@
     "Fred VanVleet",
     "HOU",
     "IND",
-    0.0706,
+    0.0699,
     "over",
     false,
-    11.5,
-    -120,
-    "fliff"
+    13.5,
+    101,
+    "prophetx"
    ],
    [
     "4396909",
     "Aaron Nesmith",
     "IND",
     "HOU",
-    -0.0604,
+    -0.0607,
     "under",
     false,
     13.5,
-    -120,
-    "fliff"
+    -122,
+    "caesars"
    ],
    [
     "4684740",
     "Amen Thompson",
     "HOU",
     "IND",
-    -0.0937,
+    -0.0928,
     "under",
     false,
     15.5,
-    -120,
-    "fliff"
+    -112,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -25287,84 +25337,84 @@
     "Fred VanVleet",
     "HOU",
     "IND",
-    0.1009,
+    0.0993,
     "over",
     false,
     2.5,
-    -110,
-    "fliff"
+    -105,
+    "fanatics"
    ],
    [
     "3133603",
     "Kelly Oubre Jr.",
     "IND",
     "HOU",
-    0.1349,
+    0.1359,
     "over",
     true,
     1.5,
-    110,
-    "fliff"
+    149,
+    "prophetx"
    ],
    [
     "3149673",
     "Pascal Siakam",
     "IND",
     "HOU",
-    -0.1325,
+    -0.1337,
     "under",
     true,
     1.5,
-    -120,
-    "fliff"
+    -125,
+    "caesars"
    ],
    [
     "3202",
     "Kevin Durant",
     "HOU",
     "IND",
-    -0.0849,
+    -0.0882,
     "under",
     false,
     1.5,
-    -120,
-    "fliff"
+    120,
+    "draftkings"
    ],
    [
     "4395712",
     "Andrew Nembhard",
     "IND",
     "HOU",
-    0.112,
+    0.1088,
     "over",
     false,
     1.5,
-    -170,
-    "fliff"
+    -141,
+    "prophetx"
    ],
    [
     "4396909",
     "Aaron Nesmith",
     "IND",
     "HOU",
-    -0.1705,
+    -0.1722,
     "under",
     true,
-    2.5,
-    -195,
-    "fliff"
+    1.5,
+    139,
+    "caesars"
    ],
    [
     "4432639",
     "Jabari Smith Jr.",
     "HOU",
     "IND",
-    -0.058,
+    -0.0604,
     "under",
     false,
     2.5,
-    -185,
-    "fliff"
+    -193,
+    "caesars"
    ]
   ]
  },
@@ -25376,11 +25426,11 @@
     "Myles Turner",
     "MIL",
     "MIA",
-    0.2377,
+    0.2386,
     "over",
     true,
     9.5,
-    -106,
+    -105,
     "4cx"
    ],
    [
@@ -25388,47 +25438,47 @@
     "Kyle Kuzma",
     "MIL",
     "MIA",
-    -0.0845,
+    -0.0843,
     "under",
     false,
     11.5,
-    -106,
-    "caesars"
+    100,
+    "prophetx"
    ],
    [
     "4066261",
     "Bam Adebayo",
     "MIA",
     "MIL",
-    -0.1452,
+    -0.1451,
     "under",
     true,
     17.5,
-    -110,
-    "caesars"
+    -104,
+    "draftkings"
    ],
    [
     "4278053",
     "Davion Mitchell",
     "MIA",
     "MIL",
-    -0.0656,
+    -0.066,
     "under",
     false,
     13.5,
-    -106,
-    "fanduel"
+    108,
+    "prophetx"
    ],
    [
     "4395725",
     "Tyler Herro",
     "MIL",
     "MIA",
-    0.1448,
+    0.1439,
     "over",
     true,
     21.5,
-    -109,
+    -112,
     "prophetx"
    ],
    [
@@ -25436,35 +25486,35 @@
     "Ryan Rollins",
     "MIL",
     "MIA",
-    0.1309,
+    0.1305,
     "over",
     true,
     10.5,
-    -122,
-    "prophetx"
+    -114,
+    "draftkings"
    ],
    [
     "5082206",
     "Brayden Burries",
     "MIL",
     "MIA",
-    0.1018,
+    0.1017,
     "over",
     false,
     11.5,
-    -122,
-    "fanduel"
+    -116,
+    "prophetx"
    ],
    [
     "5164559",
     "Nate Ament",
     "MIL",
     "MIA",
-    -0.1019,
+    -0.1017,
     "under",
     false,
-    7.5,
-    -134,
+    6.5,
+    101,
     "caesars"
    ]
   ],
@@ -25474,23 +25524,23 @@
     "Giannis Antetokounmpo",
     "MIA",
     "MIL",
-    0.3122,
+    0.3073,
     "over",
     true,
     0.5,
-    -105,
-    "fanatics"
+    -112,
+    "prophetx"
    ],
    [
     "3059319",
     "Andrew Wiggins",
     "MIA",
     "MIL",
-    0.225,
+    0.2224,
     "over",
     true,
     1.5,
-    128,
+    127,
     "prophetx"
    ],
    [
@@ -25498,59 +25548,59 @@
     "Myles Turner",
     "MIL",
     "MIA",
-    0.3454,
+    0.3473,
     "over",
     true,
     1.5,
-    -116,
-    "prophetx"
+    -115,
+    "fanatics"
    ],
    [
     "4066261",
     "Bam Adebayo",
     "MIA",
     "MIL",
-    -0.2713,
+    -0.2703,
     "under",
     true,
-    0.5,
-    150,
-    "fliff"
+    1.5,
+    -233,
+    "draftkings"
    ],
    [
     "4278053",
     "Davion Mitchell",
     "MIA",
     "MIL",
-    -0.054,
+    -0.0556,
     "under",
     false,
     1.5,
-    134,
-    "fanduel"
+    139,
+    "prophetx"
    ],
    [
     "4395725",
     "Tyler Herro",
     "MIL",
     "MIA",
-    0.2044,
+    0.2023,
     "over",
     true,
     2.5,
-    -124,
-    "4cx"
+    -135,
+    "prophetx"
    ],
    [
     "4591725",
     "Ryan Rollins",
     "MIL",
     "MIA",
-    0.2024,
+    0.2017,
     "over",
     true,
     1.5,
-    101,
+    103,
     "prophetx"
    ],
    [
@@ -25558,23 +25608,23 @@
     "Pelle Larsson",
     "MIA",
     "MIL",
-    0.2309,
+    0.2287,
     "over",
     true,
-    0.5,
-    -230,
-    "caesars"
+    1.5,
+    188,
+    "prophetx"
    ],
    [
     "5082206",
     "Brayden Burries",
     "MIL",
     "MIA",
-    0.1624,
+    0.1614,
     "over",
     true,
     1.5,
-    107,
+    -102,
     "prophetx"
    ]
   ]
@@ -25587,7 +25637,7 @@
     "LeBron James",
     "PHI",
     "ORL",
-    0.0619,
+    0.0625,
     "over",
     false,
     17.5,
@@ -25599,11 +25649,11 @@
     "Joel Embiid",
     "PHI",
     "ORL",
-    -0.2171,
+    -0.2168,
     "under",
     true,
     22.5,
-    103,
+    107,
     "4cx"
    ],
    [
@@ -25611,7 +25661,7 @@
     "Anthony Black",
     "ORL",
     "PHI",
-    -0.099,
+    -0.0996,
     "under",
     false,
     14.5,
@@ -25625,11 +25675,11 @@
     "LeBron James",
     "PHI",
     "ORL",
-    0.071,
+    0.068,
     "over",
     false,
     1.5,
-    151,
+    153,
     "prophetx"
    ],
    [
@@ -25637,43 +25687,43 @@
     "Kentavious Caldwell-Pope",
     "PHI",
     "ORL",
-    0.06,
+    0.0606,
     "over",
     false,
     1.5,
-    160,
-    "fliff"
+    176,
+    "prophetx"
    ],
    [
     "3912848",
     "Dean Wade",
     "PHI",
     "ORL",
-    0.0803,
+    0.078,
     "over",
     false,
     1.5,
-    141,
-    "caesars"
+    164,
+    "prophetx"
    ],
    [
     "4277847",
     "Wendell Carter Jr.",
     "ORL",
     "PHI",
-    0.1714,
+    0.173,
     "over",
     true,
     0.5,
-    -190,
-    "caesars"
+    -178,
+    "prophetx"
    ],
    [
     "4351851",
     "Anfernee Simons",
     "PHI",
     "ORL",
-    0.1077,
+    0.1063,
     "over",
     false,
     1.5,
@@ -25685,55 +25735,55 @@
     "Tyrese Maxey",
     "PHI",
     "ORL",
-    0.1015,
+    0.0992,
     "over",
     false,
     2.5,
-    -110,
-    "fliff"
+    -105,
+    "prophetx"
    ],
    [
     "4432165",
     "Jalen Suggs",
     "ORL",
     "PHI",
-    -0.1628,
+    -0.1631,
     "under",
     true,
     1.5,
     100,
-    "fanduel"
+    "prophetx"
    ],
    [
     "4702382",
     "Tristan da Silva",
     "ORL",
     "PHI",
-    -0.0878,
+    -0.0897,
     "under",
     false,
     2.5,
-    -157,
-    "caesars"
+    -156,
+    "prophetx"
    ],
    [
     "4712849",
     "Anthony Black",
     "ORL",
     "PHI",
-    -0.1946,
+    -0.1955,
     "under",
     true,
     1.5,
-    -102,
-    "fanduel"
+    -101,
+    "prophetx"
    ],
    [
     "5124612",
     "VJ Edgecombe",
     "PHI",
     "ORL",
-    0.078,
+    0.0782,
     "over",
     false,
     1.5,
@@ -25746,15 +25796,39 @@
   "date": "2026-11-18",
   "points": [
    [
+    "4431687",
+    "Patrick Williams",
+    "CHI",
+    "BKN",
+    0.0627,
+    "over",
+    false,
+    7.5,
+    101,
+    "prophetx"
+   ],
+   [
+    "4432822",
+    "Isaac Okoro",
+    "CHI",
+    "BKN",
+    0.0503,
+    "over",
+    false,
+    10.5,
+    -108,
+    "prophetx"
+   ],
+   [
     "5279130",
     "Nolan Traore",
     "BKN",
     "CHI",
-    0.0712,
+    0.0718,
     "over",
     false,
     13.5,
-    100,
+    101,
     "prophetx"
    ]
   ],
@@ -25764,11 +25838,11 @@
     "Norman Powell",
     "CHI",
     "BKN",
-    0.114,
+    0.1123,
     "over",
     false,
     2.5,
-    -124,
+    -113,
     "prophetx"
    ],
    [
@@ -25776,67 +25850,153 @@
     "Jalen Smith",
     "CHI",
     "BKN",
-    -0.1019,
+    -0.1006,
     "under",
     false,
     1.5,
-    134,
-    "fanduel"
+    141,
+    "draftkings"
    ],
    [
     "4431687",
     "Patrick Williams",
     "CHI",
     "BKN",
-    0.0605,
+    0.0596,
     "over",
     false,
     1.5,
-    142,
-    "fanduel"
+    136,
+    "caesars"
    ],
    [
     "4432822",
     "Isaac Okoro",
     "CHI",
     "BKN",
-    0.0767,
+    0.0755,
     "over",
     false,
-    0.5,
-    -209,
-    "caesars"
+    1.5,
+    172,
+    "4cx"
    ],
    [
     "4711294",
     "Matas Buzelis",
     "CHI",
     "BKN",
-    0.0704,
+    0.0689,
     "over",
     false,
     2.5,
-    130,
-    "fliff"
+    133,
+    "prophetx"
    ],
    [
     "4871145",
     "Josh Giddey",
     "CHI",
     "BKN",
-    0.1234,
+    0.1219,
     "over",
     true,
     1.5,
-    125,
+    122,
     "prophetx"
    ]
   ]
  },
  "401910012": {
   "date": "2026-11-18",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3134908",
+    "Jakob Poeltl",
+    "TOR",
+    "WSH",
+    0.075,
+    "over",
+    false,
+    9.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "4395724",
+    "Immanuel Quickley",
+    "TOR",
+    "WSH",
+    -0.0754,
+    "under",
+    false,
+    18.5,
+    -130,
+    "fliff"
+   ],
+   [
+    "4684272",
+    "Ja'Kobe Walter",
+    "TOR",
+    "WSH",
+    -0.0833,
+    "under",
+    false,
+    12.5,
+    -120,
+    "fliff"
+   ]
+  ],
+  "threes": [
+   [
+    "4395625",
+    "RJ Barrett",
+    "TOR",
+    "WSH",
+    -0.086,
+    "under",
+    false,
+    1.5,
+    -110,
+    "fliff"
+   ],
+   [
+    "4395724",
+    "Immanuel Quickley",
+    "TOR",
+    "WSH",
+    -0.2009,
+    "under",
+    true,
+    2.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "4684272",
+    "Ja'Kobe Walter",
+    "TOR",
+    "WSH",
+    -0.1583,
+    "under",
+    true,
+    2.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "5142718",
+    "AJ Dybantsa",
+    "WSH",
+    "TOR",
+    0.1179,
+    "over",
+    false,
+    1.5,
+    115,
+    "fliff"
+   ]
+  ]
  },
  "401910013": {
   "date": "2026-11-18",
@@ -25847,40 +26007,52 @@
   "date": "2026-11-18",
   "points": [
    [
+    "3133626",
+    "Kenrich Williams",
+    "OKC",
+    "ATL",
+    0.0553,
+    "over",
+    false,
+    8.5,
+    100,
+    "prophetx"
+   ],
+   [
     "4431680",
     "Onyeka Okongwu",
     "ATL",
     "OKC",
-    -0.1195,
+    -0.1191,
     "under",
     false,
     14.5,
-    -114,
-    "fanduel"
+    -117,
+    "prophetx"
    ],
    [
     "4701230",
     "Jalen Johnson",
     "ATL",
     "OKC",
-    -0.1977,
+    -0.197,
     "under",
     true,
     20.5,
-    -110,
-    "fanduel"
+    100,
+    "prophetx"
    ],
    [
     "4869342",
     "Dyson Daniels",
     "ATL",
     "OKC",
-    -0.2504,
+    -0.2493,
     "under",
     true,
     10.5,
-    -130,
-    "fanduel"
+    -127,
+    "caesars"
    ]
   ],
   "threes": [
@@ -25889,19 +26061,19 @@
     "Shai Gilgeous-Alexander",
     "OKC",
     "ATL",
-    -0.1242,
+    -0.1261,
     "under",
     true,
     1.5,
-    138,
-    "fanduel"
+    139,
+    "prophetx"
    ],
    [
     "4683778",
     "Jared McCain",
     "OKC",
     "ATL",
-    -0.0744,
+    -0.0752,
     "under",
     false,
     2.5,
@@ -25918,23 +26090,23 @@
     "Nikola Jokic",
     "DEN",
     "BOS",
-    -0.1393,
+    -0.1388,
     "under",
     true,
     23.5,
-    -104,
-    "fanduel"
+    101,
+    "prophetx"
    ],
    [
     "4683689",
     "Jordan Walsh",
     "BOS",
     "DEN",
-    0.084,
+    0.0863,
     "over",
     false,
     5.5,
-    104,
+    102,
     "prophetx"
    ]
   ],
@@ -25944,11 +26116,11 @@
     "Aaron Gordon",
     "DEN",
     "BOS",
-    0.2744,
+    0.2729,
     "over",
     true,
     1.5,
-    128,
+    125,
     "prophetx"
    ],
    [
@@ -25956,11 +26128,11 @@
     "Nikola Jokic",
     "DEN",
     "BOS",
-    -0.0995,
+    -0.0983,
     "under",
     false,
     1.5,
-    -200,
+    -198,
     "prophetx"
    ],
    [
@@ -25968,11 +26140,11 @@
     "Cameron Johnson",
     "DEN",
     "BOS",
-    0.3044,
+    0.3017,
     "over",
     true,
     1.5,
-    -168,
+    -166,
     "prophetx"
    ]
   ]
@@ -25986,11 +26158,11 @@
     "P.J. Washington",
     "DAL",
     "GS",
-    0.0929,
+    0.0909,
     "over",
     false,
     1.5,
-    -160,
+    -165,
     "fliff"
    ],
    [
@@ -25998,7 +26170,7 @@
     "Cooper Flagg",
     "DAL",
     "GS",
-    0.0572,
+    0.0544,
     "over",
     false,
     1.5,
@@ -26010,7 +26182,7 @@
     "Kyrie Irving",
     "DAL",
     "GS",
-    -0.1145,
+    -0.1158,
     "under",
     false,
     3.5,
@@ -26028,16 +26200,64 @@
   "date": "2026-11-18",
   "points": [
    [
+    "3136193",
+    "Devin Booker",
+    "PHX",
+    "SAC",
+    0.0951,
+    "over",
+    false,
+    26.5,
+    -122,
+    "fanduel"
+   ],
+   [
+    "3155526",
+    "Dillon Brooks",
+    "PHX",
+    "SAC",
+    0.1814,
+    "over",
+    true,
+    13.5,
+    -118,
+    "fanduel"
+   ],
+   [
     "3155942",
     "Domantas Sabonis",
     "SAC",
     "PHX",
-    0.1558,
+    0.1553,
     "over",
     true,
-    14.5,
-    -120,
-    "fanatics"
+    13.5,
+    -103,
+    "prophetx"
+   ],
+   [
+    "4066383",
+    "Miles Bridges",
+    "PHX",
+    "SAC",
+    0.0825,
+    "over",
+    false,
+    13.5,
+    -118,
+    "fanduel"
+   ],
+   [
+    "4601023",
+    "Oso Ighodaro",
+    "PHX",
+    "SAC",
+    0.2493,
+    "over",
+    true,
+    6.5,
+    -104,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -26046,12 +26266,24 @@
     "Zach LaVine",
     "SAC",
     "PHX",
-    0.1074,
+    0.1058,
     "over",
     false,
     2.5,
-    -120,
-    "fliff"
+    109,
+    "prophetx"
+   ],
+   [
+    "3136193",
+    "Devin Booker",
+    "PHX",
+    "SAC",
+    0.1477,
+    "over",
+    true,
+    1.5,
+    -166,
+    "prophetx"
    ]
   ]
  }
