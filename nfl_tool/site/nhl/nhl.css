@@ -510,23 +510,52 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 .pt-bar#vp-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
 .vp-seg { display: inline-flex; gap: 3px; padding: 3px; border-radius: 9px; background: var(--panel-2); }
 .vp-seg .view-toggle-btn { margin: 0; }
-.vp-two { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; margin-bottom: 16px; }
-.vp-box { width: fit-content; max-width: 100%; min-width: 0; }
+.vp-stack { display: flex; flex-direction: column; gap: 16px; }
+.vp-scroll { overflow-x: auto; max-width: 100%; }
+.vp-two { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+.vp-box { flex: 1 1 var(--vp-min); min-width: min(var(--vp-min), 100%); max-width: min(var(--vp-w), 100%); }
 .vp-box .team-banner { margin-bottom: 4px; }
-.data-table.od-grid.vp-mgrid { width: 560px; max-width: 100%; }
-.vp-mgrid .vp-pos { font: 700 0.95rem var(--font-display); }
-.vp-plist { display: flex; flex-wrap: wrap; gap: 3px; justify-content: flex-start; }
+/* One lane per position: a shaded position cell, the Allows tile and the players on one line. */
+.data-table.od-grid.vp-mgrid { width: 100%; min-width: var(--vp-min); }
+.data-table.od-grid.vp-mgrid tbody td { padding: 2px; height: 46px; box-shadow: inset 0 -2px 0 var(--panel); }
+.data-table.od-grid.vp-mgrid tbody tr:last-child td { padding-bottom: 2px; box-shadow: none; }
+.vp-mgrid .od-tile { height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 3px 2px; }
+.vp-mgrid .vp-allow .od-tile { min-width: 0; }
+.data-table.od-grid .vp-pos { font: 700 0.95rem var(--font-display); text-align: center !important; color: var(--text); }
+.vp-poshead { font-size: 0.7rem; }
+.data-table.od-grid:is(.vp-mgrid, .vp-snap) :is(.vp-pos, .vp-poshead) { position: sticky; left: 0; z-index: 2; background-color: var(--panel); background-image: linear-gradient(rgba(var(--zg), 0.3), rgba(var(--zg), 0.3)); }
+.data-table.od-grid.vp-mgrid .vp-allow { position: sticky; left: 38px; z-index: 2; background-color: var(--panel); background-image: linear-gradient(rgba(var(--zg), 0.13), rgba(var(--zg), 0.13)); }
+.data-table.od-grid.vp-mgrid th.vp-allow { background-image: linear-gradient(rgba(var(--zg), 0.3), rgba(var(--zg), 0.3)); }
 .vp-tile { min-width: 56px; }
-.vp-tile small, .vp-player small { white-space: nowrap; }
-.vp-player { width: 76px; box-sizing: border-box; }
+.vp-tile small { white-space: nowrap; color: var(--text); opacity: 0.8; }
+.vp-player { min-width: 0; }
+.data-table.od-grid.vp-mgrid .vp-player { padding: 3px 1px; }
 .vp-player .vp-pname { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.7rem; font-weight: 700; }
+.vp-pnum { display: flex; align-items: baseline; justify-content: center; gap: 3px; }
 .vp-player.vp-out { opacity: 0.45; }
-.vp-tag { margin-left: 3px; font-style: normal; font-size: 0.6rem; font-weight: 800; color: var(--bad-text, #e5484d); }
-.vp-none { font-size: 0.75rem; color: var(--muted); }
+.vp-tag, .vp-gp, .vp-total { font-style: normal; font-size: 0.58rem; font-weight: 700; white-space: nowrap; }
+.vp-total { font-size: 0.66rem; }
+/* Goals and Points carry a total beside the number, so a tag gets its own line and every lane the same height. */
+.vp-pnote { display: block; line-height: 1; }
+.data-table.od-grid.vp-mgrid.vp-tall tbody td { height: 56px; }
+.vp-tag { color: var(--bad-text, #e5484d); }
+.vp-none { font-size: 0.75rem; color: var(--text); }
+/* The league chart: across the top on a computer (.vp-snap), the tall list on a phone (.vp-grid). */
+.vp-snaphead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; padding: 0 4px 3px; white-space: normal; font-size: 0.8rem; }
+.vp-snap .vp-snaphead { justify-content: flex-start; }
+.view-toggle-btn.vp-today { margin: 0; padding: 3px 9px; font-size: 0.72rem; }
+.data-table.od-grid.vp-snap { width: 100%; max-width: calc(44px + var(--vp-n) * 48px); min-width: calc(44px + var(--vp-n) * 36px); }
+.data-table.od-grid.vp-snap tbody td, .data-table.od-grid.vp-snap .od-glabels th { padding: 1px; }
+.data-table.od-grid.vp-snap tbody tr:last-child td { padding-bottom: 3px; }
+.vp-snap .vp-tile { min-width: 0; padding: 3px 0; }
+.vp-snap .vp-tile b { font-size: 0.82rem; }
+.vp-snap .vp-tile small { font-size: 0.56rem; }
+.vp-snap .vp-logo { display: flex; flex-direction: column; gap: 1px; width: 100%; padding: 2px 0 1px; font-size: 0.66rem; box-shadow: inset 0 -2px 0 rgb(var(--team)); }
+.vp-snap .vp-picked .vp-logo { background: rgba(var(--team), 0.5); }
 .data-table.od-grid.vp-grid { width: auto; }
 .vp-grid .vp-corner { vertical-align: bottom; font-size: 0.7rem; }
-.vp-grid .vp-sort { cursor: pointer; }
-.vp-grid .vp-sort:hover, .vp-grid .vp-sorted { color: var(--accent); }
+.vp-sort { cursor: pointer; }
+.vp-sort:hover, .data-table.od-grid .vp-sorted { color: var(--accent); }
 .vp-logo { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px 2px 4px; border: 0; border-radius: 8px; cursor: pointer;
   font: 700 0.82rem var(--font-display); color: var(--text); background: rgba(var(--team), 0.22); box-shadow: inset 3px 0 0 rgb(var(--team)); }
 .vp-grid tr.vp-top .vp-logo { background: rgba(var(--team), 0.45); }
@@ -537,6 +566,9 @@ html:not(.is-owner):not(.local-dev) .crease-log { display: none; }
 }
 
 @media (max-width: 760px) {
+  #vp-table { order: 2; } /* a phone: the game first, the tall league list under it */
+  .data-table.od-grid.vp-mgrid th.vp-lanehead { text-align: left; }
+  .vp-lanehead span { position: sticky; left: 112px; } /* stays in view while the players scroll */
   .nhl-tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
   .nhl-tiles .nba-tile { padding: 6px 2px 7px; }
   .nhl-tiles .nba-tile b { font-size: 0.95rem; white-space: nowrap; }

@@ -583,13 +583,18 @@ Previews.
 What each defense allows to C / LW / RW / D (a member: "the shots that each team gives to each
 position"; the owner: its own page under Line Matchups, a Shots / Goals toggle, a game shows its players).
 - Build: `compute_vs_position(records)` -> data.json `vs_position` {positions, teams {T: {season,
-  home, away, "10": [games, C sog, C g, L sog, L g, R sog, R g, D sog, D g]}}}: the OTHER team's
-  skaters by the box score's position; home / away = the defense's venue. The page only divides and ranks.
-- Page: Shots | Goals and Season / Home / Away / Last 10 (per-device `nhl-tool.vs-position.v1`); a
-  game card (the first unstarted opens) shows both directions, offense banner "vs <DEF> Defense": per
-  position the defense's tile and the offense's players (data.json skaters, his SOG a game or goals,
-  colored vs the league's players at his position with 3+ games; Out faded). Below, all 32 teams (the
-  game's two first, never grayed), a header sorts. Defense tiles are graded from the defense's side (the owner, 2026-11-17: "isn't good defense colored green site wide"): allows the fewest = 1st green, allows the most = 32nd red; the table still lists the most allowed first. Player tiles: more = green.
+  home, away, "10": [games, C sog, C g, L sog, L g, R sog, R g, D sog, D g, C pts, L pts, R pts, D pts]}}}: the OTHER
+  team's skaters by the box score's position; home / away = the defense's venue. The page only divides and ranks.
+- Page: Shots | Goals | Points and Season / Home / Away / Last 10 (per-device `nhl-tool.vs-position.v1`).
+- **Game card** (the first unstarted opens; the owner, 2026-11-18): offense banner "vs <DEF> Defense", then one lane per
+  position that never wraps: position, the defense's tile, the offense's players (data.json skaters, his number a game,
+  Goals and Points with his season total small beside it, "0.38 (8)"; colored vs the league's players at his position with 3+ games; Out faded, last). The header says the stat once
+  ("BOS SOG Per Game"), never on each tile; only a player with under half his team's games shows "4 GP".
+- **League chart, by screen** (`VP_WIDE`, 761px and up): a computer gets it on top of the page, teams across, positions
+  down (`vpSnapshot`, click a position to sort); a phone gets the tall list under the game (`vpTable`). The game's two
+  teams lead, never grayed. **Today's Teams Only** in its band follows the day picked. Defense tiles are graded from the
+  defense's side (the owner, 2026-11-17: "isn't good defense colored green site wide"): allows the fewest = 1st green,
+  allows the most = 32nd red; the chart still lists the most allowed first. Player tiles: more = green.
 - The box score's positions list many wingers as C (it's the roster's position, not tonight's line).
 - Tests: `tests/test_nhl_vs_position.py`.
 

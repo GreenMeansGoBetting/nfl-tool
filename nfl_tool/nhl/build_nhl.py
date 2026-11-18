@@ -3732,17 +3732,20 @@ def compute_vs_position(records: list) -> dict:
     "the shots that each team gives to each position. LW/C/RW/D"): shots on goal and goals by the
     other team's centers, left wings, right wings and defensemen, in all its games, at home, on
     the road and its last 10. Per team and window: [games, C shots, C goals, L shots, L goals,
-    R shots, R goals, D shots, D goals]. The box score's skater lines leave shootouts out."""
-    width = 1 + 2 * len(VS_POS)
+    R shots, R goals, D shots, D goals, C points, L points, R points, D points] (points last, so
+    a saved file from before them still reads). The box score's skater lines leave shootouts out."""
+    width = 1 + 3 * len(VS_POS)
     games = {}
     for r in records:  # oldest first (load_games sorts by date)
         for team, other in ((r["home"], r["away"]), (r["away"], r["home"])):
             row = [1] + [0] * (width - 1)
             for s in r["skaters"].values():
                 if s["team"] == other and s["pos"] in VS_POS:
-                    i = 1 + 2 * VS_POS.index(s["pos"])
+                    k = VS_POS.index(s["pos"])
+                    i = 1 + 2 * k
                     row[i] += s.get("sog") or 0
                     row[i + 1] += s.get("g") or 0
+                    row[1 + 2 * len(VS_POS) + k] += (s.get("g") or 0) + (s.get("a") or 0)
             games.setdefault(team, []).append((team == r["home"], row))
 
     def add(rows):
