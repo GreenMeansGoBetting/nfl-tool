@@ -2984,14 +2984,14 @@
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.115,
+    0.111,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.087,
+    0.086,
     null,
     false,
     null
@@ -3005,7 +3005,7 @@
    ],
    "4066328": [
     "Jarrett Allen",
-    0.11,
+    0.105,
     null,
     false,
     null
@@ -3026,14 +3026,14 @@
    ],
    "4576087": [
     "Peyton Watson",
-    0.086,
+    0.085,
     null,
     false,
     null
    ],
-   "4683747": [
-    "Jaylon Tyson",
-    0.093,
+   "5041951": [
+    "Meleek Thomas",
+    0.105,
     null,
     false,
     null
@@ -3044,12 +3044,12 @@
  "401909308": {
   "away": "TOR",
   "date": "2026-11-20",
-  "first_home": 0.485,
+  "first_home": 0.451,
   "home": "DET",
   "jumpers": [
    [
-    "5093267",
-    "Collin Murray-Boyles"
+    "3134908",
+    "Jakob Poeltl"
    ],
    [
     "4278562",
@@ -3057,78 +3057,78 @@
    ]
   ],
   "players": {
+   "3134908": [
+    "Jakob Poeltl",
+    0.085,
+    null,
+    false,
+    null
+   ],
    "3908845": [
     "John Collins",
-    0.091,
+    0.085,
     null,
     false,
     null
    ],
    "4278562": [
     "Paul Reed",
-    0.084,
-    null,
-    false,
-    null
-   ],
-   "4395625": [
-    "RJ Barrett",
-    0.11,
+    0.078,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.087,
+    0.1,
     null,
     false,
     null
    ],
    "4432166": [
     "Cade Cunningham",
-    0.094,
+    0.088,
+    null,
+    false,
+    null
+   ],
+   "4432241": [
+    "Jamal Shead",
+    0.103,
     null,
     false,
     null
    ],
    "4433134": [
     "Scottie Barnes",
-    0.107,
+    0.127,
     null,
     false,
     null
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.092,
+    0.113,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.093,
-    null,
-    false,
-    null
-   ],
-   "5093267": [
-    "Collin Murray-Boyles",
-    0.098,
+    0.086,
     null,
     false,
     null
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.103,
+    0.096,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.455
+  "tip_home": 0.351
  },
  "401909309": {
   "away": "WSH",
