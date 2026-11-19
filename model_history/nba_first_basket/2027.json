@@ -2861,12 +2861,12 @@
     null
    ]
   },
-  "tip_home": 0.589
+  "tip_home": 0.591
  },
  "401909306": {
   "away": "ORL",
   "date": "2026-11-20",
-  "first_home": 0.469,
+  "first_home": 0.477,
   "home": "BKN",
   "jumpers": [
    [
@@ -2881,81 +2881,81 @@
   "players": {
    "3064514": [
     "Julius Randle",
-    0.109,
+    0.111,
     null,
     false,
     null
    ],
    "4066320": [
     "Desmond Bane",
-    0.093,
+    0.09,
     null,
     false,
     null
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.099,
+    0.103,
     null,
     false,
     null
    ],
    "4278104": [
     "Michael Porter Jr.",
-    0.097,
+    0.098,
     null,
     false,
     null
    ],
    "4432165": [
     "Jalen Suggs",
-    0.085,
+    0.084,
     null,
     false,
     null
    ],
    "4432194": [
     "Day'Ron Sharpe",
-    0.083,
+    0.084,
     null,
     false,
     null
    ],
    "4566434": [
     "Franz Wagner",
-    0.145,
+    0.141,
     null,
     false,
     null
    ],
    "4712849": [
     "Anthony Black",
-    0.087,
+    0.085,
     null,
     false,
     null
    ],
    "5107173": [
     "Danny Wolf",
-    0.081,
+    0.082,
     null,
     false,
     null
    ],
    "5175643": [
     "Egor Demin",
-    0.081,
+    0.082,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.408
+  "tip_home": 0.43
  },
  "401909307": {
   "away": "IND",
   "date": "2026-11-20",
-  "first_home": 0.494,
+  "first_home": 0.511,
   "home": "CLE",
   "jumpers": [
    [
@@ -2970,81 +2970,81 @@
   "players": {
    "3133603": [
     "Kelly Oubre Jr.",
-    0.098,
+    0.095,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.12,
+    0.117,
     null,
     false,
     null
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.111,
+    0.115,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.088,
+    0.09,
     null,
     false,
     null
    ],
    "4017837": [
     "Ivica Zubac",
-    0.092,
+    0.088,
     null,
     false,
     null
    ],
    "4066328": [
     "Jarrett Allen",
-    0.101,
+    0.106,
     null,
     false,
     null
    ],
    "4066757": [
     "Sam Merrill",
-    0.069,
+    0.072,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.088,
+    0.084,
     null,
     false,
     null
    ],
    "5041951": [
     "Meleek Thomas",
-    0.105,
+    0.109,
     null,
     false,
     null
    ],
    "5105854": [
     "Braden Smith",
-    0.087,
+    0.085,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.483
+  "tip_home": 0.534
  },
  "401909308": {
   "away": "TOR",
   "date": "2026-11-20",
-  "first_home": 0.442,
+  "first_home": 0.443,
   "home": "DET",
   "jumpers": [
    [
@@ -3059,7 +3059,7 @@
   "players": {
    "3134908": [
     "Jakob Poeltl",
-    0.088,
+    0.087,
     null,
     false,
     null
@@ -3087,7 +3087,7 @@
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.105,
+    0.104,
     null,
     false,
     null
@@ -3128,12 +3128,12 @@
     null
    ]
   },
-  "tip_home": 0.326
+  "tip_home": 0.329
  },
  "401909309": {
   "away": "WSH",
   "date": "2026-11-20",
-  "first_home": 0.426,
+  "first_home": 0.427,
   "home": "CHI",
   "jumpers": [
    [
@@ -3183,7 +3183,7 @@
    ],
    "4871145": [
     "Josh Giddey",
-    0.089,
+    0.09,
     null,
     false,
     null
@@ -3217,12 +3217,12 @@
     null
    ]
   },
-  "tip_home": 0.276
+  "tip_home": 0.279
  },
  "401909310": {
   "away": "NO",
   "date": "2026-11-20",
-  "first_home": 0.53,
+  "first_home": 0.531,
   "home": "OKC",
   "jumpers": [
    [
@@ -3279,7 +3279,7 @@
    ],
    "4900671": [
     "Ajay Mitchell",
-    0.1,
+    0.101,
     null,
     false,
     null
@@ -3306,12 +3306,12 @@
     null
    ]
   },
-  "tip_home": 0.591
+  "tip_home": 0.593
  },
  "401909311": {
   "away": "PHX",
   "date": "2026-11-20",
-  "first_home": 0.525,
+  "first_home": 0.524,
   "home": "UTAH",
   "jumpers": [
    [
@@ -3395,12 +3395,12 @@
     null
    ]
   },
-  "tip_home": 0.574
+  "tip_home": 0.573
  },
  "401909312": {
   "away": "HOU",
   "date": "2026-11-20",
-  "first_home": 0.508,
+  "first_home": 0.5,
   "home": "DEN",
   "jumpers": [
    [
@@ -3415,28 +3415,28 @@
   "players": {
    "2991230": [
     "Fred VanVleet",
-    0.093,
+    0.094,
     null,
     false,
     null
    ],
    "3064290": [
     "Aaron Gordon",
-    0.094,
+    0.093,
     null,
     false,
     null
    ],
    "3112335": [
     "Nikola Jokic",
-    0.111,
+    0.109,
     null,
     false,
     null
    ],
    "3138196": [
     "Cameron Johnson",
-    0.084,
+    0.082,
     null,
     false,
     null
@@ -3450,41 +3450,41 @@
    ],
    "3936299": [
     "Jamal Murray",
-    0.111,
+    0.109,
     null,
     false,
     null
    ],
    "4431767": [
     "Christian Braun",
-    0.088,
+    0.087,
     null,
     false,
     null
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.085,
+    0.092,
     null,
     false,
     null
    ],
    "4684740": [
     "Amen Thompson",
-    0.086,
+    0.087,
     null,
     false,
     null
    ],
    "4871144": [
     "Alperen Sengun",
-    0.103,
+    0.102,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.524
+  "tip_home": 0.499
  },
  "401909313": {
   "away": "SAC",
@@ -3573,7 +3573,7 @@
     null
    ]
   },
-  "tip_home": 0.658
+  "tip_home": 0.66
  },
  "401909843": {
   "away": "ATL",
@@ -18653,6 +18653,11 @@
     "hard_rock"
    ]
   },
+  "result": {
+   "scorer": "5041935",
+   "team": "MEM",
+   "tip": "CLE"
+  },
   "tip_home": 0.526
  },
  "401910008": {
@@ -18741,6 +18746,11 @@
     false,
     null
    ]
+  },
+  "result": {
+   "scorer": "4592829",
+   "team": "IND",
+   "tip": "HOU"
   },
   "tip_home": 0.627
  },
@@ -18919,6 +18929,11 @@
     true,
     "fanduel"
    ]
+  },
+  "result": {
+   "scorer": "1966",
+   "team": "PHI",
+   "tip": "PHI"
   },
   "tip_home": 0.57
  },
@@ -19543,12 +19558,12 @@
     "fanduel"
    ]
   },
-  "tip_home": 0.678
+  "tip_home": 0.679
  },
  "401910018": {
   "away": "PHX",
   "date": "2026-11-18",
-  "first_home": 0.532,
+  "first_home": 0.531,
   "home": "SAC",
   "jumpers": [
    [
@@ -19619,7 +19634,7 @@
    ],
    "4601023": [
     "Oso Ighodaro",
-    0.07,
+    0.071,
     1100,
     false,
     "fanduel"
@@ -19632,12 +19647,12 @@
     "fanduel"
    ]
   },
-  "tip_home": 0.596
+  "tip_home": 0.594
  },
  "401910019": {
   "away": "GS",
   "date": "2026-11-19",
-  "first_home": 0.581,
+  "first_home": 0.576,
   "home": "MEM",
   "jumpers": [
    [
@@ -19652,63 +19667,63 @@
   "players": {
    "4066436": [
     "De'Anthony Melton",
-    0.083,
+    0.084,
     null,
     false,
     null
    ],
    "4433083": [
     "Cam Spencer",
-    0.104,
+    0.103,
     null,
     false,
     null
    ],
    "4600663": [
     "Zach Edey",
-    0.118,
+    0.115,
     null,
     false,
     null
    ],
    "4709138": [
     "Brandin Podziemski",
-    0.111,
+    0.113,
     null,
     false,
     null
    ],
    "4903027": [
     "Cedric Coward",
-    0.101,
+    0.099,
     null,
     false,
     null
    ],
    "4997536": [
     "Gui Santos",
-    0.064,
+    0.065,
     null,
     false,
     null
    ],
    "5041935": [
     "Cameron Boozer",
-    0.134,
+    0.139,
     null,
     false,
     null
    ],
    "5112087": [
     "Jaylen Wells",
-    0.1,
+    0.097,
     null,
     false,
     null
    ],
    "5175737": [
     "Yaxel Lendeborg",
-    0.086,
+    0.087,
     null,
     false,
     null
@@ -19721,12 +19736,12 @@
     null
    ]
   },
-  "tip_home": 0.743
+  "tip_home": 0.728
  },
  "401910020": {
   "away": "POR",
   "date": "2026-11-19",
-  "first_home": 0.421,
+  "first_home": 0.422,
   "home": "MIL",
   "jumpers": [
    [
@@ -19762,7 +19777,7 @@
    ],
    "4431736": [
     "Toumani Camara",
-    0.093,
+    0.092,
     null,
     false,
     null
@@ -19783,7 +19798,7 @@
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.103,
+    0.102,
     null,
     false,
     null
@@ -19810,12 +19825,12 @@
     null
    ]
   },
-  "tip_home": 0.263
+  "tip_home": 0.265
  },
  "401910021": {
   "away": "NY",
   "date": "2026-11-19",
-  "first_home": 0.515,
+  "first_home": 0.514,
   "home": "MIN",
   "jumpers": [
    [
@@ -19899,12 +19914,12 @@
     null
    ]
   },
-  "tip_home": 0.545
+  "tip_home": 0.544
  },
  "401910022": {
   "away": "LAC",
   "date": "2026-11-19",
-  "first_home": 0.552,
+  "first_home": 0.553,
   "home": "SA",
   "jumpers": [
    [

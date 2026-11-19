@@ -26502,24 +26502,24 @@
     "Quentin Grimes",
     "LAL",
     "UTAH",
-    -0.0849,
+    -0.0881,
     "under",
     false,
     15.5,
-    -102,
-    "fanduel"
+    -110,
+    "betmgm"
    ],
    [
     "5105839",
     "Brice Sensabaugh",
     "UTAH",
     "LAL",
-    0.0815,
+    0.0805,
     "over",
     false,
-    15.5,
-    -103,
-    "4cx"
+    14.5,
+    -128,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -26528,11 +26528,11 @@
     "Collin Sexton",
     "LAL",
     "UTAH",
-    -0.1348,
+    -0.1394,
     "under",
     true,
     1.5,
-    -138,
+    -136,
     "fanduel"
    ],
    [
@@ -26540,12 +26540,12 @@
     "Quentin Grimes",
     "LAL",
     "UTAH",
-    -0.1433,
+    -0.148,
     "under",
     true,
     1.5,
-    143,
-    "prophetx"
+    152,
+    "fanduel"
    ]
   ]
  },
@@ -26557,11 +26557,11 @@
     "Devin Booker",
     "PHX",
     "SAC",
-    0.0951,
+    0.0932,
     "over",
     false,
     26.5,
-    103,
+    114,
     "prophetx"
    ],
    [
@@ -26573,27 +26573,27 @@
     "over",
     true,
     13.5,
-    -121,
-    "draftkings"
+    -119,
+    "prophetx"
    ],
    [
     "3155942",
     "Domantas Sabonis",
     "SAC",
     "PHX",
-    0.1553,
+    0.1585,
     "over",
     true,
     13.5,
-    -110,
-    "betmgm"
+    -107,
+    "prophetx"
    ],
    [
     "4066383",
     "Miles Bridges",
     "PHX",
     "SAC",
-    0.0825,
+    0.0828,
     "over",
     false,
     13.5,
@@ -26605,19 +26605,19 @@
     "Dylan Cardwell",
     "SAC",
     "PHX",
-    0.1784,
+    0.1813,
     "over",
     true,
     4.5,
-    107,
-    "4cx"
+    101,
+    "prophetx"
    ],
    [
     "4594327",
     "Keegan Murray",
     "SAC",
     "PHX",
-    -0.0936,
+    -0.094,
     "under",
     false,
     9.5,
@@ -26629,12 +26629,12 @@
     "Oso Ighodaro",
     "PHX",
     "SAC",
-    0.2493,
+    0.2536,
     "over",
     true,
     6.5,
-    103,
-    "4cx"
+    112,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -26643,23 +26643,23 @@
     "Zach LaVine",
     "SAC",
     "PHX",
-    0.1058,
+    0.0998,
     "over",
     false,
     2.5,
-    109,
-    "4cx"
+    107,
+    "caesars"
    ],
    [
     "3136193",
     "Devin Booker",
     "PHX",
     "SAC",
-    0.1477,
+    0.1412,
     "over",
     true,
     1.5,
-    -156,
+    -139,
     "prophetx"
    ]
   ]
