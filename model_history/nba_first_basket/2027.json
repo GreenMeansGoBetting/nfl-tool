@@ -2970,7 +2970,7 @@
   "players": {
    "3133603": [
     "Kelly Oubre Jr.",
-    0.095,
+    0.094,
     null,
     false,
     null
@@ -2991,49 +2991,49 @@
    ],
    "3992": [
     "James Harden",
-    0.09,
+    0.087,
     null,
     false,
     null
    ],
    "4017837": [
     "Ivica Zubac",
-    0.088,
+    0.087,
     null,
     false,
     null
    ],
    "4066328": [
     "Jarrett Allen",
-    0.106,
+    0.11,
     null,
     false,
     null
    ],
-   "4066757": [
-    "Sam Merrill",
-    0.072,
+   "4395712": [
+    "Andrew Nembhard",
+    0.089,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.084,
+    0.082,
     null,
     false,
     null
    ],
-   "5041951": [
-    "Meleek Thomas",
-    0.109,
+   "4576087": [
+    "Peyton Watson",
+    0.086,
     null,
     false,
     null
    ],
-   "5105854": [
-    "Braden Smith",
-    0.085,
+   "4683747": [
+    "Jaylon Tyson",
+    0.093,
     null,
     false,
     null
@@ -3044,12 +3044,12 @@
  "401909308": {
   "away": "TOR",
   "date": "2026-11-20",
-  "first_home": 0.451,
+  "first_home": 0.485,
   "home": "DET",
   "jumpers": [
    [
-    "3134908",
-    "Jakob Poeltl"
+    "5093267",
+    "Collin Murray-Boyles"
    ],
    [
     "4278562",
@@ -3057,43 +3057,43 @@
    ]
   ],
   "players": {
-   "3134908": [
-    "Jakob Poeltl",
-    0.086,
-    null,
-    false,
-    null
-   ],
    "3908845": [
     "John Collins",
-    0.083,
-    null,
-    false,
-    null
-   ],
-   "4066372": [
-    "Kevin Huerter",
-    0.089,
+    0.091,
     null,
     false,
     null
    ],
    "4278562": [
     "Paul Reed",
-    0.08,
+    0.084,
+    null,
+    false,
+    null
+   ],
+   "4395625": [
+    "RJ Barrett",
+    0.11,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.104,
+    0.087,
     null,
     false,
     null
    ],
-   "4432241": [
-    "Jamal Shead",
+   "4432166": [
+    "Cade Cunningham",
+    0.094,
+    null,
+    false,
+    null
+   ],
+   "4433134": [
+    "Scottie Barnes",
     0.107,
     null,
     false,
@@ -3101,34 +3101,34 @@
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.112,
+    0.092,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.084,
+    0.093,
     null,
     false,
     null
    ],
    "5093267": [
     "Collin Murray-Boyles",
-    0.118,
+    0.098,
     null,
     false,
     null
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.097,
+    0.103,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.351
+  "tip_home": 0.455
  },
  "401909309": {
   "away": "WSH",
@@ -19801,7 +19801,7 @@
   "players": {
    "3133628": [
     "Myles Turner",
-    0.076,
+    0.078,
     1100,
     false,
     "fanduel"
@@ -19815,7 +19815,7 @@
    ],
    "4395725": [
     "Tyler Herro",
-    0.083,
+    0.084,
     750,
     false,
     "fanduel"
@@ -19829,7 +19829,14 @@
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.101,
+    0.105,
+    null,
+    false,
+    null
+   ],
+   "4591725": [
+    "Ryan Rollins",
+    0.071,
     null,
     false,
     null
@@ -19847,13 +19854,6 @@
     1155,
     true,
     "fliff"
-   ],
-   "5082206": [
-    "Brayden Burries",
-    0.077,
-    1100,
-    false,
-    "fanduel"
    ],
    "5105565": [
     "Donovan Clingan",
@@ -20068,28 +20068,21 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.109,
-    null,
-    false,
-    null
-   ],
-   "2581018": [
-    "Kentavious Caldwell-Pope",
-    0.082,
+    0.101,
     null,
     false,
     null
    ],
    "3059318": [
     "Joel Embiid",
-    0.114,
+    0.107,
     null,
     false,
     null
    ],
    "3133628": [
     "Myles Turner",
-    0.086,
+    0.089,
     null,
     false,
     null
@@ -20101,9 +20094,9 @@
     false,
     null
    ],
-   "4351851": [
-    "Anfernee Simons",
-    0.098,
+   "3912848": [
+    "Dean Wade",
+    0.078,
     null,
     false,
     null
@@ -20115,23 +20108,30 @@
     false,
     null
    ],
-   "4432848": [
-    "Jaime Jaquez Jr.",
-    0.115,
+   "4431678": [
+    "Tyrese Maxey",
+    0.123,
     null,
     false,
     null
    ],
-   "5082206": [
-    "Brayden Burries",
-    0.088,
+   "4432848": [
+    "Jaime Jaquez Jr.",
+    0.119,
+    null,
+    false,
+    null
+   ],
+   "4591725": [
+    "Ryan Rollins",
+    0.081,
     null,
     false,
     null
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.099,
+    0.092,
     null,
     false,
     null
