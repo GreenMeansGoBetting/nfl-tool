@@ -26666,31 +26666,44 @@
  },
  "401910019": {
   "date": "2026-11-19",
-  "points": [],
+  "points": [
+   [
+    "4397886",
+    "Charles Bassey",
+    "GS",
+    "MEM",
+    -0.0561,
+    "under",
+    false,
+    8.5,
+    -103,
+    "prophetx"
+   ]
+  ],
   "threes": [
    [
     "2991070",
     "Jerami Grant",
     "MEM",
     "GS",
-    0.2442,
+    0.2476,
     "over",
     true,
     1.5,
-    -149,
-    "4cx"
+    -115,
+    "fanatics"
    ],
    [
     "4065733",
     "Ty Jerome",
     "MEM",
     "GS",
-    -0.152,
+    -0.1513,
     "under",
     true,
     2.5,
-    107,
-    "4cx"
+    -105,
+    "caesars"
    ],
    [
     "4709138",
@@ -26701,43 +26714,43 @@
     "under",
     true,
     2.5,
-    -125,
-    "betmgm"
+    -119,
+    "prophetx"
    ],
    [
     "4903027",
     "Cedric Coward",
     "MEM",
     "GS",
-    -0.0963,
+    -0.0964,
     "under",
     false,
     1.5,
-    149,
-    "draftkings"
+    135,
+    "caesars"
    ],
    [
     "5041935",
     "Cameron Boozer",
     "MEM",
     "GS",
-    0.1261,
+    0.1259,
     "over",
     true,
-    2.5,
-    158,
-    "prophetx"
+    1.5,
+    -175,
+    "draftkings"
    ],
    [
     "5112087",
     "Jaylen Wells",
     "MEM",
     "GS",
-    0.1267,
+    0.1294,
     "over",
     true,
     1.5,
-    -119,
+    -137,
     "prophetx"
    ],
    [
@@ -26745,11 +26758,11 @@
     "Yaxel Lendeborg",
     "GS",
     "MEM",
-    -0.1726,
+    -0.1734,
     "under",
     true,
     1.5,
-    152,
+    148,
     "fanduel"
    ]
   ]
@@ -26758,11 +26771,23 @@
   "date": "2026-11-19",
   "points": [
    [
+    "3133628",
+    "Myles Turner",
+    "MIL",
+    "POR",
+    -0.1263,
+    "under",
+    true,
+    9.5,
+    -121,
+    "draftkings"
+   ],
+   [
     "3134907",
     "Kyle Kuzma",
     "MIL",
     "POR",
-    -0.0676,
+    -0.0666,
     "under",
     false,
     12.5,
@@ -26774,24 +26799,24 @@
     "Tyler Herro",
     "MIL",
     "POR",
-    -0.0615,
+    -0.0608,
     "under",
     false,
-    19.5,
-    -101,
-    "prophetx"
+    20.5,
+    102,
+    "fanduel"
    ],
    [
     "4431736",
     "Toumani Camara",
     "POR",
     "MIL",
-    0.0795,
+    0.0808,
     "over",
     false,
     13.5,
-    101,
-    "prophetx"
+    114,
+    "4cx"
    ],
    [
     "5082206",
@@ -26802,33 +26827,45 @@
     "under",
     false,
     11.5,
-    -115,
-    "betmgm"
+    -124,
+    "caesars"
    ]
   ],
   "threes": [
+   [
+    "3133628",
+    "Myles Turner",
+    "MIL",
+    "POR",
+    -0.1416,
+    "under",
+    true,
+    1.5,
+    125,
+    "4cx"
+   ],
    [
     "3134907",
     "Kyle Kuzma",
     "MIL",
     "POR",
-    -0.0598,
+    -0.0591,
     "under",
     false,
     1.5,
-    -112,
-    "prophetx"
+    -114,
+    "fanduel"
    ],
    [
     "3995",
     "Jrue Holiday",
     "POR",
     "MIL",
-    0.0686,
+    0.0685,
     "over",
     false,
     2.5,
-    130,
+    140,
     "betmgm"
    ],
    [
@@ -26836,35 +26873,35 @@
     "Tyler Herro",
     "MIL",
     "POR",
-    -0.1108,
+    -0.1103,
     "under",
     false,
     2.5,
-    -139,
-    "prophetx"
+    -141,
+    "caesars"
    ],
    [
     "4431736",
     "Toumani Camara",
     "POR",
     "MIL",
-    0.198,
+    0.1988,
     "over",
     true,
     2.5,
-    108,
-    "draftkings"
+    104,
+    "4cx"
    ],
    [
     "4683021",
     "Deni Avdija",
     "POR",
     "MIL",
-    0.258,
+    0.2579,
     "over",
     true,
     1.5,
-    -147,
+    -141,
     "prophetx"
    ],
    [
@@ -26872,12 +26909,12 @@
     "Scoot Henderson",
     "POR",
     "MIL",
-    0.0561,
+    0.0564,
     "over",
     false,
     1.5,
-    101,
-    "prophetx"
+    -106,
+    "4cx"
    ],
    [
     "5082206",
@@ -26888,19 +26925,19 @@
     "under",
     true,
     1.5,
-    -199,
-    "draftkings"
+    -198,
+    "fanduel"
    ],
    [
     "5105565",
     "Donovan Clingan",
     "POR",
     "MIL",
-    -0.1468,
+    -0.1342,
     "under",
     true,
     0.5,
-    145,
+    140,
     "fliff"
    ]
   ]
@@ -26913,11 +26950,11 @@
     "Rudy Gobert",
     "MIN",
     "NY",
-    -0.1989,
+    -0.1963,
     "under",
     true,
     8.5,
-    -105,
+    -111,
     "betmgm"
    ],
    [
@@ -26925,7 +26962,7 @@
     "Josh Hart",
     "NY",
     "MIN",
-    -0.0675,
+    -0.0735,
     "under",
     false,
     7.5,
@@ -26933,51 +26970,63 @@
     "betmgm"
    ],
    [
+    "3136196",
+    "Trey Lyles",
+    "MIN",
+    "NY",
+    -0.0575,
+    "under",
+    false,
+    5.5,
+    -102,
+    "fanduel"
+   ],
+   [
     "3147657",
     "Mikal Bridges",
     "NY",
     "MIN",
-    -0.1291,
+    -0.1183,
     "under",
-    true,
+    false,
     9.5,
     100,
-    "prophetx"
+    "fanduel"
    ],
    [
     "3914044",
     "Landry Shamet",
     "NY",
     "MIN",
-    -0.1511,
+    -0.1328,
     "under",
     true,
     8.5,
-    -106,
-    "fanduel"
+    -104,
+    "draftkings"
    ],
    [
     "3934672",
     "Jalen Brunson",
     "NY",
     "MIN",
-    -0.1288,
+    -0.1342,
     "under",
     true,
-    26.5,
-    -110,
-    "betmgm"
+    25.5,
+    -108,
+    "fanduel"
    ],
    [
     "3934719",
     "OG Anunoby",
     "NY",
     "MIN",
-    -0.0993,
+    -0.0846,
     "under",
     false,
     15.5,
-    -113,
+    -110,
     "draftkings"
    ],
    [
@@ -26985,11 +27034,11 @@
     "Jaden McDaniels",
     "MIN",
     "NY",
-    -0.1241,
+    -0.1213,
     "under",
     true,
     16.5,
-    -118,
+    -113,
     "draftkings"
    ]
   ],
@@ -26999,9 +27048,9 @@
     "Josh Hart",
     "NY",
     "MIN",
-    -0.1199,
+    -0.1306,
     "under",
-    false,
+    true,
     1.5,
     -168,
     "4cx"
@@ -27011,11 +27060,11 @@
     "Mikal Bridges",
     "NY",
     "MIN",
-    -0.2151,
+    -0.1922,
     "under",
     true,
     1.5,
-    -210,
+    -200,
     "4cx"
    ],
    [
@@ -27023,31 +27072,31 @@
     "Landry Shamet",
     "NY",
     "MIN",
-    -0.2539,
+    -0.2248,
     "under",
     true,
     1.5,
-    116,
-    "prophetx"
+    112,
+    "draftkings"
    ],
    [
     "3934719",
     "OG Anunoby",
     "NY",
     "MIN",
-    -0.2428,
+    -0.2102,
     "under",
     true,
     1.5,
     146,
-    "draftkings"
+    "fanduel"
    ],
    [
     "4397002",
     "Ayo Dosunmu",
     "MIN",
     "NY",
-    0.0969,
+    0.0917,
     "over",
     false,
     1.5,
@@ -27059,23 +27108,23 @@
     "Terrence Shannon Jr.",
     "MIN",
     "NY",
-    0.0752,
+    0.0766,
     "over",
     false,
     1.5,
-    135,
-    "prophetx"
+    142,
+    "fanduel"
    ],
    [
     "4433247",
     "Jonathan Kuminga",
     "MIN",
     "NY",
-    -0.0947,
+    -0.0977,
     "under",
     false,
     1.5,
-    -185,
+    -179,
     "draftkings"
    ]
   ]
@@ -27088,23 +27137,23 @@
     "Kris Dunn",
     "LAC",
     "SA",
-    -0.1636,
+    -0.1643,
     "under",
     true,
     5.5,
-    -113,
-    "draftkings"
+    -110,
+    "betmgm"
    ],
    [
     "4066259",
     "De'Aaron Fox",
     "SA",
     "LAC",
-    0.0859,
+    0.0863,
     "over",
     false,
-    14.5,
-    -119,
+    15.5,
+    -105,
     "prophetx"
    ],
    [
@@ -27112,11 +27161,11 @@
     "Devin Vassell",
     "SA",
     "LAC",
-    0.0593,
+    0.0599,
     "over",
     false,
     11.5,
-    -120,
+    -117,
     "prophetx"
    ]
   ],
@@ -27126,11 +27175,11 @@
     "Kris Dunn",
     "LAC",
     "SA",
-    -0.2006,
+    -0.1998,
     "under",
     true,
     0.5,
-    -120,
+    -125,
     "fliff"
    ],
    [
@@ -27138,12 +27187,24 @@
     "Devin Vassell",
     "SA",
     "LAC",
-    0.0839,
+    0.0854,
     "over",
     false,
     1.5,
     -119,
     "prophetx"
+   ],
+   [
+    "4395723",
+    "Keldon Johnson",
+    "SA",
+    "LAC",
+    0.0696,
+    "over",
+    false,
+    0.5,
+    -120,
+    "caesars"
    ]
   ]
  }

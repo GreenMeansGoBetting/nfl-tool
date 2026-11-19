@@ -19697,12 +19697,12 @@
  "401910019": {
   "away": "GS",
   "date": "2026-11-19",
-  "first_home": 0.575,
+  "first_home": 0.554,
   "home": "MEM",
   "jumpers": [
    [
-    "6589",
-    "Draymond Green"
+    "4703396",
+    "Graham Ike"
    ],
    [
     "4600663",
@@ -19719,49 +19719,56 @@
    ],
    "4433083": [
     "Cam Spencer",
-    0.103,
+    0.099,
     null,
     false,
     null
    ],
    "4600663": [
     "Zach Edey",
-    0.115,
+    0.111,
     525,
     false,
     "bet365"
    ],
    "4709138": [
     "Brandin Podziemski",
-    0.116,
+    0.112,
+    null,
+    false,
+    null
+   ],
+   "4897262": [
+    "Will Richard",
+    0.079,
     null,
     false,
     null
    ],
    "4903027": [
     "Cedric Coward",
-    0.099,
+    0.096,
     800,
     false,
     "bet365"
    ],
    "4997536": [
     "Gui Santos",
-    0.065,
+    0.067,
     null,
     false,
     null
    ],
    "5041935": [
     "Cameron Boozer",
-    0.138,
+    0.133,
     650,
     false,
     "bet365"
    ],
    "5112087": [
     "Jaylen Wells",
-    0.097,
+    0.093,
     1100,
     true,
     "bet365"
@@ -19772,16 +19779,9 @@
     null,
     false,
     null
-   ],
-   "6589": [
-    "Draymond Green",
-    0.057,
-    null,
-    false,
-    null
    ]
   },
-  "tip_home": 0.725
+  "tip_home": 0.661
  },
  "401910020": {
   "away": "POR",
