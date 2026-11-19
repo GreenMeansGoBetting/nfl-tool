@@ -10930,28 +10930,28 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3432,
+    "lead": 0.3434,
     "name": "Luka Doncic",
     "proj": 55.3,
     "team": "LAL"
    },
    {
     "id": "3032977",
-    "lead": 0.1651,
+    "lead": 0.1652,
     "name": "Giannis Antetokounmpo",
     "proj": 48.5,
     "team": "MIA"
    },
    {
     "id": "4871144",
-    "lead": 0.0681,
+    "lead": 0.0682,
     "name": "Alperen Sengun",
     "proj": 42.9,
     "team": "HOU"
    },
    {
     "id": "4065648",
-    "lead": 0.053,
+    "lead": 0.0531,
     "name": "Jayson Tatum",
     "proj": 41.1,
     "team": "BOS"
@@ -10979,7 +10979,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0396,
+    "lead": 0.0397,
     "name": "Shai Gilgeous-Alexander",
     "proj": 39.8,
     "team": "OKC"
@@ -10992,13 +10992,6 @@
     "team": "SAC"
    },
    {
-    "id": "5041939",
-    "lead": 0.0171,
-    "name": "Cooper Flagg",
-    "proj": 36.1,
-    "team": "DAL"
-   },
-   {
     "id": "3936299",
     "lead": 0.0171,
     "name": "Jamal Murray",
@@ -11006,8 +10999,15 @@
     "team": "DEN"
    },
    {
+    "id": "5041939",
+    "lead": 0.0165,
+    "name": "Cooper Flagg",
+    "proj": 36.0,
+    "team": "DAL"
+   },
+   {
     "id": "6583",
-    "lead": 0.0137,
+    "lead": 0.0138,
     "name": "Anthony Davis",
     "proj": 35.1,
     "team": "WSH"
@@ -11091,9 +11091,9 @@
    },
    {
     "id": "6442",
-    "lead": 0.0036,
+    "lead": 0.0035,
     "name": "Kyrie Irving",
-    "proj": 31.1,
+    "proj": 31.0,
     "team": "DAL"
    },
    {
@@ -11275,7 +11275,7 @@
     "id": "4709138",
     "lead": 0.0003,
     "name": "Brandin Podziemski",
-    "proj": 25.0,
+    "proj": 24.9,
     "team": "GS"
    },
    {
