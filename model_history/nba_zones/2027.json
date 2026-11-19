@@ -26667,12 +26667,207 @@
  "401910019": {
   "date": "2026-11-19",
   "points": [],
-  "threes": []
+  "threes": [
+   [
+    "2991070",
+    "Jerami Grant",
+    "MEM",
+    "GS",
+    0.2442,
+    "over",
+    true,
+    1.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "GS",
+    -0.0963,
+    "under",
+    false,
+    2.5,
+    -195,
+    "fliff"
+   ],
+   [
+    "5041935",
+    "Cameron Boozer",
+    "MEM",
+    "GS",
+    0.1261,
+    "over",
+    true,
+    2.5,
+    120,
+    "fliff"
+   ],
+   [
+    "5112087",
+    "Jaylen Wells",
+    "MEM",
+    "GS",
+    0.1267,
+    "over",
+    true,
+    1.5,
+    -155,
+    "fliff"
+   ]
+  ]
  },
  "401910020": {
   "date": "2026-11-19",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3134907",
+    "Kyle Kuzma",
+    "MIL",
+    "POR",
+    -0.0676,
+    "under",
+    false,
+    12.5,
+    -135,
+    "fliff"
+   ],
+   [
+    "4395725",
+    "Tyler Herro",
+    "MIL",
+    "POR",
+    -0.0615,
+    "under",
+    false,
+    20.5,
+    -125,
+    "fliff"
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "MIL",
+    0.0795,
+    "over",
+    false,
+    13.5,
+    -106,
+    "fanduel"
+   ],
+   [
+    "5082206",
+    "Brayden Burries",
+    "MIL",
+    "POR",
+    -0.1056,
+    "under",
+    false,
+    11.5,
+    -122,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "3134907",
+    "Kyle Kuzma",
+    "MIL",
+    "POR",
+    -0.0598,
+    "under",
+    false,
+    1.5,
+    -118,
+    "fanduel"
+   ],
+   [
+    "3995",
+    "Jrue Holiday",
+    "POR",
+    "MIL",
+    0.0686,
+    "over",
+    false,
+    1.5,
+    -195,
+    "fliff"
+   ],
+   [
+    "4395725",
+    "Tyler Herro",
+    "MIL",
+    "POR",
+    -0.1108,
+    "under",
+    false,
+    2.5,
+    -130,
+    "fliff"
+   ],
+   [
+    "4431736",
+    "Toumani Camara",
+    "POR",
+    "MIL",
+    0.198,
+    "over",
+    true,
+    2.5,
+    105,
+    "fliff"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "MIL",
+    0.258,
+    "over",
+    true,
+    1.5,
+    -160,
+    "fliff"
+   ],
+   [
+    "4683678",
+    "Scoot Henderson",
+    "POR",
+    "MIL",
+    0.0561,
+    "over",
+    false,
+    1.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "5082206",
+    "Brayden Burries",
+    "MIL",
+    "POR",
+    -0.1521,
+    "under",
+    true,
+    1.5,
+    -200,
+    "fanduel"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "MIL",
+    -0.1468,
+    "under",
+    true,
+    0.5,
+    140,
+    "fliff"
+   ]
+  ]
  },
  "401910021": {
   "date": "2026-11-19",
@@ -26682,7 +26877,7 @@
     "Rudy Gobert",
     "MIN",
     "NY",
-    -0.1975,
+    -0.1989,
     "under",
     true,
     8.5,
@@ -26694,60 +26889,72 @@
     "Josh Hart",
     "NY",
     "MIN",
-    -0.0687,
+    -0.0675,
     "under",
     false,
     7.5,
-    -110,
-    "fliff"
+    -104,
+    "draftkings"
    ],
    [
     "3147657",
     "Mikal Bridges",
     "NY",
     "MIN",
-    -0.1296,
+    -0.1291,
     "under",
     true,
     9.5,
-    -104,
-    "draftkings"
+    100,
+    "fanduel"
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "MIN",
+    -0.1511,
+    "under",
+    true,
+    8.5,
+    -106,
+    "fanduel"
    ],
    [
     "3934672",
     "Jalen Brunson",
     "NY",
     "MIN",
-    -0.1294,
+    -0.1288,
     "under",
     true,
-    27.5,
-    -121,
-    "draftkings"
+    26.5,
+    -122,
+    "fanduel"
    ],
    [
     "3934719",
     "OG Anunoby",
     "NY",
     "MIN",
-    -0.1003,
+    -0.0993,
     "under",
     false,
     15.5,
-    -125,
-    "fliff"
+    -121,
+    "draftkings"
    ],
    [
     "4431671",
     "Jaden McDaniels",
     "MIN",
     "NY",
-    -0.1243,
+    -0.1241,
     "under",
     true,
-    15.5,
-    100,
-    "draftkings"
+    16.5,
+    -127,
+    "caesars"
    ]
   ],
   "threes": [
@@ -26756,47 +26963,83 @@
     "Josh Hart",
     "NY",
     "MIN",
-    -0.1211,
+    -0.1199,
     "under",
-    true,
+    false,
     1.5,
-    -240,
-    "fliff"
+    -188,
+    "prophetx"
    ],
    [
     "3147657",
     "Mikal Bridges",
     "NY",
     "MIN",
-    -0.2164,
+    -0.2151,
     "under",
     true,
-    0.5,
-    145,
-    "draftkings"
+    1.5,
+    -215,
+    "fanduel"
+   ],
+   [
+    "3914044",
+    "Landry Shamet",
+    "NY",
+    "MIN",
+    -0.2539,
+    "under",
+    true,
+    1.5,
+    114,
+    "fanduel"
    ],
    [
     "3934719",
     "OG Anunoby",
     "NY",
     "MIN",
-    -0.2449,
+    -0.2428,
     "under",
     true,
     1.5,
-    114,
-    "draftkings"
+    144,
+    "fanduel"
+   ],
+   [
+    "4397002",
+    "Ayo Dosunmu",
+    "MIN",
+    "NY",
+    0.0969,
+    "over",
+    false,
+    1.5,
+    -176,
+    "caesars"
+   ],
+   [
+    "4432847",
+    "Terrence Shannon Jr.",
+    "MIN",
+    "NY",
+    0.0752,
+    "over",
+    false,
+    1.5,
+    125,
+    "fliff"
    ],
    [
     "4433247",
     "Jonathan Kuminga",
     "MIN",
     "NY",
-    -0.0966,
+    -0.0947,
     "under",
     false,
     1.5,
-    -147,
+    -149,
     "draftkings"
    ]
   ]
@@ -26809,23 +27052,23 @@
     "Kris Dunn",
     "LAC",
     "SA",
-    -0.1647,
+    -0.1636,
     "under",
     true,
-    4.5,
-    100,
-    "fliff"
+    5.5,
+    -122,
+    "fanduel"
    ],
    [
     "4066259",
     "De'Aaron Fox",
     "SA",
     "LAC",
-    0.0848,
+    0.0859,
     "over",
     false,
     15.5,
-    -107,
+    -112,
     "caesars"
    ],
    [
@@ -26833,12 +27076,12 @@
     "Devin Vassell",
     "SA",
     "LAC",
-    0.0591,
+    0.0593,
     "over",
     false,
-    11.5,
-    -124,
-    "prophetx"
+    12.5,
+    -110,
+    "fliff"
    ]
   ],
   "threes": [
@@ -26847,11 +27090,11 @@
     "Kris Dunn",
     "LAC",
     "SA",
-    -0.202,
+    -0.2006,
     "under",
     true,
     0.5,
-    -106,
+    -107,
     "draftkings"
    ],
    [
@@ -26859,11 +27102,11 @@
     "Devin Vassell",
     "SA",
     "LAC",
-    0.0807,
+    0.0839,
     "over",
     false,
     1.5,
-    -128,
+    -137,
     "prophetx"
    ]
   ]
