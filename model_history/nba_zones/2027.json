@@ -26663,5 +26663,87 @@
     "prophetx"
    ]
   ]
+ },
+ "401910019": {
+  "date": "2026-11-19",
+  "points": [],
+  "threes": []
+ },
+ "401910020": {
+  "date": "2026-11-19",
+  "points": [],
+  "threes": []
+ },
+ "401910021": {
+  "date": "2026-11-19",
+  "points": [],
+  "threes": []
+ },
+ "401910022": {
+  "date": "2026-11-19",
+  "points": [
+   [
+    "2991139",
+    "Kris Dunn",
+    "LAC",
+    "SA",
+    -0.1658,
+    "under",
+    true,
+    4.5,
+    100,
+    "fliff"
+   ],
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "LAC",
+    0.0833,
+    "over",
+    false,
+    15.5,
+    -110,
+    "fliff"
+   ],
+   [
+    "4395630",
+    "Devin Vassell",
+    "SA",
+    "LAC",
+    0.0606,
+    "over",
+    false,
+    11.5,
+    -124,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "2991139",
+    "Kris Dunn",
+    "LAC",
+    "SA",
+    -0.2019,
+    "under",
+    true,
+    0.5,
+    -106,
+    "draftkings"
+   ],
+   [
+    "4395630",
+    "Devin Vassell",
+    "SA",
+    "LAC",
+    0.0793,
+    "over",
+    false,
+    1.5,
+    -134,
+    "draftkings"
+   ]
+  ]
  }
 }
