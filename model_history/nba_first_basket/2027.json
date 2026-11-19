@@ -3071,9 +3071,16 @@
     false,
     null
    ],
+   "4066372": [
+    "Kevin Huerter",
+    0.08,
+    null,
+    false,
+    null
+   ],
    "4278562": [
     "Paul Reed",
-    0.076,
+    0.079,
     null,
     false,
     null
@@ -3081,13 +3088,6 @@
    "4395724": [
     "Immanuel Quickley",
     0.105,
-    null,
-    false,
-    null
-   ],
-   "4432166": [
-    "Cade Cunningham",
-    0.086,
     null,
     false,
     null
@@ -3122,7 +3122,7 @@
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.095,
+    0.098,
     null,
     false,
     null
@@ -19123,6 +19123,13 @@
     false,
     "fanduel"
    ],
+   "4066372": [
+    "Kevin Huerter",
+    0.09,
+    700,
+    false,
+    "hard_rock"
+   ],
    "4277813": [
     "Herbert Jones",
     0.087,
@@ -19132,7 +19139,7 @@
    ],
    "4278562": [
     "Paul Reed",
-    0.085,
+    0.089,
     null,
     false,
     null
@@ -19143,13 +19150,6 @@
     610,
     false,
     "draftkings"
-   ],
-   "4432166": [
-    "Cade Cunningham",
-    0.096,
-    600,
-    false,
-    "fanduel"
    ],
    "4684742": [
     "Ausar Thompson",
@@ -19174,7 +19174,7 @@
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.107,
+    0.11,
     900,
     false,
     "thescore"
