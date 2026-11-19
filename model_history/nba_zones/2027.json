@@ -26676,8 +26676,130 @@
  },
  "401910021": {
   "date": "2026-11-19",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "3032976",
+    "Rudy Gobert",
+    "MIN",
+    "NY",
+    -0.1975,
+    "under",
+    true,
+    8.5,
+    -105,
+    "draftkings"
+   ],
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "MIN",
+    -0.0687,
+    "under",
+    false,
+    7.5,
+    -110,
+    "fliff"
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "MIN",
+    -0.1296,
+    "under",
+    true,
+    9.5,
+    -104,
+    "draftkings"
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "MIN",
+    -0.1294,
+    "under",
+    true,
+    27.5,
+    -121,
+    "draftkings"
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "MIN",
+    -0.1003,
+    "under",
+    false,
+    15.5,
+    -125,
+    "fliff"
+   ],
+   [
+    "4431671",
+    "Jaden McDaniels",
+    "MIN",
+    "NY",
+    -0.1243,
+    "under",
+    true,
+    15.5,
+    100,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "MIN",
+    -0.1211,
+    "under",
+    true,
+    1.5,
+    -240,
+    "fliff"
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "MIN",
+    -0.2164,
+    "under",
+    true,
+    0.5,
+    145,
+    "draftkings"
+   ],
+   [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "MIN",
+    -0.2449,
+    "under",
+    true,
+    1.5,
+    114,
+    "draftkings"
+   ],
+   [
+    "4433247",
+    "Jonathan Kuminga",
+    "MIN",
+    "NY",
+    -0.0966,
+    "under",
+    false,
+    1.5,
+    -147,
+    "draftkings"
+   ]
+  ]
  },
  "401910022": {
   "date": "2026-11-19",
@@ -26687,7 +26809,7 @@
     "Kris Dunn",
     "LAC",
     "SA",
-    -0.1658,
+    -0.1647,
     "under",
     true,
     4.5,
@@ -26699,24 +26821,24 @@
     "De'Aaron Fox",
     "SA",
     "LAC",
-    0.0833,
+    0.0848,
     "over",
     false,
     15.5,
-    -110,
-    "fliff"
+    -107,
+    "caesars"
    ],
    [
     "4395630",
     "Devin Vassell",
     "SA",
     "LAC",
-    0.0606,
+    0.0591,
     "over",
     false,
     11.5,
     -124,
-    "draftkings"
+    "prophetx"
    ]
   ],
   "threes": [
@@ -26725,7 +26847,7 @@
     "Kris Dunn",
     "LAC",
     "SA",
-    -0.2019,
+    -0.202,
     "under",
     true,
     0.5,
@@ -26737,12 +26859,12 @@
     "Devin Vassell",
     "SA",
     "LAC",
-    0.0793,
+    0.0807,
     "over",
     false,
     1.5,
-    -134,
-    "draftkings"
+    -128,
+    "prophetx"
    ]
   ]
  }
