@@ -11355,63 +11355,63 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.3576,
+    "lead": 0.3558,
     "name": "Victor Wembanyama",
-    "proj": 44.6,
+    "proj": 44.5,
     "team": "SA"
    },
    {
     "id": "4683021",
-    "lead": 0.1554,
+    "lead": 0.1561,
     "name": "Deni Avdija",
     "proj": 37.8,
     "team": "POR"
    },
    {
     "id": "3136195",
-    "lead": 0.1309,
+    "lead": 0.1313,
     "name": "Karl-Anthony Towns",
     "proj": 37.2,
     "team": "NY"
    },
    {
     "id": "3934672",
-    "lead": 0.1216,
+    "lead": 0.1219,
     "name": "Jalen Brunson",
     "proj": 36.2,
     "team": "NY"
    },
    {
     "id": "5041935",
-    "lead": 0.0445,
+    "lead": 0.0446,
     "name": "Cameron Boozer",
     "proj": 31.4,
     "team": "MEM"
    },
    {
     "id": "5175737",
-    "lead": 0.0286,
+    "lead": 0.0289,
     "name": "Yaxel Lendeborg",
     "proj": 30.2,
     "team": "GS"
    },
    {
     "id": "4396907",
-    "lead": 0.028,
+    "lead": 0.0276,
     "name": "Darius Garland",
-    "proj": 29.6,
+    "proj": 29.5,
     "team": "LAC"
    },
    {
     "id": "6606",
-    "lead": 0.0229,
+    "lead": 0.023,
     "name": "Damian Lillard",
     "proj": 28.6,
     "team": "POR"
    },
    {
     "id": "4432816",
-    "lead": 0.0162,
+    "lead": 0.0163,
     "name": "LaMelo Ball",
     "proj": 27.6,
     "team": "MIN"
@@ -11425,7 +11425,7 @@
    },
    {
     "id": "5105565",
-    "lead": 0.0133,
+    "lead": 0.0136,
     "name": "Donovan Clingan",
     "proj": 26.4,
     "team": "POR"
@@ -11438,18 +11438,18 @@
     "team": "MIN"
    },
    {
-    "id": "4845367",
-    "lead": 0.0113,
-    "name": "Stephon Castle",
-    "proj": 26.1,
-    "team": "SA"
-   },
-   {
     "id": "4431671",
     "lead": 0.0112,
     "name": "Jaden McDaniels",
     "proj": 26.2,
     "team": "MIN"
+   },
+   {
+    "id": "4845367",
+    "lead": 0.011,
+    "name": "Stephon Castle",
+    "proj": 26.0,
+    "team": "SA"
    },
    {
     "id": "4903027",
@@ -11460,7 +11460,7 @@
    },
    {
     "id": "4709138",
-    "lead": 0.0063,
+    "lead": 0.0064,
     "name": "Brandin Podziemski",
     "proj": 24.7,
     "team": "GS"
@@ -11474,7 +11474,7 @@
    },
    {
     "id": "4066259",
-    "lead": 0.0021,
+    "lead": 0.0022,
     "name": "De'Aaron Fox",
     "proj": 22.3,
     "team": "SA"
@@ -11609,7 +11609,7 @@
     "id": "2991139",
     "lead": 0.0001,
     "name": "Kris Dunn",
-    "proj": 14.6,
+    "proj": 14.5,
     "team": "LAC"
    },
    {
@@ -11665,7 +11665,7 @@
     "id": "4065778",
     "lead": 0.0,
     "name": "Max Strus",
-    "proj": 14.9,
+    "proj": 14.8,
     "team": "LAC"
    },
    {
@@ -11679,7 +11679,7 @@
     "id": "4432170",
     "lead": 0.0,
     "name": "Isaiah Jackson",
-    "proj": 14.5,
+    "proj": 14.4,
     "team": "LAC"
    },
    {
@@ -11693,7 +11693,7 @@
     "id": "4702352",
     "lead": 0.0,
     "name": "Kobe Sanders",
-    "proj": 14.0,
+    "proj": 13.9,
     "team": "LAC"
    },
    {
