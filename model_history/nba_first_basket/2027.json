@@ -19713,51 +19713,51 @@
    "4066436": [
     "De'Anthony Melton",
     0.099,
-    null,
-    false,
-    null
+    1100,
+    true,
+    "fanduel"
    ],
    "4432810": [
     "Isaiah Stewart",
     0.094,
-    null,
+    830,
     false,
-    null
+    "draftkings"
    ],
    "4433083": [
     "Cam Spencer",
     0.083,
-    null,
+    950,
     false,
-    null
+    "bet365"
    ],
    "4709138": [
     "Brandin Podziemski",
     0.131,
-    null,
+    710,
     false,
-    null
+    "draftkings"
    ],
    "4897262": [
     "Will Richard",
     0.093,
-    null,
-    false,
-    null
+    1700,
+    true,
+    "fanduel"
    ],
    "4903027": [
     "Cedric Coward",
     0.082,
     800,
     false,
-    "bet365"
+    "fanduel"
    ],
    "4997536": [
     "Gui Santos",
     0.078,
-    null,
+    1180,
     false,
-    null
+    "draftkings"
    ],
    "5041935": [
     "Cameron Boozer",
@@ -19776,9 +19776,9 @@
    "5175737": [
     "Yaxel Lendeborg",
     0.102,
-    null,
+    700,
     false,
-    null
+    "bet365"
    ]
   },
   "tip_home": 0.425
@@ -19804,21 +19804,21 @@
     0.083,
     750,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4431736": [
     "Toumani Camara",
     0.092,
-    950,
+    860,
     false,
-    "fanduel"
+    "draftkings"
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
     0.102,
-    null,
-    false,
-    null
+    1100,
+    true,
+    "fanduel"
    ],
    "4591725": [
     "Ryan Rollins",
@@ -19837,23 +19837,23 @@
    "5081727": [
     "Sidy Cissoko",
     0.102,
-    1155,
-    true,
+    905,
+    false,
     "fliff"
    ],
    "5082206": [
     "Brayden Burries",
     0.078,
-    1100,
+    1200,
     false,
     "fanduel"
    ],
    "5105565": [
     "Donovan Clingan",
     0.089,
-    665,
+    575,
     false,
-    "fliff"
+    "bet365"
    ],
    "5105623": [
     "Kel'el Ware",
@@ -19865,9 +19865,9 @@
    "6606": [
     "Damian Lillard",
     0.126,
-    500,
+    625,
     false,
-    "hard_rock"
+    "bet365"
    ]
   },
   "tip_home": 0.276
@@ -19891,44 +19891,44 @@
    "3032976": [
     "Rudy Gobert",
     0.088,
-    880,
+    765,
     false,
-    "draftkings"
+    "fliff"
    ],
    "3062679": [
     "Josh Hart",
     0.065,
-    1900,
+    1615,
     true,
-    "draftkings"
+    "fliff"
    ],
    "3136195": [
     "Karl-Anthony Towns",
     0.101,
     750,
     false,
-    "fanduel"
+    "thescore"
    ],
    "3147657": [
     "Mikal Bridges",
     0.078,
-    1100,
+    1200,
     false,
-    "hard_rock"
+    "fanduel"
    ],
    "3934672": [
     "Jalen Brunson",
     0.119,
-    556,
+    650,
     false,
-    "draftkings"
+    "bet365"
    ],
    "3934719": [
     "OG Anunoby",
     0.104,
-    900,
+    950,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4397002": [
     "Ayo Dosunmu",
@@ -19940,16 +19940,16 @@
    "4431671": [
     "Jaden McDaniels",
     0.106,
-    800,
+    750,
     false,
-    "fanduel"
+    "thescore"
    ],
    "4432816": [
     "LaMelo Ball",
     0.122,
-    610,
+    600,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4433247": [
     "Jonathan Kuminga",
@@ -19980,72 +19980,72 @@
    "2991139": [
     "Kris Dunn",
     0.066,
-    2200,
+    1805,
     true,
-    "draftkings"
+    "fliff"
    ],
    "3448": [
     "Brook Lopez",
     0.079,
-    1220,
+    1040,
     false,
     "draftkings"
    ],
    "3936099": [
     "Derrick Jones Jr.",
     0.079,
-    1280,
+    1000,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4066259": [
     "De'Aaron Fox",
     0.111,
-    650,
+    620,
     false,
-    "bet365"
+    "draftkings"
    ],
    "4066648": [
     "Rui Hachimura",
     0.09,
-    1080,
+    1000,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "4395630": [
     "Devin Vassell",
     0.1,
-    800,
+    850,
     false,
     "fanduel"
    ],
    "4396907": [
     "Darius Garland",
     0.117,
-    1100,
-    true,
-    "bet365"
+    760,
+    false,
+    "draftkings"
    ],
    "4592479": [
     "Julian Champagnie",
     0.089,
-    900,
+    1000,
     false,
-    "hard_rock"
+    "thescore"
    ],
    "4845367": [
     "Stephon Castle",
     0.093,
-    800,
+    750,
     false,
-    "fanduel"
+    "thescore"
    ],
    "5104157": [
     "Victor Wembanyama",
     0.138,
-    350,
+    300,
     false,
-    "bet365"
+    "fliff"
    ]
   },
   "tip_home": 0.659
