@@ -11773,49 +11773,49 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4005,
+    "lead": 0.3989,
     "name": "Luka Doncic",
-    "proj": 55.2,
+    "proj": 55.1,
     "team": "LAL"
    },
    {
     "id": "4566434",
-    "lead": 0.0814,
+    "lead": 0.0816,
     "name": "Franz Wagner",
     "proj": 42.0,
     "team": "ORL"
    },
    {
-    "id": "4278073",
-    "lead": 0.0752,
-    "name": "Shai Gilgeous-Alexander",
-    "proj": 41.9,
-    "team": "OKC"
-   },
-   {
     "id": "3112335",
-    "lead": 0.0751,
+    "lead": 0.0755,
     "name": "Nikola Jokic",
     "proj": 41.7,
     "team": "DEN"
    },
    {
+    "id": "4278073",
+    "lead": 0.0754,
+    "name": "Shai Gilgeous-Alexander",
+    "proj": 41.9,
+    "team": "OKC"
+   },
+   {
     "id": "5142620",
-    "lead": 0.0564,
+    "lead": 0.0555,
     "name": "Darius Acuff Jr.",
-    "proj": 39.8,
+    "proj": 39.7,
     "team": "SAC"
    },
    {
     "id": "6583",
-    "lead": 0.0546,
+    "lead": 0.055,
     "name": "Anthony Davis",
     "proj": 40.4,
     "team": "WSH"
    },
    {
     "id": "4432166",
-    "lead": 0.046,
+    "lead": 0.0463,
     "name": "Cade Cunningham",
     "proj": 39.0,
     "team": "DET"
@@ -11829,7 +11829,7 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0258,
+    "lead": 0.0261,
     "name": "Scottie Barnes",
     "proj": 36.5,
     "team": "TOR"
@@ -11843,14 +11843,14 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0237,
+    "lead": 0.0239,
     "name": "Donovan Mitchell",
     "proj": 35.6,
     "team": "CLE"
    },
    {
     "id": "4701230",
-    "lead": 0.0187,
+    "lead": 0.0188,
     "name": "Jalen Johnson",
     "proj": 34.9,
     "team": "ATL"
@@ -11864,14 +11864,14 @@
    },
    {
     "id": "4433627",
-    "lead": 0.0107,
+    "lead": 0.0108,
     "name": "Keyonte George",
-    "proj": 33.0,
+    "proj": 32.9,
     "team": "UTAH"
    },
    {
     "id": "3149673",
-    "lead": 0.0082,
+    "lead": 0.0083,
     "name": "Pascal Siakam",
     "proj": 32.1,
     "team": "IND"
@@ -11955,9 +11955,9 @@
    },
    {
     "id": "3064440",
-    "lead": 0.0013,
+    "lead": 0.0012,
     "name": "Zach LaVine",
-    "proj": 27.0,
+    "proj": 26.9,
     "team": "SAC"
    },
    {
@@ -12045,6 +12045,13 @@
     "team": "ORL"
    },
    {
+    "id": "4066328",
+    "lead": 0.0005,
+    "name": "Jarrett Allen",
+    "proj": 25.9,
+    "team": "CLE"
+   },
+   {
     "id": "4684740",
     "lead": 0.0005,
     "name": "Amen Thompson",
@@ -12057,13 +12064,6 @@
     "name": "Immanuel Quickley",
     "proj": 24.9,
     "team": "TOR"
-   },
-   {
-    "id": "4066328",
-    "lead": 0.0003,
-    "name": "Jarrett Allen",
-    "proj": 25.9,
-    "team": "CLE"
    },
    {
     "id": "4277847",
@@ -12139,7 +12139,7 @@
     "id": "3155526",
     "lead": 0.0001,
     "name": "Dillon Brooks",
-    "proj": 20.0,
+    "proj": 19.9,
     "team": "PHX"
    },
    {
