@@ -11773,30 +11773,30 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3945,
+    "lead": 0.3943,
     "name": "Luka Doncic",
     "proj": 55.2,
     "team": "LAL"
    },
    {
     "id": "4566434",
-    "lead": 0.0798,
+    "lead": 0.0797,
     "name": "Franz Wagner",
     "proj": 42.0,
     "team": "ORL"
    },
    {
     "id": "3112335",
-    "lead": 0.0789,
+    "lead": 0.0786,
     "name": "Nikola Jokic",
     "proj": 41.7,
     "team": "DEN"
    },
    {
     "id": "4278073",
-    "lead": 0.0766,
+    "lead": 0.078,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 41.8,
+    "proj": 41.9,
     "team": "OKC"
    },
    {
@@ -11808,7 +11808,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0534,
+    "lead": 0.0533,
     "name": "Darius Acuff Jr.",
     "proj": 39.7,
     "team": "SAC"
@@ -11822,42 +11822,42 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0321,
+    "lead": 0.0319,
     "name": "Alperen Sengun",
     "proj": 37.2,
     "team": "HOU"
    },
    {
     "id": "3936299",
-    "lead": 0.0245,
+    "lead": 0.0243,
     "name": "Jamal Murray",
     "proj": 36.2,
     "team": "DEN"
    },
    {
     "id": "4433134",
-    "lead": 0.0238,
+    "lead": 0.0237,
     "name": "Scottie Barnes",
     "proj": 36.4,
     "team": "TOR"
    },
    {
     "id": "3908809",
-    "lead": 0.0214,
+    "lead": 0.0213,
     "name": "Donovan Mitchell",
     "proj": 35.6,
     "team": "CLE"
    },
    {
     "id": "4701230",
-    "lead": 0.0167,
+    "lead": 0.0166,
     "name": "Jalen Johnson",
     "proj": 34.8,
     "team": "ATL"
    },
    {
     "id": "3136193",
-    "lead": 0.0136,
+    "lead": 0.0135,
     "name": "Devin Booker",
     "proj": 33.9,
     "team": "PHX"
@@ -11920,7 +11920,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0023,
+    "lead": 0.0022,
     "name": "Trae Young",
     "proj": 28.9,
     "team": "WSH"
@@ -11975,18 +11975,18 @@
     "team": "LAL"
    },
    {
+    "id": "4222252",
+    "lead": 0.0014,
+    "name": "Isaiah Hartenstein",
+    "proj": 26.2,
+    "team": "OKC"
+   },
+   {
     "id": "4431680",
     "lead": 0.0013,
     "name": "Onyeka Okongwu",
     "proj": 26.7,
     "team": "ATL"
-   },
-   {
-    "id": "4222252",
-    "lead": 0.0013,
-    "name": "Isaiah Hartenstein",
-    "proj": 26.1,
-    "team": "OKC"
    },
    {
     "id": "5041955",
@@ -12013,7 +12013,7 @@
     "id": "5144091",
     "lead": 0.0009,
     "name": "Jeremiah Fears",
-    "proj": 26.2,
+    "proj": 26.3,
     "team": "NO"
    },
    {
@@ -12069,7 +12069,7 @@
     "id": "4397136",
     "lead": 0.0004,
     "name": "Saddiq Bey",
-    "proj": 24.3,
+    "proj": 24.4,
     "team": "NO"
    },
    {
