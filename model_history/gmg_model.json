@@ -1898,5 +1898,27 @@
   "total_result": "win",
   "updated": "2026-11-12T20:03Z",
   "week": 10
+ },
+ "2026_11_IND_HOU": {
+  "away": "IND",
+  "away_pts": 18.6,
+  "final": [
+   3,
+   26
+  ],
+  "frozen": true,
+  "home": "HOU",
+  "home_pts": 27.7,
+  "qb_out": [],
+  "spread": -12.5,
+  "spread_edge": 3.4,
+  "spread_pick": "away",
+  "spread_result": "loss",
+  "total": 43.5,
+  "total_edge": 2.8,
+  "total_pick": "over",
+  "total_result": "loss",
+  "updated": "2026-11-19T20:46Z",
+  "week": 11
  }
 }

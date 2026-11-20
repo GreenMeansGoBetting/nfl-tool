@@ -11773,31 +11773,31 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4009,
+    "lead": 0.4005,
     "name": "Luka Doncic",
     "proj": 55.2,
     "team": "LAL"
    },
    {
     "id": "4566434",
-    "lead": 0.0816,
+    "lead": 0.0814,
     "name": "Franz Wagner",
     "proj": 42.0,
     "team": "ORL"
    },
    {
+    "id": "4278073",
+    "lead": 0.0752,
+    "name": "Shai Gilgeous-Alexander",
+    "proj": 41.9,
+    "team": "OKC"
+   },
+   {
     "id": "3112335",
-    "lead": 0.0753,
+    "lead": 0.0751,
     "name": "Nikola Jokic",
     "proj": 41.7,
     "team": "DEN"
-   },
-   {
-    "id": "4278073",
-    "lead": 0.0744,
-    "name": "Shai Gilgeous-Alexander",
-    "proj": 41.8,
-    "team": "OKC"
    },
    {
     "id": "5142620",
@@ -11829,21 +11829,21 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0253,
+    "lead": 0.0258,
     "name": "Scottie Barnes",
-    "proj": 36.4,
+    "proj": 36.5,
     "team": "TOR"
    },
    {
     "id": "3936299",
-    "lead": 0.0248,
+    "lead": 0.0245,
     "name": "Jamal Murray",
     "proj": 36.1,
     "team": "DEN"
    },
    {
     "id": "3908809",
-    "lead": 0.0238,
+    "lead": 0.0237,
     "name": "Donovan Mitchell",
     "proj": 35.6,
     "team": "CLE"
@@ -11857,14 +11857,14 @@
    },
    {
     "id": "3136193",
-    "lead": 0.0147,
+    "lead": 0.0146,
     "name": "Devin Booker",
     "proj": 33.9,
     "team": "PHX"
    },
    {
     "id": "4433627",
-    "lead": 0.0108,
+    "lead": 0.0107,
     "name": "Keyonte George",
     "proj": 33.0,
     "team": "UTAH"
@@ -11892,7 +11892,7 @@
    },
    {
     "id": "4278104",
-    "lead": 0.0047,
+    "lead": 0.0046,
     "name": "Michael Porter Jr.",
     "proj": 30.4,
     "team": "BKN"
@@ -11964,7 +11964,7 @@
     "id": "5144091",
     "lead": 0.0012,
     "name": "Jeremiah Fears",
-    "proj": 26.2,
+    "proj": 26.3,
     "team": "NO"
    },
    {
@@ -11982,13 +11982,6 @@
     "team": "OKC"
    },
    {
-    "id": "4712849",
-    "lead": 0.001,
-    "name": "Anthony Black",
-    "proj": 27.2,
-    "team": "ORL"
-   },
-   {
     "id": "5142718",
     "lead": 0.0009,
     "name": "AJ Dybantsa",
@@ -11996,18 +11989,25 @@
     "team": "WSH"
    },
    {
+    "id": "4712849",
+    "lead": 0.0009,
+    "name": "Anthony Black",
+    "proj": 27.2,
+    "team": "ORL"
+   },
+   {
+    "id": "4222252",
+    "lead": 0.0009,
+    "name": "Isaiah Hartenstein",
+    "proj": 26.2,
+    "team": "OKC"
+   },
+   {
     "id": "5041955",
     "lead": 0.0009,
     "name": "Darryn Peterson",
     "proj": 26.0,
     "team": "UTAH"
-   },
-   {
-    "id": "4222252",
-    "lead": 0.0008,
-    "name": "Isaiah Hartenstein",
-    "proj": 26.1,
-    "team": "OKC"
    },
    {
     "id": "4395712",
@@ -12083,7 +12083,7 @@
     "id": "4397136",
     "lead": 0.0002,
     "name": "Saddiq Bey",
-    "proj": 24.3,
+    "proj": 24.4,
     "team": "NO"
    },
    {
@@ -12120,6 +12120,13 @@
     "name": "Trey Murphy III",
     "proj": 23.9,
     "team": "NO"
+   },
+   {
+    "id": "4683778",
+    "lead": 0.0001,
+    "name": "Jared McCain",
+    "proj": 20.3,
+    "team": "OKC"
    },
    {
     "id": "4437244",
@@ -12183,13 +12190,6 @@
     "name": "Moussa Diabate",
     "proj": 21.4,
     "team": "CHA"
-   },
-   {
-    "id": "4702382",
-    "lead": 0.0,
-    "name": "Tristan da Silva",
-    "proj": 21.0,
-    "team": "ORL"
    }
   ],
   "season_used": "2026-27"
