@@ -11773,7 +11773,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.394,
+    "lead": 0.3941,
     "name": "Luka Doncic",
     "proj": 55.2,
     "team": "LAL"
@@ -12045,13 +12045,6 @@
     "team": "DET"
    },
    {
-    "id": "4397136",
-    "lead": 0.0005,
-    "name": "Saddiq Bey",
-    "proj": 24.4,
-    "team": "NO"
-   },
-   {
     "id": "4066383",
     "lead": 0.0005,
     "name": "Miles Bridges",
@@ -12059,10 +12052,17 @@
     "team": "PHX"
    },
    {
+    "id": "4397136",
+    "lead": 0.0004,
+    "name": "Saddiq Bey",
+    "proj": 24.3,
+    "team": "NO"
+   },
+   {
     "id": "5144091",
     "lead": 0.0003,
     "name": "Jeremiah Fears",
-    "proj": 26.3,
+    "proj": 26.2,
     "team": "NO"
    },
    {
