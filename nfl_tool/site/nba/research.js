@@ -124,8 +124,15 @@ function gamesOn(date) {
       away_score: g.away_score ?? lg.away_score ?? null, home_score: g.home_score ?? lg.home_score ?? null };
   });
 }
-// A game has started once its tip time has passed (times are Eastern, fixed UTC-4 like the build).
-const started = (g) => g.status === "final" || (Boolean(g.time) && Date.now() >= Date.parse(`${g.date}T${g.time}:00-04:00`));
+// A game has started once its tip time has passed. start_utc is the real moment; time is the
+// Eastern wall clock (EDT, then EST from November), read through sync.js. A fixed -04:00 here
+// marked every game started an hour early all winter (2026-11-19: a whole 8 PM slate faded at 7:36).
+const tipMs = (g) => {
+  const utc = g.start_utc ? Date.parse(String(g.start_utc).replace(/(T\d\d:\d\d)Z$/, "$1:00Z")) : NaN;
+  if (Number.isFinite(utc)) return utc;
+  return g.time ? gmgEasternToDate(g.date, g.time).getTime() : NaN;
+};
+const started = (g) => g.status === "final" || Date.now() >= tipMs(g);
 
 // ---- the books' lines (data.json book_odds) ----
 function bookGame(g) {

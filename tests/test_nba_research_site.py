@@ -105,6 +105,21 @@ class Points(unittest.TestCase):
         for word in ("Edge", "Fair", "Rating", "Strong", "Projection", "Plays Only", "Model Performance", "10,000"):
             self.assertNotIn(word, text)
 
+    def test_a_game_starts_at_its_real_tip_after_the_clocks_change(self):
+        # 2026-11-19: an 8:00 PM ET tip read as started at 7:36 PM (a fixed -04:00 in winter),
+        # so the whole slate faded under "Started" and its plays dropped.
+        check = """([now, g]) => { const real = Date.now; Date.now = () => Date.parse(now);
+          try { return started(g); } finally { Date.now = real; } }"""
+        g = {"date": "2026-11-19", "time": "20:00", "status": "scheduled"}
+        self.assertFalse(self.page.evaluate(check, ["2026-11-20T00:36:00Z", g]))  # 7:36 PM EST
+        self.assertTrue(self.page.evaluate(check, ["2026-11-20T01:00:00Z", g]))  # 8:00 PM EST
+        with_utc = {**g, "start_utc": "2026-11-20T01:00Z"}
+        self.assertFalse(self.page.evaluate(check, ["2026-11-20T00:59:00Z", with_utc]))
+        self.assertTrue(self.page.evaluate(check, ["2026-11-20T01:00:00Z", with_utc]))
+        summer = {"date": "2026-10-22", "time": "19:30", "status": "scheduled"}  # EDT still
+        self.assertFalse(self.page.evaluate(check, ["2026-10-22T23:29:00Z", summer]))
+        self.assertTrue(self.page.evaluate(check, ["2026-10-22T23:30:00Z", summer]))
+
     def test_the_row(self):
         [one] = rows(self.page)
         self.assertIn("Player One", one[0])

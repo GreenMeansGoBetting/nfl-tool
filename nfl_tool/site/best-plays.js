@@ -70,11 +70,11 @@ function bpRating(kind, edge, chance) {
   const ratio = kind === "prop" ? 0 : chance / (chance - edge);
   return edge >= e.check || ratio >= BP_CHECK_RATIO ? "Check" : edge >= e.strong ? "Strong" : "Lean";
 }
-// Kickoff in Eastern time; the -04:00 offset makes a game drop off an hour
-// early after the clocks change rather than an hour late (odds lock at kickoff).
+// Kickoff in Eastern wall-clock time (EDT, then EST from November), read through sync.js.
+// A fixed -04:00 dropped every game an hour early all winter (2026-11-19).
 function bpStarted(g) {
   if (g.status && g.status !== "scheduled") return true;
-  const t = Date.parse(`${g.date}T${g.time || "13:00"}:00-04:00`);
+  const t = g.date ? gmgEasternToDate(g.date, g.time || "13:00").getTime() : NaN;
   return Number.isFinite(t) && Date.now() >= t;
 }
 const bpGameKey = (g) => `${g.away}_${g.home}`;

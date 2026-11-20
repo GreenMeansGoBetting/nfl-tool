@@ -40,6 +40,17 @@ class BestPlays(unittest.TestCase):
     def tearDownClass(cls):
         cls.page.close()
 
+    def test_a_game_drops_at_its_real_kickoff_after_the_clocks_change(self):
+        # A fixed -04:00 dropped every game an hour early all winter (2026-11-19).
+        check = """([now, g]) => { const real = Date.now; Date.now = () => Date.parse(now);
+          try { return bpStarted(g); } finally { Date.now = real; } }"""
+        g = {"date": "2026-11-23", "time": "20:15", "status": "scheduled"}
+        self.assertFalse(self.page.evaluate(check, ["2026-11-24T01:00:00Z", g]))  # 8:00 PM EST
+        self.assertTrue(self.page.evaluate(check, ["2026-11-24T01:15:00Z", g]))  # 8:15 PM EST
+        sept = {"date": "2026-09-13", "time": "13:00", "status": "scheduled"}  # EDT
+        self.assertFalse(self.page.evaluate(check, ["2026-09-13T16:59:00Z", sept]))
+        self.assertTrue(self.page.evaluate(check, ["2026-09-13T17:00:00Z", sept]))
+
     def test_draws_plays_under_the_small_sample_warning(self):
         self.assertIn("Small sample", self.page.inner_text("#bp-warning"))
         self.assertGreater(self.page.evaluate("() => bpRows.length"), 0)
