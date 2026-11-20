@@ -186,8 +186,11 @@ async function loadNbaForGrading() {
     }
   }
   if (!NBA_RESULTS && !NBA_LOGS) return;
+  // Grade the list as it is NOW, never the copy read before the downloads above: the profile
+  // answers while they load and brings the plays saved on the NBA site, and saving the old copy
+  // wiped them (the owner, 2026-11-20: a morning's checked plays gone from My Plays).
   let changed = false;
-  const updated = plays.map((p) => {
+  const updated = loadNbaPlays().map((p) => {
     if (p.result_source === "manual") return p;
     const result = gradeNbaPlay(p);
     if (result && result !== p.result) {

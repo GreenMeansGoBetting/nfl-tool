@@ -329,6 +329,36 @@ class NbaPlays(unittest.TestCase):
             page.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
             page.close()
 
+    def test_grading_keeps_plays_the_profile_brings_in_while_it_loads(self):
+        # 2026-11-20: My Plays read the NBA list, waited for nba/data.json, then saved its graded
+        # copy of the OLD list over the plays the profile had brought in meanwhile (checked that
+        # morning on the NBA site), and that copy went back up to the profile.
+        game = {"sport": "nba", "market": "first_basket", "category": "First Basket", "game_id": "77",
+                "matchup": "BBB @ AAA", "team": "AAA", "logo": "", "color": "#336699", "odds": 500, "book": "draftkings"}
+        yesterday = {**game, "id": "nba:fb:77:12", "date": "2026-10-21", "player_id": "12", "description": "P12 first basket"}
+        this_morning = {**game, "id": "nba:fb:90:10", "game_id": "90", "date": "2026-10-22", "player_id": "10", "description": "P10 first basket"}
+        SITE.nba = {"first_basket": {"results": {"77": "12"}}}
+        page = SITE.open("my-plays.html")
+        held, hold = [], [True]
+        page.route("**/nba/data.json", lambda r: held.append(r) if hold[0] else r.fallback())
+        try:
+            page.evaluate("(plays) => localStorage.setItem('nfl-tool.nba-plays.v1', JSON.stringify(plays))", [yesterday])
+            page.reload()
+            while not held:
+                page.wait_for_timeout(20)
+            # the profile answers while nba/data.json is still loading
+            page.evaluate("(plays) => localStorage.setItem('nfl-tool.nba-plays.v1', JSON.stringify(plays))", [yesterday, this_morning])
+            hold[0] = False
+            for r in held:
+                r.fallback()
+            page.wait_for_function("() => loadNbaPlays().some((p) => p.result)")
+            results = page.evaluate("() => Object.fromEntries(loadNbaPlays().map((p) => [p.id, p.result || null]))")
+            self.assertEqual(results, {"nba:fb:77:12": "win", "nba:fb:90:10": None})
+        finally:
+            SITE.nba = None
+            page.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
+            page.close()
+
     def test_player_card_plays_grade_from_this_seasons_box_scores(self):
         # The NBA player card's Odds tab (2026-10-21): any market, graded from nba/props.json's game log.
         fields = ["date", "game", "opp", "home", "start", "min", "pts", "fga", "fg3m", "fg3a", "fta",
