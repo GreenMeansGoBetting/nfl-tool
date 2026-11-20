@@ -11773,42 +11773,42 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3967,
+    "lead": 0.3942,
     "name": "Luka Doncic",
-    "proj": 55.2,
+    "proj": 55.1,
     "team": "LAL"
    },
    {
     "id": "4566434",
-    "lead": 0.0793,
+    "lead": 0.0795,
     "name": "Franz Wagner",
     "proj": 41.9,
     "team": "ORL"
    },
    {
     "id": "4278073",
-    "lead": 0.0776,
+    "lead": 0.0781,
     "name": "Shai Gilgeous-Alexander",
     "proj": 41.9,
     "team": "OKC"
    },
    {
     "id": "3112335",
-    "lead": 0.0719,
+    "lead": 0.0722,
     "name": "Nikola Jokic",
     "proj": 41.5,
     "team": "DEN"
    },
    {
     "id": "6583",
-    "lead": 0.0595,
+    "lead": 0.0602,
     "name": "Anthony Davis",
     "proj": 40.4,
     "team": "WSH"
    },
    {
     "id": "5142620",
-    "lead": 0.0549,
+    "lead": 0.055,
     "name": "Darius Acuff Jr.",
     "proj": 39.8,
     "team": "SAC"
@@ -11836,21 +11836,21 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0233,
+    "lead": 0.0235,
     "name": "Scottie Barnes",
     "proj": 36.4,
     "team": "TOR"
    },
    {
     "id": "3908809",
-    "lead": 0.0208,
+    "lead": 0.0209,
     "name": "Donovan Mitchell",
     "proj": 35.6,
     "team": "CLE"
    },
    {
     "id": "4701230",
-    "lead": 0.0195,
+    "lead": 0.0196,
     "name": "Jalen Johnson",
     "proj": 34.9,
     "team": "ATL"
@@ -11878,7 +11878,7 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0059,
+    "lead": 0.006,
     "name": "Julius Randle",
     "proj": 31.3,
     "team": "BKN"
@@ -11912,13 +11912,6 @@
     "team": "WSH"
    },
    {
-    "id": "3155942",
-    "lead": 0.0034,
-    "name": "Domantas Sabonis",
-    "proj": 30.2,
-    "team": "SAC"
-   },
-   {
     "id": "4277905",
     "lead": 0.0034,
     "name": "Trae Young",
@@ -11926,8 +11919,15 @@
     "team": "WSH"
    },
    {
+    "id": "3155942",
+    "lead": 0.0031,
+    "name": "Domantas Sabonis",
+    "proj": 30.1,
+    "team": "SAC"
+   },
+   {
     "id": "4396971",
-    "lead": 0.0028,
+    "lead": 0.0029,
     "name": "Naz Reid",
     "proj": 28.7,
     "team": "CHA"
@@ -11947,17 +11947,17 @@
     "team": "CHA"
    },
    {
+    "id": "4066320",
+    "lead": 0.0016,
+    "name": "Desmond Bane",
+    "proj": 26.1,
+    "team": "ORL"
+   },
+   {
     "id": "4712849",
     "lead": 0.0015,
     "name": "Anthony Black",
     "proj": 27.1,
-    "team": "ORL"
-   },
-   {
-    "id": "4066320",
-    "lead": 0.0015,
-    "name": "Desmond Bane",
-    "proj": 26.1,
     "team": "ORL"
    },
    {
@@ -12010,6 +12010,13 @@
     "team": "CLE"
    },
    {
+    "id": "4900671",
+    "lead": 0.0009,
+    "name": "Ajay Mitchell",
+    "proj": 26.7,
+    "team": "OKC"
+   },
+   {
     "id": "4871145",
     "lead": 0.0009,
     "name": "Josh Giddey",
@@ -12029,13 +12036,6 @@
     "name": "Onyeka Okongwu",
     "proj": 26.7,
     "team": "ATL"
-   },
-   {
-    "id": "4900671",
-    "lead": 0.0008,
-    "name": "Ajay Mitchell",
-    "proj": 26.7,
-    "team": "OKC"
    },
    {
     "id": "5144091",
@@ -12060,7 +12060,7 @@
    },
    {
     "id": "4395724",
-    "lead": 0.0004,
+    "lead": 0.0005,
     "name": "Immanuel Quickley",
     "proj": 24.9,
     "team": "TOR"
@@ -12181,7 +12181,7 @@
     "id": "5174983",
     "lead": 0.0,
     "name": "Aday Mara",
-    "proj": 21.1,
+    "proj": 21.2,
     "team": "OKC"
    },
    {
