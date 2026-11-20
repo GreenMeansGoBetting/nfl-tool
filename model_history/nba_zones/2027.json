@@ -4179,7 +4179,7 @@
     "over",
     false,
     12.5,
-    -127,
+    -118,
     "prophetx"
    ],
    [
@@ -4191,7 +4191,7 @@
     "over",
     true,
     9.5,
-    101,
+    100,
     "prophetx"
    ],
    [
@@ -4215,7 +4215,7 @@
     "over",
     false,
     10.5,
-    112,
+    109,
     "prophetx"
    ],
    [
@@ -4253,7 +4253,7 @@
     "over",
     true,
     3.5,
-    109,
+    -103,
     "4cx"
    ],
    [
@@ -4289,7 +4289,7 @@
     "over",
     true,
     1.5,
-    -119,
+    -112,
     "4cx"
    ],
    [
@@ -4313,7 +4313,7 @@
     "over",
     true,
     1.5,
-    -180,
+    -190,
     "fliff"
    ],
    [
@@ -4402,7 +4402,7 @@
     "under",
     false,
     8.5,
-    -115,
+    -121,
     "caesars"
    ],
    [
@@ -4426,8 +4426,8 @@
     "over",
     false,
     11.5,
-    -120,
-    "fliff"
+    -116,
+    "4cx"
    ],
    [
     "5101761",
@@ -4438,7 +4438,7 @@
     "over",
     false,
     10.5,
-    -112,
+    -113,
     "prophetx"
    ],
    [
@@ -4500,8 +4500,8 @@
     "over",
     false,
     2.5,
-    -131,
-    "draftkings"
+    -118,
+    "prophetx"
    ],
    [
     "4432194",
@@ -4536,7 +4536,7 @@
     "over",
     false,
     2.5,
-    118,
+    117,
     "prophetx"
    ],
    [
@@ -4572,7 +4572,7 @@
     "over",
     true,
     1.5,
-    168,
+    176,
     "prophetx"
    ]
   ]
@@ -4644,7 +4644,7 @@
     "over",
     true,
     11.5,
-    -107,
+    -111,
     "prophetx"
    ],
    [
@@ -4656,7 +4656,7 @@
     "over",
     true,
     11.5,
-    -111,
+    -112,
     "prophetx"
    ],
    [
@@ -4668,8 +4668,8 @@
     "over",
     true,
     11.5,
-    -103,
-    "prophetx"
+    -101,
+    "4cx"
    ],
    [
     "4395724",
@@ -4679,9 +4679,9 @@
     -0.0982,
     "under",
     false,
-    19.5,
-    -124,
-    "prophetx"
+    18.5,
+    -107,
+    "caesars"
    ],
    [
     "4432241",
@@ -4692,8 +4692,8 @@
     "under",
     false,
     7.5,
-    -129,
-    "caesars"
+    -132,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -4706,7 +4706,7 @@
     "over",
     false,
     1.5,
-    138,
+    142,
     "draftkings"
    ],
    [
@@ -4718,8 +4718,8 @@
     "under",
     true,
     2.5,
-    -101,
-    "prophetx"
+    -106,
+    "fanduel"
    ],
    [
     "4431893",
@@ -4730,8 +4730,8 @@
     "under",
     false,
     2.5,
-    -179,
-    "caesars"
+    -153,
+    "draftkings"
    ],
    [
     "4432241",
@@ -4742,8 +4742,8 @@
     "under",
     false,
     0.5,
-    176,
-    "prophetx"
+    174,
+    "fanduel"
    ],
    [
     "4433134",
@@ -4785,8 +4785,8 @@
     "under",
     true,
     2.5,
-    103,
-    "4cx"
+    102,
+    "fanduel"
    ],
    [
     "4432822",
@@ -4797,7 +4797,7 @@
     "under",
     false,
     1.5,
-    -149,
+    -146,
     "prophetx"
    ],
    [
@@ -4809,7 +4809,7 @@
     "under",
     false,
     2.5,
-    -176,
+    -179,
     "4cx"
    ],
    [
@@ -4821,8 +4821,8 @@
     "under",
     true,
     1.5,
-    -150,
-    "draftkings"
+    -149,
+    "prophetx"
    ]
   ]
  },
@@ -4850,7 +4850,7 @@
     "under",
     true,
     20.5,
-    -120,
+    -130,
     "fliff"
    ],
    [
@@ -4874,8 +4874,8 @@
     "under",
     false,
     16.5,
-    -115,
-    "fanatics"
+    -102,
+    "fanduel"
    ],
    [
     "5174983",
@@ -4886,8 +4886,8 @@
     "over",
     false,
     10.5,
-    -104,
-    "prophetx"
+    -110,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -4933,6 +4933,18 @@
     "fliff"
    ],
    [
+    "4397077",
+    "Jaxson Hayes",
+    "UTAH",
+    "PHX",
+    0.1518,
+    "over",
+    true,
+    8.5,
+    -120,
+    "fanduel"
+   ],
+   [
     "4873138",
     "Ace Bailey",
     "UTAH",
@@ -4940,8 +4952,8 @@
     -0.0524,
     "under",
     false,
-    15.5,
-    -120,
+    14.5,
+    -125,
     "fliff"
    ],
    [
@@ -4952,9 +4964,9 @@
     -0.0814,
     "under",
     false,
-    12.5,
-    -125,
-    "fliff"
+    11.5,
+    -114,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -4979,7 +4991,7 @@
     "over",
     true,
     2.5,
-    100,
+    -105,
     "fliff"
    ],
    [
@@ -5003,8 +5015,8 @@
     "over",
     true,
     2.5,
-    130,
-    "fliff"
+    102,
+    "fanduel"
    ]
   ]
  },
@@ -5019,9 +5031,9 @@
     -0.1192,
     "under",
     false,
-    11.5,
-    -135,
-    "fliff"
+    10.5,
+    -103,
+    "caesars"
    ],
    [
     "3936299",
@@ -5031,9 +5043,9 @@
     0.0685,
     "over",
     false,
-    22.5,
-    -105,
-    "fliff"
+    21.5,
+    -119,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -5046,7 +5058,7 @@
     "under",
     true,
     1.5,
-    -197,
+    -181,
     "draftkings"
    ],
    [
@@ -5058,8 +5070,8 @@
     "under",
     true,
     1.5,
-    -184,
-    "draftkings"
+    -152,
+    "fanduel"
    ],
    [
     "3138196",
@@ -5070,8 +5082,32 @@
     "under",
     true,
     1.5,
-    101,
+    108,
+    "fanduel"
+   ],
+   [
+    "3936299",
+    "Jamal Murray",
+    "DEN",
+    "HOU",
+    0.0816,
+    "over",
+    false,
+    2.5,
+    -113,
     "draftkings"
+   ],
+   [
+    "4431767",
+    "Christian Braun",
+    "DEN",
+    "HOU",
+    0.1158,
+    "over",
+    false,
+    1.5,
+    125,
+    "fliff"
    ],
    [
     "4432639",
@@ -5082,8 +5118,8 @@
     "over",
     false,
     2.5,
-    151,
-    "4cx"
+    162,
+    "fanduel"
    ],
    [
     "4871144",
@@ -5094,14 +5130,51 @@
     "over",
     false,
     0.5,
-    -105,
-    "caesars"
+    101,
+    "draftkings"
    ]
   ]
  },
  "401909313": {
   "date": "2026-11-20",
-  "points": [],
+  "points": [
+   [
+    "3945274",
+    "Luka Doncic",
+    "LAL",
+    "SAC",
+    0.118,
+    "over",
+    false,
+    36.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "4277811",
+    "Collin Sexton",
+    "LAL",
+    "SAC",
+    0.0751,
+    "over",
+    false,
+    13.5,
+    -122,
+    "fanduel"
+   ],
+   [
+    "4433136",
+    "Walker Kessler",
+    "LAL",
+    "SAC",
+    0.1552,
+    "over",
+    true,
+    13.5,
+    -102,
+    "fanduel"
+   ]
+  ],
   "threes": [
    [
     "3945274",
@@ -5112,8 +5185,32 @@
     "over",
     true,
     4.5,
-    -140,
-    "fanatics"
+    106,
+    "fanduel"
+   ],
+   [
+    "4278580",
+    "Sandro Mamukelashvili",
+    "LAL",
+    "SAC",
+    -0.1826,
+    "under",
+    true,
+    1.5,
+    -178,
+    "fanduel"
+   ],
+   [
+    "4397014",
+    "Quentin Grimes",
+    "LAL",
+    "SAC",
+    0.1407,
+    "over",
+    true,
+    2.5,
+    -130,
+    "fliff"
    ]
   ]
  },
