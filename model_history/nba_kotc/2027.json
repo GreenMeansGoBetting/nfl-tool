@@ -11773,23 +11773,23 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.4004,
+    "lead": 0.4009,
     "name": "Luka Doncic",
     "proj": 55.2,
     "team": "LAL"
    },
    {
     "id": "4566434",
-    "lead": 0.084,
+    "lead": 0.0841,
     "name": "Franz Wagner",
     "proj": 42.0,
     "team": "ORL"
    },
    {
     "id": "4278073",
-    "lead": 0.0781,
+    "lead": 0.0769,
     "name": "Shai Gilgeous-Alexander",
-    "proj": 41.9,
+    "proj": 41.8,
     "team": "OKC"
    },
    {
@@ -11801,7 +11801,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0566,
+    "lead": 0.0568,
     "name": "Darius Acuff Jr.",
     "proj": 39.7,
     "team": "SAC"
@@ -11822,7 +11822,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0304,
+    "lead": 0.0305,
     "name": "Alperen Sengun",
     "proj": 37.1,
     "team": "HOU"
@@ -11850,7 +11850,7 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0183,
+    "lead": 0.0184,
     "name": "Jalen Johnson",
     "proj": 34.9,
     "team": "ATL"
@@ -11864,14 +11864,14 @@
    },
    {
     "id": "4433627",
-    "lead": 0.0098,
+    "lead": 0.0099,
     "name": "Keyonte George",
     "proj": 32.9,
     "team": "UTAH"
    },
    {
     "id": "3149673",
-    "lead": 0.0076,
+    "lead": 0.0077,
     "name": "Pascal Siakam",
     "proj": 32.1,
     "team": "IND"
@@ -11892,7 +11892,7 @@
    },
    {
     "id": "3202",
-    "lead": 0.0052,
+    "lead": 0.0053,
     "name": "Kevin Durant",
     "proj": 30.4,
     "team": "HOU"
@@ -11999,7 +11999,7 @@
     "id": "4222252",
     "lead": 0.001,
     "name": "Isaiah Hartenstein",
-    "proj": 26.2,
+    "proj": 26.1,
     "team": "OKC"
    },
    {
