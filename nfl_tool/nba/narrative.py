@@ -40,9 +40,9 @@ HEADERS = {"User-Agent": "GMG-Sports-Data/1.0 (player background refresh)"}
 WIKI_PAUSE = 1.5  # seconds between Wikipedia requests (it answered 429 at 0.5 on a full re-read)
 
 # ---- the owner's rules (2026-11-18) ----
-REVENGE_GAMES = 41  # a real stint: half a season or more ...
-REVENGE_SEASONS = 3  # ... that ended within this many seasons ...
-REVENGE_ALWAYS = 200  # ... or this many games for them, however long ago
+# Revenge Game: any season he played for tonight's opponent, however long ago (the owner, 2026-11-19, after Jrue
+# Holiday at MIL was cut by a games + recency rule: "I like to know if any player is returning to face a familiar foe").
+TAG_SEASONS = 3  # the First Game Back / First Time Facing Them game logs are read only if he left within this many
 NEAR_MILES = 75
 DAYS_AHEAD = 3  # how far ahead the "first time facing them" game logs are read
 STALE_DAYS = 7
@@ -335,8 +335,9 @@ def former_team(rec: dict, team_id: int):
     return {"gp": sum(r[2] for r in rows), "first": years[0], "last": years[-1]}
 
 
-def counts_as_revenge(x: dict, season: int) -> bool:
-    return (x["gp"] >= REVENGE_GAMES and season - x["last"] <= REVENGE_SEASONS) or x["gp"] >= REVENGE_ALWAYS
+def seasons_ago(x: dict, season: int) -> str:
+    n = season - x["last"]
+    return "This Season" if n <= 0 else "Last Season" if n == 1 else f"{n} Seasons Ago"
 
 
 def revenge_tag(meeting, on_road: bool, start: str, neutral: bool):
@@ -382,10 +383,10 @@ def game_stories(g: dict, rotations: dict, players: dict, meetings: dict, team_i
             who = {"id": pid, "name": p["name"], "pos": p.get("position") or "", "team": team}
             hide = HIDE.get(pid, ())
             x = former_team(rec, team_ids[opp])
-            if x and counts_as_revenge(x, season) and "revenge" not in hide:
+            if x and "revenge" not in hide:
                 span = season_text(x["first"]) if x["first"] == x["last"] else f"{season_text(x['first'])} To {season_text(x['last'])}"
                 tag = revenge_tag(meetings.get(f"{pid}:{opp}"), team == away, g.get("start_utc", ""), neutral)
-                out["revenge"].append({**who, "opp": opp, "gp": x["gp"], "span": span, "tag": tag})
+                out["revenge"].append({**who, "opp": opp, "gp": x["gp"], "span": span, "ago": seasons_ago(x, season), "last": x["last"], "tag": tag})
             if neutral or team != away:
                 continue  # home players aren't traveling back anywhere
             spot = hometown(rec, home, team)
@@ -395,7 +396,7 @@ def game_stories(g: dict, rotations: dict, players: dict, meetings: dict, team_i
                 for c in rec.get("col", []):
                     if _near(c.get("at"), home, team):
                         out["college"].append({**who, "school": c["n"], "years": c.get("y"), "place": c.get("t")})
-    out["revenge"].sort(key=lambda r: (not r["tag"], -r["gp"]))
+    out["revenge"].sort(key=lambda r: (not r["tag"], -r.pop("last"), -r["gp"]))  # first timers, then the most recent
     return out
 
 
@@ -424,7 +425,7 @@ def _wanted_meetings(games, rotations, players, team_ids, season, today):
             for p in rotations.get(team, []):
                 rec = players.get(p["id"])
                 x = former_team(rec, team_ids[opp]) if rec else None
-                if x and counts_as_revenge(x, season) and season - x["last"] <= REVENGE_SEASONS:
+                if x and season - x["last"] <= TAG_SEASONS:
                     wanted[f"{p['id']}:{opp}"] = (p["id"], team_ids[opp], x["last"])
     return wanted
 

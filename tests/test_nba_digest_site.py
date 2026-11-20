@@ -86,7 +86,7 @@ class DunkDigest(unittest.TestCase):
         data = copy.deepcopy(DATA)
         data["injuries"] = {**(data.get("injuries") or {}), "AAA": [{"id": "77", "name": "Sits Tonight", "status": "Out"}]}
         data["narrative"] = {"games": {"900": {
-            "revenge": [{**who, "opp": "BBB", "gp": 212, "span": "2022-23 To 2025-26", "tag": "First Game Back"}, {**benched, "opp": "BBB", "gp": 90, "span": "2025-26", "tag": None}],
+            "revenge": [{**who, "opp": "BBB", "gp": 212, "span": "2022-23 To 2025-26", "ago": "Last Season", "tag": "First Game Back"}, {**benched, "opp": "BBB", "gp": 90, "span": "2025-26", "tag": None}],
             "hometown": [{**benched, "place": "Akron, OH", "school": None}],
             "college": [{**who, "school": "Duke", "years": "2019-2020", "place": "Durham, North Carolina"}]}}}
         SITE.nba = data
@@ -95,7 +95,7 @@ class DunkDigest(unittest.TestCase):
             page.wait_for_selector(f"{FIRST} .dd-tale-on")
             tales = page.locator(f"{FIRST} .dd-tale")
             revenge = tales.nth(0).inner_text()
-            for text in ("Shooter One", "212 Games", "2022-23 To 2025-26", "First Game Back"):
+            for text in ("Shooter One", "212 Games", "2022-23 To 2025-26", "Last Season", "First Game Back"):
                 self.assertIn(text, revenge)
             self.assertNotIn("Sits Tonight", revenge)
             self.assertIn("None Tonight", tales.nth(1).inner_text())  # his only story, and he's Out

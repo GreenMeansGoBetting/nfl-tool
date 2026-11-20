@@ -40,7 +40,7 @@ const ddPlaying = (r) => !(DATA.injuries?.[r.team] || []).some((x) => x.id === r
 const ddWho = (r) => `${logo(r.team, 26)}<span class="dd-sn" title="${esc(r.name)}">${playerClick(r.id, esc(r.name))}<small>${esc(r.pos)} &middot; ${r.team}</small></span>${nbaTypeBadge(r.id)}`;
 const DD_STORY_ROW = {
   revenge: (r) => `<div class="dd-sr dd-sr-rev">${ddWho(r)}<span class="dd-st dd-st-team" style="--team:${teamRgb(r.opp)}">${logo(r.opp, 20)}${r.gp} Games</span>
-    <span class="dd-st">${esc(r.span)}</span>${r.tag ? `<span class="dd-st dd-st-tag">${esc(r.tag)}</span>` : "<span></span>"}</div>`,
+    <span class="dd-st dd-st-two">${esc(r.span)}${r.ago ? `<small>${esc(r.ago)}</small>` : ""}</span>${r.tag ? `<span class="dd-st dd-st-tag">${esc(r.tag)}</span>` : "<span></span>"}</div>`,
   hometown: (r) => `<div class="dd-sr"${r.school ? ` title="High School: ${esc(r.school)}"` : ""}>${ddWho(r)}<span class="dd-st">${esc(r.place)}</span></div>`,
   college: (r) => `<div class="dd-sr" title="${esc([r.place, r.years].filter(Boolean).join(", "))}">${ddWho(r)}<span class="dd-st">${esc(r.school)}</span></div>`,
 };

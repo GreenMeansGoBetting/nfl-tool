@@ -78,6 +78,8 @@ html.is-owner .dd-locked, html.local-dev .dd-locked { display: none; }
   background: var(--rs-tile); font: 700 0.9rem var(--font-display); }
 .dd-st-team { background: rgba(var(--team), 0.34); }
 .dd-st-tag { background: rgba(var(--good-rgb), 0.34); }
+.dd-st-two { flex-direction: column; gap: 0; line-height: 1.05; }
+.dd-st-two small { font: 600 0.74rem var(--font-body); }
 
 /* the game list, under the camera */
 .dd-rail { position: sticky; top: 215px; margin-top: 140px; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; max-height: calc(100vh - 230px); overflow-y: auto;

@@ -698,9 +698,12 @@ the data, sorted by game, on the site so it can be clicked into, without hopping
 - **Narrative** (`narrative.py`, data.json `narrative`, own try; the owner approved the rules 2026-11-18): talking
   points, **never a pick** (revenge measured zero in `nba_spots.py`). Rotation players; the page drops Out / Doubtful.
   No saved data or a neutral site = "No Data Yet"; nothing that fits = "None Tonight". Never guessed.
-  - **Revenge Game** (both teams): 41+ regular-season games for tonight's opponent and left within 3 seasons, or 200+
-    games ever. Tags from ESPN game logs, preseason out: **First Game Back** (road, never played there since leaving),
-    **First Time Facing Them** (home, or a neutral site).
+  - **Revenge Game** (both teams): **any season he played for tonight's opponent, however long ago** (the owner,
+    2026-11-19, after a games + recency rule cut Jrue Holiday at MIL: "I like to know if any player is returning to
+    face a familiar foe"). The row shows games, seasons with them and **"N Seasons Ago"** (from his last season there).
+    Tags from ESPN game logs, preseason out, read only if he left within `TAG_SEASONS` 3: **First Game Back** (road,
+    never played there since leaving), **First Time Facing Them** (home, or a neutral site). Order: tagged first, then
+    the most recent stint.
   - **Back To Hometown** (road players): 2 of ESPN's place, Wikipedia's birthplace and a local high school within
     `NEAR_MILES` 75; a local school on file must be near too (Bam Adebayo: born Newark, schools in NC); national preps
     (`PREP`) never count. **ESPN's "birthplace" behaves like a hometown** (54 disagreements with Wikipedia: the high

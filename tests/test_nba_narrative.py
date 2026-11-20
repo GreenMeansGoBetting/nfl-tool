@@ -49,12 +49,19 @@ class ReadingWikipedia(unittest.TestCase):
 
 
 class Revenge(unittest.TestCase):
-    def test_who_counts(self):
-        ok = lambda gp, last: N.counts_as_revenge({"gp": gp, "first": last, "last": last}, 2027)
-        self.assertFalse(ok(8, 2024))  # a short stint (Oscar Tshiebwe)
-        self.assertFalse(ok(52, 2023))  # a real stint, too long ago (Jarred Vanderbilt)
-        self.assertTrue(ok(50, 2025))
-        self.assertTrue(ok(204, 2023))  # 200+ counts however long ago (Saddiq Bey)
+    def test_any_season_with_them_counts_however_long_ago(self):
+        # Jrue Holiday at MIL, 2026-11-19: 193 games, last 2022-23, was cut by the old games + recency rule
+        g = {**OneGame.GAME, "away": "POR", "home": "MIL"}
+        rec = player(teams=[[2021, TEAM_IDS["MIL"], 59, 32.3], [2023, TEAM_IDS["MIL"], 67, 32.6], [2026, TEAM_IDS["POR"], 53, 29.4]])
+        short = player(teams=[[2017, TEAM_IDS["MIL"], 8, 9.0]])
+        rot = {"POR": [{"id": "1", "name": "Jrue", "position": "PG"}, {"id": "2", "name": "Short", "position": "C"}]}
+        got = N.game_stories(g, rot, {"1": rec, "2": short}, {}, TEAM_IDS, 2027)["revenge"]
+        self.assertEqual([(r["name"], r["gp"], r["span"], r["ago"]) for r in got],
+                         [("Jrue", 126, "2020-21 To 2022-23", "4 Seasons Ago"), ("Short", 8, "2016-17", "10 Seasons Ago")])
+
+    def test_seasons_ago(self):
+        ago = lambda last: N.seasons_ago({"last": last}, 2027)
+        self.assertEqual([ago(2027), ago(2026), ago(2025)], ["This Season", "Last Season", "2 Seasons Ago"])
 
     def test_tags(self):
         at = "2026-11-19T00:30Z"
@@ -131,6 +138,11 @@ class OneGame(unittest.TestCase):
     def test_first_timers_lead_the_list(self):
         got = self.stories(meetings={"7:DEN": {"games": []}})["revenge"]
         self.assertEqual([(r["name"], r["tag"]) for r in got], [("Road Guy", "First Game Back"), ("Home Guy", None)])
+
+    def test_then_the_most_recent_stint(self):
+        got = self.stories()["revenge"]
+        self.assertEqual([(r["name"], r["ago"]) for r in got], [("Home Guy", "Last Season"), ("Road Guy", "Last Season")])
+        self.assertNotIn("last", got[0])
 
     def test_only_the_road_player_goes_back(self):
         s = self.stories()
