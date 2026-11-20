@@ -376,6 +376,12 @@ Required" screen (shown for products with a Discord role) and land signed in. Th
   each save debounced, and on first contact merges pre-profile local data (lists by id, objects by
   key) instead of overwriting it. It mirrors saved plays, picks, notes, summary rails, manual Outs
   and model presets.
+- **A stale device merges, never overwrites (2026-11-19).** Each device remembers the profile's
+  `updated` its copy was built on (`nfl-tool.sync-base.v1`). A save goes out through a pull
+  (`syncNow`, one at a time); if the profile moved on since, the two are merged (lists by id, this
+  device wins a tie), else the save is sent as is (so a delete sticks). Why: My Plays grades and
+  saves on load before the profile answers, and that stale list wiped a member's morning NBA plays.
+  Test: `tests/test_sync_merge_site.py`.
 - Synced keys are listed in both `SYNC_KEYS` (middleware) and `KEYS` (sync.js). **Add new per-user
   data to both**, and call `window.NFLSync?.push(key, value)` in its save function.
 - Display prefs (theme, views, selected game) stay per-device.

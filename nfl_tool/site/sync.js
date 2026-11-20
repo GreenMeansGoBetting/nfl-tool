@@ -692,7 +692,9 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
 
   let enabled = false;
   let applyingRemote = false;
-  const pushTimers = {};
+  let pushTimer = null;
+  let pulling = null; // the pull in flight; a save meanwhile asks for one more after it
+  let pullAgain = false;
 
   const readMeta = () => {
     try {
@@ -709,6 +711,29 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     }
   };
 
+  // { key: the profile's `updated` this device's copy was last built on } (2026-11-19).
+  // A device that saved on top of an older copy than the profile now holds must merge,
+  // never overwrite: My Plays grades (and saves) yesterday's plays on load, before the
+  // profile has answered, and that stale list wiped a member's plays saved that morning
+  // on another device.
+  const SYNC_BASE_KEY = "nfl-tool.sync-base.v1";
+  const readBases = () => {
+    try {
+      return JSON.parse(localStorage.getItem(SYNC_BASE_KEY) || "{}");
+    } catch (e) {
+      return {};
+    }
+  };
+  const setBase = (key, updated) => {
+    try {
+      const bases = readBases();
+      bases[key] = updated;
+      localStorage.setItem(SYNC_BASE_KEY, JSON.stringify(bases));
+    } catch (e) {
+      // storage full/blocked: the next pull merges instead, which keeps everything
+    }
+  };
+
   async function putKey(key, raw, updated) {
     const res = await fetch("/api/state", {
       method: "PUT",
@@ -717,6 +742,7 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       body: JSON.stringify({ k: key, v: raw, updated }),
     });
     if (!res.ok) throw new Error(`sync ${res.status}`);
+    setBase(key, updated);
   }
 
   // Lists of records merge by id, plain objects by key; `remote` wins a tie.
@@ -743,6 +769,23 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     else if (typeof window.renderPossiblePlays === "function") window.renderPossiblePlays();
   }
 
+  // One pull at a time, its sends finished before the next starts (a second pull reading
+  // the profile before the first one's save lands would see a conflict that isn't one).
+  function syncNow() {
+    if (pulling) {
+      pullAgain = true;
+      return pulling;
+    }
+    pulling = pull().finally(() => {
+      pulling = null;
+      if (pullAgain) {
+        pullAgain = false;
+        syncNow();
+      }
+    });
+    return pulling;
+  }
+
   async function pull() {
     let data;
     try {
@@ -761,12 +804,36 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     const settingsBefore = localStorage.getItem(GMG_SETTINGS_KEY);
     let changed = false;
     applyingRemote = true;
+    const bases = readBases();
+    const sends = [];
     try {
       for (const key of KEYS) {
         const localRaw = localStorage.getItem(key);
         const localTime = meta[key] || 0;
         const remote = server[key];
-        if (remote && remote.updated > localTime) {
+        const base = bases[key];
+        // Both sides changed since this device last matched the profile: this device saved
+        // on top of an older copy (newer stamp, but the profile moved on since; an unknown
+        // base counts as moved on), or it has an unsent save the profile has passed. Merge,
+        // keep both (lists by id, this device winning a tie); a play deleted on the other
+        // side may come back, which beats losing one.
+        const conflict = remote && localRaw !== null && meta[key] && remote.v !== localRaw && localTime !== remote.updated
+          && (localTime > remote.updated ? base !== remote.updated : base !== undefined && localTime > base);
+        if (conflict) {
+          let merged;
+          try {
+            merged = JSON.stringify(mergeValues(JSON.parse(remote.v), JSON.parse(localRaw)));
+          } catch (e) {
+            merged = localRaw;
+          }
+          const now = Math.max(Date.now(), remote.updated + 1, localTime + 1);
+          if (merged !== localRaw) {
+            localStorage.setItem(key, merged);
+            changed = true;
+          }
+          meta[key] = now;
+          sends.push(putKey(key, merged, now).catch(() => {}));
+        } else if (remote && remote.updated > localTime) {
           if (localRaw !== null && !meta[key]) {
             // Pre-profile local data meets the profile: merge, keep both.
             let merged;
@@ -781,25 +848,31 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
               changed = true;
             }
             meta[key] = now;
-            if (merged !== remote.v) putKey(key, merged, now).catch(() => {});
+            if (merged !== remote.v) sends.push(putKey(key, merged, now).catch(() => {}));
+            else setBase(key, remote.updated);
           } else if (remote.v !== localRaw) {
             localStorage.setItem(key, remote.v);
             meta[key] = remote.updated;
+            setBase(key, remote.updated);
             changed = true;
           } else {
             meta[key] = remote.updated;
+            setBase(key, remote.updated);
           }
+        } else if (remote && localTime === remote.updated) {
+          if (base !== remote.updated) setBase(key, remote.updated); // in step with the profile
         } else if (localRaw !== null && (!remote || localTime > remote.updated)) {
           // This device has something newer (or the profile has nothing yet).
           const t = localTime || Date.now();
           meta[key] = t;
-          putKey(key, localRaw, t).catch(() => {});
+          sends.push(putKey(key, localRaw, t).catch(() => {}));
         }
       }
     } finally {
       applyingRemote = false;
     }
     writeMeta(meta);
+    await Promise.all(sends);
     // Settings from another device: odds and colors are drawn with the page.
     if (localStorage.getItem(GMG_SETTINGS_KEY) !== settingsBefore) {
       gmgSettingsCache = null;
@@ -1411,11 +1484,10 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       meta[key] = Date.now();
       writeMeta(meta);
       if (!enabled) return; // pushed on the next successful pull instead
-      clearTimeout(pushTimers[key]);
-      pushTimers[key] = setTimeout(() => {
-        const raw = localStorage.getItem(key);
-        if (raw !== null) putKey(key, raw, readMeta()[key] || Date.now()).catch(() => {});
-      }, PUSH_DELAY_MS);
+      // Sent through a pull, never straight: the pull sees whether another device
+      // saved since this one last matched the profile, and merges if so (2026-11-19).
+      clearTimeout(pushTimer);
+      pushTimer = setTimeout(syncNow, PUSH_DELAY_MS);
     },
   };
 
@@ -1423,8 +1495,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
     document.documentElement.classList.add("local-dev");
     addSettingsButton();
   }
-  pull().then(maybeShowUpdates, maybeShowUpdates);
+  syncNow().then(maybeShowUpdates, maybeShowUpdates);
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") pull();
+    if (document.visibilityState === "visible") syncNow();
   });
 })();
