@@ -369,11 +369,18 @@ class NbaPlays(unittest.TestCase):
                  {**game, "id": "nba:pra:77:10", "market": "pra", "category": "Pts + Reb + Ast", "player_id": "10", "side": "under", "line": 40.5, "description": "P10 Under 40.5 PRA"},
                  {**game, "id": "nba:threes:77:10", "market": "threes", "category": "3-Pointers Made", "player_id": "10", "side": "over", "line": 3, "description": "P10 Over 3 3s"},
                  {**game, "id": "nba:rebounds:77:11", "market": "rebounds", "category": "Rebounds", "player_id": "11", "side": "over", "line": 8.5, "description": "P11 Over 8.5 rebounds"},
-                 {**game, "id": "nba:assists:78:10", "game_id": "78", "market": "assists", "category": "Assists", "player_id": "10", "side": "over", "line": 5.5, "description": "P10 Over 5.5 assists"}]
+                 {**game, "id": "nba:assists:78:10", "game_id": "78", "market": "assists", "category": "Assists", "player_id": "10", "side": "over", "line": 5.5, "description": "P10 Over 5.5 assists"},
+                 # Yes / No (2026-11-20): 26 points and 9 rebounds is no double double
+                 {**game, "id": "nba:double_double:77:10", "market": "double_double", "category": "Double Double", "player_id": "10", "side": "yes", "line": None, "description": "P10 Double Double Yes"},
+                 {**game, "id": "nba:triple_double:77:10", "market": "triple_double", "category": "Triple Double", "player_id": "10", "side": "no", "line": None, "description": "P10 Triple Double No"},
+                 {**game, "id": "nba:double_double:77:12", "market": "double_double", "category": "Double Double", "player_id": "12", "side": "yes", "line": None, "description": "P12 Double Double Yes"}]
         # P10 in game 77: 26 points, 9 rebounds, 7 assists (42 PRA), 3 threes; P11 didn't play; game 78 has no box score yet.
+        # P12 in game 77: 12 points, 4 rebounds, 11 assists: a double double.
         row = ["2026-10-21", 77, "BBB", 1, 1, 34, 26, 18, 3, 8, 6, 9, 5, 9, 7, 1, 0, 2, 3, 5, 110, 104]
         SITE.nba = {"season": 2027, "schedule": [{"game_id": "77", "status": "final"}, {"game_id": "78", "status": "final"}], "first_basket": {"results": {}}}
-        SITE.nba_props = {"seasons": {"2027": {"fields": fields, "players": {"10": {"name": "P10", "team": "AAA", "log": [row]}}}}}
+        row12 = ["2026-10-21", 77, "BBB", 1, 1, 34, 12, 10, 0, 2, 2, 5, 2, 4, 11, 2, 0, 3, 1, 5, 110, 104]
+        SITE.nba_props = {"seasons": {"2027": {"fields": fields, "players": {"10": {"name": "P10", "team": "AAA", "log": [row]},
+                                                                              "12": {"name": "P12", "team": "AAA", "log": [row12]}}}}}
         page = SITE.open("my-plays.html")
         try:
             page.evaluate("(plays) => localStorage.setItem('nfl-tool.nba-plays.v1', JSON.stringify(plays))", plays)
@@ -381,7 +388,9 @@ class NbaPlays(unittest.TestCase):
             page.wait_for_function("() => loadNbaPlays().some((p) => p.result)")
             results = page.evaluate("() => Object.fromEntries(loadNbaPlays().map((p) => [p.id, p.result || null]))")
             self.assertEqual(results, {"nba:points:77:10": "win", "nba:pra:77:10": "loss", "nba:threes:77:10": "push",
-                                       "nba:rebounds:77:11": "void", "nba:assists:78:10": None})
+                                       "nba:rebounds:77:11": "void", "nba:assists:78:10": None,
+                                       "nba:double_double:77:10": "loss", "nba:triple_double:77:10": "win",
+                                       "nba:double_double:77:12": "win"})
         finally:
             SITE.nba = SITE.nba_props = None
             page.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")

@@ -237,6 +237,19 @@ const GMG_NBA_PROP_STATS = {
   stocks: ["Steals + Blocks", "stl+blk", ["stl", "blk"]],
   turnovers: ["Turnovers", "turnovers", ["tov"]],
 };
+// The Yes / No markets (the player card, 2026-11-20): market -> [label, categories with 10+ needed].
+// Saved with side "yes" / "no" and no line; a Yes wins when he reached 10 in that many of points,
+// rebounds, assists, steals and blocks.
+const GMG_NBA_YES_NO = {
+  double_double: ["Double Double", 2],
+  triple_double: ["Triple Double", 3],
+};
+// How many of the five categories he reached 10 in, or null when the box score lacks one.
+function gmgNbaTens(row) {
+  const parts = ["pts", "reb", "ast", "stl", "blk"];
+  if (parts.some((f) => row[f] === null || row[f] === undefined)) return null;
+  return parts.filter((f) => row[f] >= 10).length;
+}
 // A log row's total for a stat, or null when the box score lacks a part.
 function gmgNbaStatValue(stat, row) {
   const parts = (GMG_NBA_PROP_STATS[stat] || [])[2] || [];

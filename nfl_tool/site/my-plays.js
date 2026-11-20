@@ -160,10 +160,15 @@ function gradeNbaPlay(p) {
     if (scorer === null) return "void";
     return scorer === String(p.player_id) ? "win" : "loss";
   }
-  if (typeof GMG_NBA_PROP_STATS === "undefined" || !GMG_NBA_PROP_STATS[p.market]) return null;
+  const yesNo = typeof GMG_NBA_YES_NO !== "undefined" && GMG_NBA_YES_NO[p.market];
+  if (!yesNo && (typeof GMG_NBA_PROP_STATS === "undefined" || !GMG_NBA_PROP_STATS[p.market])) return null;
   const row = nbaGameRow(p);
   if (row === undefined) return null;
   if (row === null) return "void"; // the game is in, he didn't play
+  if (yesNo) {
+    const tens = gmgNbaTens(row);
+    return tens === null ? null : (tens >= yesNo[1]) === (p.side === "yes") ? "win" : "loss";
+  }
   const actual = gmgNbaStatValue(p.market, row);
   return mpHas(actual) ? overUnder(p.side, actual, p.line) : null;
 }

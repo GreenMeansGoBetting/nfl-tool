@@ -146,6 +146,26 @@ class FirstBasket(unittest.TestCase):
         row = found["MIL_WSH"]["props"]["first_basket"]["3032976"]
         self.assertEqual(sorted((x[0], x[1], x[3]) for x in row["q"]), [("draftkings", "o", 900), ("fanduel", "o", 1000)])
 
+    def test_double_and_triple_double_keep_yes_and_no(self):
+        # the owner, 2026-11-20: double / triple doubles on the NBA player card. Yes = "o", No = "u".
+        listed = [{"key": "basketball_player_double_double_yes_no", "name": "Player Double Double"},
+                  {"key": "basketball_player_triple_double_yes_no", "name": "Player Triple Double"},
+                  {"key": "basketball_1q_player_double_double", "name": "1st Quarter Player Double Double"},
+                  {"key": "basketball_player_points", "name": "Player Points"}]
+        self.assertEqual(smartstake.yes_no_market_keys(listed), {"basketball_player_double_double_yes_no": "double_double",
+                                                                 "basketball_player_triple_double_yes_no": "triple_double"})
+        self.assertEqual(smartstake.yes_no_market_keys([]), smartstake.NBA_YES_NO_GUESS)
+        game = {"event_id": "evt_9", "away": "Milwaukee Bucks", "home": "Washington Wizards", "starts_at": "2026-10-21T23:00:00Z"}
+        q = lambda book, side, odds: {**game, "book": book, "market_key": "basketball_player_double_double_yes_no", "side": side, "line": None,
+                                       "odds": odds, "participant": "Myles Turner", "player_id": 5, "bet_url": "", "alternate": False, "live": False}
+        found = smartstake.build_book_odds([q("draftkings", "yes", 150), q("draftkings", "no", -190), q("fanduel", "yes", 165)],
+                                           {"milwaukee bucks": "MIL", "washington wizards": "WSH"},
+                                           prop_markets={"basketball_player_double_double_yes_no": "double_double"}, td_market=None, line_markets={},
+                                           player_key=lambda name, away, home: "3032976",
+                                           yes_no_markets={"basketball_player_double_double_yes_no"})
+        row = found["MIL_WSH"]["props"]["double_double"]["3032976"]
+        self.assertEqual(sorted((x[0], x[1], x[3]) for x in row["q"]), [("draftkings", "o", 150), ("draftkings", "u", -190), ("fanduel", "o", 165)])
+
     def test_the_sportsbooks_alternate_quotes_are_asked_for_and_kept(self):
         # The probe (2026-10-21): DraftKings, FanDuel and most books send 1st Points
         # Scorer as alternate quotes; asking for main lines only left just the exchanges.

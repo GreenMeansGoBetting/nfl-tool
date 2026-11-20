@@ -457,7 +457,11 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
   line. Off-sim pages fetch `ladders.json` the first time it opens (`nbaCardLadders`).
 - `LOG_FIELDS` (props.py): new fields go after the first eleven (`BOX_EXTRA`).
 - Markets (`NBA_PROP_MARKETS`): points, rebounds, assists, threes, pra, pr, pa, ra, steals, blocks,
-  stocks, turnovers; asked only when listed (`nba_listed_markets`, `max_pages=60`). No yes / no or fouls.
+  stocks, turnovers; asked only when listed (`nba_listed_markets`, `max_pages=60`). No fouls.
+- **Double Double / Triple Double** (the owner, 2026-11-20; `smartstake.add_yes_no`, `alternate=True`): Yes = "o",
+  No = "u", no line (`props.double_double` / `triple_double`). Card rows "Yes / No" in the Line column, Yes in Over,
+  No in Under, This Season = games with 10+ in 2 / 3 of pts, reb, ast, stl, blk (sync.js `GMG_NBA_YES_NO`,
+  `gmgNbaTens`); saved with side "yes" / "no", graded by `gradeNbaPlay`. version.json `nba.yes_no`: players priced per market (or the error).
 - Grading (my-plays.js `gradeNbaPlay`, `gmgNbaStatValue`): box score without him = Void; none yet = wait.
 - **Shot Chart** (`shot-chart.js`, `nbaShotView(id)`, names `nbaShot` / `NBA_SHOT`, loaded before
   nba-card.js) reads **`shots.json`** (`shots.py`, own try; gitignored, in fetch_live_data.py):

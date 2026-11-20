@@ -187,6 +187,16 @@ const nbaCardPlayId = (stat, g, id, rung, side, line) =>
 function nbaCardEntry(stat, g, p, side, line, best, rung) {
   const t = nbaCardTeam(p.team);
   const fb = stat === "first_basket";
+  const yn = GMG_NBA_YES_NO[stat];
+  if (yn) {
+    const yes = side === "o";
+    return {
+      id: nbaCardPlayId(stat, g, p.id), sport: "nba", market: stat, category: yn[0],
+      date: g.date, game_id: g.game_id, matchup: `${g.away} @ ${g.home}`, team: p.team, player_id: p.id,
+      side: yes ? "yes" : "no", line: null, description: `${p.name} ${yn[0]} ${yes ? "Yes" : "No"}`,
+      logo: t.logo, color: `#${t.color || "555555"}`, book: best[0], odds: best[3],
+    };
+  }
   const [label, unit] = GMG_NBA_PROP_STATS[stat] || ["First Basket"];
   return {
     id: nbaCardPlayId(stat, g, p.id, rung, side, line), sport: "nba", market: stat, category: label,
@@ -247,6 +257,15 @@ function nbaCardHits(stat, line, rows) {
   const tier = vals.length >= 3 ? (rate >= 0.6 ? " tier-good" : rate <= 0.4 ? " tier-bad" : "") : "";
   return `<td class="num${tier}" title="Games over ${line} this season">${over} of ${vals.length}</td>`;
 }
+// How often he reached 10 in `need` categories this season (a double / triple double), "x of y".
+function nbaCardTensHits(need, rows) {
+  const vals = rows.map(gmgNbaTens).filter(nbaCardHas);
+  if (!vals.length) return `<td class="num muted-label">--</td>`;
+  const hit = vals.filter((v) => v >= need).length;
+  const rate = hit / vals.length;
+  const tier = vals.length >= 3 ? (rate >= 0.6 ? " tier-good" : rate <= 0.4 ? " tier-bad" : "") : "";
+  return `<td class="num${tier}" title="Games with 10+ in ${need} of points, rebounds, assists, steals, blocks this season">${hit} of ${vals.length}</td>`;
+}
 function nbaCardOddsView(p, g, rows) {
   if (!g) return `<p class="no-data-note">No game on the schedule.</p>`;
   if (typeof bookPricePill !== "function") return `<p class="no-data-note">No lines posted for this player.</p>`;
@@ -267,15 +286,24 @@ function nbaCardOddsView(p, g, rows) {
       return main + rungs.join("");
     })
     .join("");
+  // Double Double / Triple Double: Yes in the Over column, No in the Under column; "This Season" = games he did it.
+  const yesNo = Object.entries(GMG_NBA_YES_NO)
+    .map(([stat, [label, need]]) => {
+      const spec = { ...base, stat, line: null, noLine: true, labels: { o: "Yes", u: "No" }, labelLine: null, title: `${p.name} &middot; ${label}` };
+      if (!bookQuotes(spec).length) return "";
+      const side = (s) => nbaCardSide({ ...spec, side: s }, g, p, stat);
+      return `<tr><td>${label}</td><td class="num props-line">Yes / No</td><td class="num">${side("o")}</td><td class="num">${side("u")}</td>${nbaCardTensHits(need, rows)}</tr>`;
+    })
+    .join("");
   const fbSpec = { ...base, stat: "first_basket", side: "o", line: null, oneSide: true, noLine: true, title: `${p.name} First Basket` };
   const fb = bookQuotes(fbSpec).length ? `<tr><td>First Basket</td><td class="num props-line">--</td><td class="num">${nbaCardSide(fbSpec, g, p, "first_basket")}</td><td class="num">--</td><td class="num">--</td></tr>` : "";
-  if (!lines && !fb) return `<p class="no-data-note">No lines posted for this player yet.</p>`;
+  if (!lines && !yesNo && !fb) return `<p class="no-data-note">No lines posted for this player yet.</p>`;
   const loadingAlts = nbaCardAlts && !alts;
   const altBtn = `<button type="button" class="player-modal-toggle-btn nba-pc-alts${nbaCardAlts ? " active" : ""}">${loadingAlts ? "Loading Alt Lines&hellip;" : nbaCardAlts ? "Hide Alt Lines" : "Show Alt Lines"}</button>`;
   return `<div class="nba-pc-oddsbar"><p class="no-data-note">Best price across your books (click it for every book). Checkboxes save a side to My Plays.</p>${altBtn}</div>
     <div class="nba-pc-scroll"><table class="data-table player-odds-table nba-pc-odds">
       <thead><tr><th>Market</th><th class="num">Line</th><th class="num">Over</th><th class="num">Under</th><th class="num" title="Games over the line this season">This Season</th></tr></thead>
-      <tbody>${lines}${fb}</tbody>
+      <tbody>${lines}${yesNo}${fb}</tbody>
     </table></div>
     <p class="section-note">${g.away} @ ${g.home}, ${nbaCardDate(g.date)}${g.lines_locked ? ", locked at tip-off" : ""}.</p>`;
 }

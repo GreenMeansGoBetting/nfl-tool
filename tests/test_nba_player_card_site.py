@@ -58,6 +58,9 @@ DATA = {"season": 2027, "season_label": "2026-27", "schedule": [GAME], "injuries
             "rebounds": {"1": {"name": "Player One", "q": quotes(6.5) + [["betmgm", "o", 7.5, 120, ""]]}},
             "pra": {"1": {"name": "Player One", "q": quotes(38.5)}},
             "first_basket": {"1": {"name": "Player One", "q": [["draftkings", "o", None, 600, ""]]}},
+            # Yes / No, no line (smartstake.add_yes_no: Yes = "o", No = "u"); no book prices his triple double
+            "double_double": {"1": {"name": "Player One", "q": [["draftkings", "o", None, 250, ""], ["fanduel", "o", None, 280, ""],
+                                                                ["draftkings", "u", None, -350, ""]]}},
         }}}}
 # nba/ladders.json: the books' points ladder (overs only, the way books hang them)
 LADDERS = {"AAA_BBB": {"props": {"points_alt": {"1": {"name": "Player One", "q": [
@@ -141,7 +144,7 @@ class Odds(unittest.TestCase):
         open_card("odds")
         try:
             rows = {r[0]: r[1:] for r in table(".nba-pc-odds")}
-            self.assertEqual(list(rows), ["Points", "Rebounds", "Pts + Reb + Ast", "First Basket"])
+            self.assertEqual(list(rows), ["Points", "Rebounds", "Pts + Reb + Ast", "Double Double", "First Basket"])
             line, over, under, season = rows["Points"]
             self.assertEqual(line, "24.5")
             self.assertIn("+105", over)  # FanDuel's Over
@@ -177,6 +180,36 @@ class Odds(unittest.TestCase):
             close_card()
         self.assertEqual(SITE.errors, [])
 
+    def test_double_double_yes_and_no_save_like_over_and_under(self):
+        # the owner, 2026-11-20: double / triple doubles on the card from SmartStake. Yes in the Over
+        # column, No in the Under column; a market no book prices (triple double here) has no row.
+        open_card("odds")
+        try:
+            rows = {r[0]: r[1:] for r in table(".nba-pc-odds")}
+            self.assertNotIn("Triple Double", rows)
+            line, yes, no, season = rows["Double Double"]
+            self.assertEqual(line, "Yes / No")
+            self.assertIn("+280", yes)  # FanDuel's Yes, the best
+            self.assertIn("-350", no)
+            self.assertEqual(season, "0 of 3")  # never 10+ in two of pts / reb / ast / stl / blk
+            dd = PAGE.locator(".nba-pc-odds tbody tr", has_text="Double Double").locator(".nba-pc-toggle")
+            dd.nth(0).check()
+            play = [p for p in PAGE.evaluate("() => loadNbaPlays()") if p["market"] == "double_double"]
+            self.assertEqual([(p["id"], p["side"], p["line"], p["book"], p["odds"], p["description"]) for p in play],
+                             [("nba:double_double:900:1", "yes", None, "fanduel", 280, "Player One Double Double Yes")])
+            PAGE.locator(".nba-pc-odds tbody tr", has_text="Double Double").locator(".nba-pc-toggle").nth(1).check()
+            play = [p for p in PAGE.evaluate("() => loadNbaPlays()") if p["market"] == "double_double"]
+            self.assertEqual([(p["side"], p["odds"]) for p in play], [("no", -350)])
+            # every book's window names the sides Yes / No
+            PAGE.locator(".nba-pc-odds tbody tr", has_text="Double Double").locator(".bo-pill").first.click()
+            PAGE.wait_for_selector("#book-odds-modal:not([hidden]) .bo-tab")
+            self.assertEqual(PAGE.evaluate("() => [...document.querySelectorAll('#book-odds-modal .bo-tab')].map((b) => b.textContent)"), ["Yes", "No"])
+            PAGE.evaluate("() => { document.getElementById('book-odds-modal').hidden = true; }")
+        finally:
+            PAGE.evaluate("() => localStorage.removeItem('nfl-tool.nba-plays.v1')")
+            close_card()
+        self.assertEqual(SITE.errors, [])
+
     def test_show_alt_lines_opens_the_ladders_and_each_rung_saves(self):
         # the owner, 2026-11-02: only the main line could go to My Plays from the card; "a button that
         # says 'show alt lines' which can then open up the ladders"
@@ -192,7 +225,7 @@ class Odds(unittest.TestCase):
             self.assertEqual([(r[0].upper(), r[1]) for r in rows], [
                 ("POINTS", "24.5"), ("POINTS ALT", "29.5"), ("POINTS ALT", "34.5"),
                 ("REBOUNDS", "6.5"), ("REBOUNDS ALT", "7.5"),  # BetMGM's odd line is an alt line too
-                ("PTS + REB + AST", "38.5"), ("FIRST BASKET", "--")])
+                ("PTS + REB + AST", "38.5"), ("DOUBLE DOUBLE", "Yes / No"), ("FIRST BASKET", "--")])
             self.assertIn("+220", rows[1][2])  # FanDuel's 29.5 Over, the best
             self.assertEqual(rows[1][3], "--")  # no book hangs the Under
             self.assertEqual(rows[1][4], "1 of 3")  # only his 30 cleared 29.5

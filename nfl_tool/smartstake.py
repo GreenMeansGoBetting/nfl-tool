@@ -106,7 +106,8 @@ NBA_PROP_GUESS = {"points": "basketball_player_points"}
 # Every other player market the NBA player card prices (the owner, 2026-10-21:
 # "odds for all markets"). The keys are SmartStake's own (tools/smartstake_probe_result.json);
 # each is asked for only when /v1/markets lists it, so a renamed key can never
-# cost the other prices. Yes / no markets (double-double) and fouls are left out.
+# cost the other prices. Fouls are left out; the yes / no markets (double-double,
+# triple-double) come from add_yes_no.
 NBA_PROP_MARKETS = {
     "basketball_player_points": "points",
     "basketball_player_rebounds": "rebounds",
@@ -131,6 +132,14 @@ NBA_PROP_SKIP = ("rebound", "assist", "three", "3pt", "first", "1st", "2nd", "3r
 # goal only markets are left out (most books, and the page, count free
 # throws). Stored as props["first_basket"], side "o" = Yes.
 NBA_FIRST_BASKET_GUESS = "basketball_first_points_scorer"
+
+# NBA Double Double / Triple Double (the owner, 2026-11-20: on the player card). Yes / No markets:
+# Yes is kept as "o", No as "u" (props["double_double"] / props["triple_double"], no line). The
+# keys are SmartStake's (tools/smartstake_probe_result.json); /v1/markets is read for them by
+# name first, so a renamed key is still found.
+NBA_YES_NO_GUESS = {"basketball_player_double_double_yes_no": "double_double",
+                    "basketball_player_triple_double_yes_no": "triple_double"}
+YES_NO_SKIP = ("team", "quarter", "half", "1st", "2nd", "3rd", "4th", "first", "alternate")
 FIRST_BASKET_SKIP = ("team", "quarter", "half", "2nd", "3rd", "4th", "second", "third", "fourth", "last", "method",
                      "exact", "both", "field goal", "three", "3pt", "rebound", "assist", "race", "wire")
 
@@ -266,12 +275,13 @@ def first_basket_market_keys(markets) -> list:
 
 
 def build_book_odds(quotes: list, teams, roster_names=(), *, prop_markets=None, td_market=NFL_TD_MARKET,
-                    line_markets=None, player_key=None, yes_markets=()) -> dict:
+                    line_markets=None, player_key=None, yes_markets=(), yes_no_markets=()) -> dict:
     """quotes -> {"AWAY_HOME": {...}} (shape in the module docstring).
     teams maps the API's full team names to the site's abbreviations (a dict
     of lowercase names, or a function); roster_names are the site's own player
     spellings, preferred when they match. player_key(name, away, home) names
-    a player's row (default: normName; the NHL uses the league's player id)."""
+    a player's row (default: normName; the NHL uses the league's player id).
+    yes_markets keep Yes only (as "o"); yes_no_markets keep Yes as "o" and No as "u"."""
     prop_markets = NFL_PROP_MARKETS if prop_markets is None else prop_markets
     line_markets = NFL_LINE_MARKETS if line_markets is None else line_markets
     team_of = teams if callable(teams) else (lambda full: teams.get((full or "").lower()))
@@ -304,6 +314,8 @@ def build_book_odds(quotes: list, teams, roster_names=(), *, prop_markets=None, 
         if mkey in prop_markets or (td_market and mkey == td_market):
             if mkey in yes_markets and side == "yes":
                 side = "over"  # a yes / no market (first goal scorer): Yes is kept as "o"
+            elif mkey in yes_no_markets and side in ("yes", "no"):
+                side = "over" if side == "yes" else "under"  # double-double: both sides
             if side not in ("over", "under") or q.get("player_id") is None:
                 continue
             name = player_name(q)
@@ -482,6 +494,7 @@ def fetch_nba_book_odds(api_key: str | None, team_of, player_key, previous: dict
             games = carry_previous(games, previous)  # previous = the live build's book_odds here
         else:
             debug["first_basket"] = add_first_basket(api_key, games, team_of, player_key, listed)
+            debug["yes_no"] = add_yes_no(api_key, games, team_of, player_key, listed)
         # every rung of the sim's ladders (the NBA game sim prices them all: points / threes 2026-10-24,
         # rebounds / assists 2026-10-28). The injury refresh fetches them fresh too (2026-11-10): carried,
         # a player's ladder was dropped whenever any book's main line for him changed and stayed gone
@@ -559,6 +572,45 @@ def add_ladder(api_key: str, games: dict, team_of, player_key, key, name=None, l
         return {"quotes": len(quotes), "players": priced, "lines": sorted({q.get("line") for q in quotes if q.get("line") is not None})[:12]}
     except Exception as e:
         print(f"WARNING: SmartStake {label} ladder failed ({e}).", file=sys.stderr)
+        return {"error": str(e)[:200]}
+
+
+def yes_no_market_keys(listed) -> dict:
+    """{market key: "double_double" | "triple_double"} for the NBA player double / triple
+    double markets in a /v1/markets reply; the known keys when none is found by name."""
+    found = {}
+    for m in listed or []:
+        key = m if isinstance(m, str) else (m.get("key") or m.get("market_key") or m.get("id"))
+        name = m if isinstance(m, str) else (m.get("name") or m.get("market_name") or "")
+        text = f"{key} {name}".lower().replace("_", " ").replace("-", " ")
+        if not key or "player" not in text or any(w in text for w in YES_NO_SKIP):
+            continue
+        for kind in ("double double", "triple double"):
+            if kind in text:
+                found[key] = kind.replace(" ", "_")
+    return found or dict(NBA_YES_NO_GUESS)
+
+
+def add_yes_no(api_key: str, games: dict, team_of, player_key, listed) -> dict:
+    """Adds every book's Double Double and Triple Double Yes / No prices to the NBA games
+    (props["double_double"] / ["triple_double"]). alternate=True: a book that sends it as an
+    alternate quote is kept too (First Basket's lesson). Its own try: a failure here never
+    costs the other prices. Returns what it found, for the build's debug."""
+    try:
+        markets = yes_no_market_keys(listed)
+        quotes = fetch_quotes(api_key, "nba", list(markets), alternate=True)
+        found = build_book_odds(quotes, team_of, prop_markets=markets, td_market=None, line_markets={},
+                                player_key=player_key, yes_no_markets=set(markets))
+        priced = {}
+        for game_key, game in found.items():
+            for stat in set(markets.values()):
+                prices = game["props"].get(stat)
+                if prices:
+                    games.setdefault(game_key, {"kickoff": game["kickoff"], "props": {}, "td": {}, "lines": {}})["props"][stat] = prices
+                    priced[stat] = priced.get(stat, 0) + len(prices)
+        return {"markets": sorted(markets), "quotes": len(quotes), "players": priced, "books": sorted({q["book"] for q in quotes})}
+    except Exception as e:
+        print(f"WARNING: SmartStake double / triple double prices failed ({e}).", file=sys.stderr)
         return {"error": str(e)[:200]}
 
 
