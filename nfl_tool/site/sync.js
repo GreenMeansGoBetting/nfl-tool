@@ -1259,6 +1259,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
   const pills = (...items) => ({ row: items.map(([name, file, hue]) => ({ name, file, hue })) });
   const SPORT_PAGES = {
     nfl: { label: "NFL", home: "game-overview.html", items: [
+      // $100 CONTEST: a TD pick contest at the top (the owner, 2026-11-20). Owner only until launch.
+      { ...pills(["$100 CONTEST", "contest.html", 50]), owner: true },
       pills(["Game Previews", "game-overview.html", 140], ["TD Data", "index.html", 20]),
       pills(["Opening Drive Tool", "opening-drives.html", 45]),
       { head: "Player Props" },

@@ -46,6 +46,7 @@ PAGES = [
     ("Player Props", "player-props.html", '.props-view-toggle-btn[data-view="summary"]'),
     ("Best Plays", "best-plays.html", None),
     ("Opening Drive Tool", "opening-drives.html", None),
+    ("$100 Contest", "contest.html", None),
     ("My Plays", "my-plays.html", None),
     ("Promo Tools", "promo-tools.html", None),
     ("Support", "support.html", None),

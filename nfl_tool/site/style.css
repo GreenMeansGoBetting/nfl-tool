@@ -4235,6 +4235,93 @@ td.gm-lean .pick-result { opacity: 0.5; }
 .act-box { width: fit-content; max-width: 100%; overflow-x: auto; margin-bottom: 14px; }
 .act-tile { min-width: 76px; }
 .data-table.od-grid td.act-day { padding: 3px 10px; font-weight: 600; }
+/* ---- $100 CONTEST (contest.html / contest.js, 2026-11-20) ---- */
+.ct-wrap { width: fit-content; max-width: 100%; margin: 0 auto; }
+.ct-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.ct-title { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; letter-spacing: 0.02em; margin: 0; }
+.ct-title span { color: var(--good-text); }
+.ct-week { font-weight: 700; font-size: 0.92rem; }
+.ct-closed { padding: 30px 10px; text-align: center; }
+.ct-closed p { font-weight: 700; font-size: 1.05rem; }
+.ct-strip { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0 10px; }
+.ct-strip .od-tile { min-width: 92px; text-align: center; padding: 6px 10px; border: 1px solid var(--border); }
+.ct-strip .od-tile b { font-size: 1.25rem; }
+.ct-strip .ct-lock { background: rgba(var(--bad-rgb), 0.16); border-color: rgba(var(--bad-rgb), 0.5); }
+.ct-strip .ct-price { background: rgba(70, 130, 220, 0.16); border-color: rgba(70, 130, 220, 0.5); }
+.ct-tabs { margin: 4px 0 10px; }
+.ct-ownerbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 760px; margin: 4px 0 8px; padding: 8px 10px; border-radius: 10px; font-size: 0.85rem; background: rgba(150, 100, 220, 0.14); border: 1px solid rgba(150, 100, 220, 0.5); }
+.ct-warn { font-weight: 700; padding: 3px 6px; border-radius: 6px; background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.6); }
+.ct-sm { font: inherit; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); cursor: pointer; }
+.ct-sm:hover { border-color: var(--accent); }
+.ct-danger { border-color: rgba(var(--bad-rgb), 0.6); }
+.ct-danger:hover { background: rgba(var(--bad-rgb), 0.2); border-color: var(--bad); }
+table.ct-games, table.ct-lb { width: auto; }
+.ct-games td.ct-slot { text-align: left !important; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; letter-spacing: 0.04em; padding: 8px 6px 3px !important; }
+.ct-game { display: flex; align-items: center; gap: 5px; font-family: var(--font-display); font-weight: 800; font-size: 0.98rem; padding: 4px 6px; border-radius: 6px; background: var(--panel-2); }
+.ct-game .at { font-weight: 600; font-size: 0.8rem; }
+.ct-game img { width: 22px; height: 22px; }
+.ct-row { cursor: pointer; }
+.ct-row:hover .ct-game, .ct-row.open .ct-game { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ct-pickbtn { display: flex; align-items: center; gap: 5px; width: 230px; padding: 5px 8px; border-radius: 6px; font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; text-align: left; }
+.ct-pickbtn .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct-pickbtn.empty { justify-content: space-between; border: 1px dashed var(--accent); color: var(--good-text); background: rgba(var(--accent-rgb), 0.08); }
+.ct-pickbtn.set { background: var(--panel-2); border: 1px solid var(--border-strong); }
+.ct-pickbtn.hit, .ct-pk.hit { background: rgba(var(--good-rgb), 0.22); border-color: rgba(var(--good-rgb), 0.65); }
+.ct-pickbtn.miss, .ct-pk.miss { background: rgba(var(--bad-rgb), 0.18); border-color: rgba(var(--bad-rgb), 0.55); }
+.ct-pickbtn.void, .ct-pk.void { background: rgba(70, 130, 220, 0.16); border-color: rgba(70, 130, 220, 0.5); }
+.ct-pickbtn .car { font-size: 0.75rem; }
+.ct-pos { display: inline-block; min-width: 26px; text-align: center; font-size: 0.68rem; font-weight: 800; padding: 2px 3px; border-radius: 4px; background: hsla(var(--ph), 70%, 45%, 0.3); border: 1px solid hsla(var(--ph), 70%, 50%, 0.7); }
+.ct-games .od-tile { min-width: 58px; }
+.ct-drop td { padding: 2px 3px 8px !important; }
+.ct-drop-inner { display: flex; gap: 8px; justify-content: center; padding: 8px; border-radius: 10px; background: rgba(var(--accent-rgb), 0.07); border: 1px solid rgba(var(--accent-rgb), 0.35); }
+.ct-team { width: 290px; }
+.ct-team-head { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 8px 8px 0 0; font-family: var(--font-display); font-weight: 800; font-size: 0.92rem; border-left: 4px solid var(--tc); background: color-mix(in srgb, var(--tc) 30%, transparent); }
+.ct-team-head img { width: 20px; height: 20px; }
+.ct-plist { display: grid; gap: 3px; padding: 3px; background: var(--panel-2); border-radius: 0 0 8px 8px; }
+.ct-p { display: grid; grid-template-columns: 30px 1fr 56px 62px; gap: 3px; align-items: center; width: 100%; padding: 2px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; background: none; color: var(--text); font: inherit; text-align: left; }
+.ct-p:disabled { cursor: default; }
+.ct-p:not(:disabled):hover { border-color: var(--accent); }
+.ct-p.sel { border-color: var(--accent); background: rgba(var(--accent-rgb), 0.18); }
+.ct-p .nm { font-weight: 700; font-size: 0.86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct-p .od-tile { padding: 3px 2px; text-align: center; border: 1px solid var(--border); }
+.ct-p .od-tile b { font-size: 0.86rem; }
+.ct-none { padding: 8px; font-weight: 700; font-size: 0.82rem; text-align: center; }
+.ct-win { font-family: var(--font-display); font-weight: 700; font-size: 0.8rem; text-align: center; padding: 3px 2px; border-radius: 6px; background: var(--panel); border: 1px solid var(--border); }
+.ct-win small { display: block; font-size: 0.6rem; }
+.ct-submit { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; width: 0; min-width: 100%; box-sizing: border-box; margin-top: 10px; padding: 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--border); }
+.ct-submit label { display: grid; gap: 3px; font-size: 0.78rem; font-weight: 700; }
+.ct-submit input { font: inherit; font-size: 0.92rem; padding: 6px 8px; width: 220px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); }
+.ct-go { font-family: var(--font-display); font-weight: 800; font-size: 1rem; padding: 8px 18px; border-radius: 8px; border: none; background: var(--accent); color: var(--on-accent); cursor: pointer; }
+.ct-go:disabled { background: var(--panel-2); color: var(--text); opacity: 0.7; border: 1px solid var(--border-strong); cursor: not-allowed; }
+.ct-saved { font-weight: 700; font-size: 0.82rem; padding: 6px 8px; border-radius: 6px; background: rgba(var(--accent-rgb), 0.12); border: 1px solid rgba(var(--accent-rgb), 0.4); }
+.ct-saved.ct-warnmsg { background: rgba(234, 179, 8, 0.18); border-color: rgba(234, 179, 8, 0.6); }
+.ct-saved.ct-info { background: rgba(70, 130, 220, 0.16); border-color: rgba(70, 130, 220, 0.5); }
+.ct-board { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.ct-lb .ct-name { font-weight: 800; font-size: 0.92rem; text-align: left; padding: 4px 8px; white-space: nowrap; }
+.ct-lb tr.ct-lbrow { cursor: pointer; }
+.ct-lb tr.ct-lbrow:hover td .od-tile, .ct-lb tr.ct-lbrow.open td .od-tile { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ct-rank { font-family: var(--font-display); font-weight: 800; font-size: 1rem; }
+.ct-rank.gold { background: rgba(234, 179, 8, 0.3); border: 1px solid rgba(234, 179, 8, 0.7); }
+.ct-hidden { font-weight: 700; font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; background: var(--panel-2); border: 1px dashed var(--border-strong); }
+.ct-owner { background: rgba(150, 100, 220, 0.16); border: 1px solid rgba(150, 100, 220, 0.45); font-size: 0.78rem; font-weight: 700; padding: 4px 6px; border-radius: 6px; text-align: left; }
+.ct-picks td { padding: 2px 4px 10px !important; }
+.ct-picks-grid { display: grid; grid-template-columns: repeat(4, 150px); gap: 3px; padding: 6px; border-radius: 10px; background: rgba(var(--accent-rgb), 0.07); border: 1px solid rgba(var(--accent-rgb), 0.35); }
+.ct-pk { padding: 4px 6px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel-2); text-align: left; }
+.ct-pk .g { display: flex; align-items: center; gap: 3px; font-size: 0.66rem; font-weight: 700; }
+.ct-pk .g img { width: 13px; height: 13px; }
+.ct-pk b { display: block; font-family: var(--font-display); font-size: 0.86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct-pk .r { display: flex; justify-content: space-between; gap: 4px; font-size: 0.72rem; font-weight: 700; }
+.ct-box { width: fit-content; }
+.ct-box-title { font-family: var(--font-display); font-weight: 800; font-size: 0.95rem; padding: 6px 10px; border-radius: 10px 10px 0 0; background: rgba(150, 100, 220, 0.3); }
+.ct-box-body { display: grid; gap: 3px; padding: 4px; border-radius: 0 0 10px 10px; background: rgba(150, 100, 220, 0.1); }
+.ct-mp { display: grid; grid-template-columns: 100px 150px 48px; gap: 3px; align-items: center; }
+.ct-mp .g { display: flex; align-items: center; gap: 3px; font-size: 0.72rem; font-weight: 800; padding: 3px 4px; border-radius: 6px; background: var(--panel-2); }
+.ct-mp .g img { width: 15px; height: 15px; }
+.ct-mp .nm { font-weight: 700; font-size: 0.84rem; padding: 3px 6px; border-radius: 6px; background: var(--panel-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct-mp .od-tile { text-align: center; padding: 3px 2px; }
+.ct-mp .od-tile b { font-size: 0.85rem; }
+.ct-graded { font-size: 0.82rem; font-weight: 700; margin: 0 0 6px; padding: 5px 8px; border-radius: 6px; width: fit-content; background: rgba(70, 130, 220, 0.16); border: 1px solid rgba(70, 130, 220, 0.5); }
+
 @media (max-width: 760px) {
   .page-nav a, .page-nav-current { padding: 6px 10px; font-size: 0.8rem; }
   .bp-game-pick { margin-left: 0; }
@@ -4242,4 +4329,10 @@ td.gm-lean .pick-result { opacity: 0.5; }
   .acct-chip .acct-name { display: none; }
   .brand-name { font-size: 1.05rem; }
   .ytd-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* $100 CONTEST: the game list and leaderboard scroll in their own box; both teams stack */
+  #ct-view { overflow-x: auto; }
+  .ct-drop-inner { flex-direction: column; }
+  .ct-team { width: auto; }
+  .ct-pickbtn { width: 170px; }
+  .ct-picks-grid { grid-template-columns: repeat(2, 140px); }
 }

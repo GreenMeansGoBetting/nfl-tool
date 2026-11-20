@@ -420,6 +420,125 @@ async function handlePromoPayouts(request, env, session, json, promo) {
   return json({ ok: true });
 }
 
+// ---- $100 CONTEST (NFL, added 2026-11-20) ----
+// One player per game to score a TD, $10 fake money on each at a price that is
+// the same for everyone. The owner presses "Lock Prices" on contest.html: the
+// page sends the games, each player's FanDuel price and the lock time, saved
+// here as the contest (the latest one is the open one). Every signed-in member
+// saves one entry (one per account, replaced on every save) until the lock;
+// after it nothing changes. Before the lock a member sees who entered but not
+// their picks; the contact (email / Discord name) is only ever sent to the
+// owner. The page grades from data.json. Tables are made on first use.
+const CONTEST_ID = /^\d{4}_\d{2}$/;
+const CONTEST_TEAM = /^[A-Z]{2,3}$/;
+const CONTEST_MAX_GAMES = 20;
+const CONTEST_MAX_PLAYERS = 80; // a game, both teams
+
+function cleanContest(c) {
+  if (!c || !CONTEST_ID.test(c.id || "") || !Number.isInteger(c.week) || !Number.isFinite(c.lock_at)) return null;
+  if (!Array.isArray(c.games) || !c.games.length || c.games.length > CONTEST_MAX_GAMES) return null;
+  const games = [];
+  for (const g of c.games) {
+    if (!g || typeof g.id !== "string" || g.id.length > 40 || !CONTEST_TEAM.test(g.away || "") || !CONTEST_TEAM.test(g.home || "")) return null;
+    if (!Array.isArray(g.players) || !g.players.length || g.players.length > CONTEST_MAX_PLAYERS) return null;
+    const players = [];
+    const keys = new Set();
+    for (const p of g.players) {
+      const k = String((p && p.k) || "").slice(0, 80);
+      const name = String((p && p.name) || "").trim().slice(0, 60);
+      if (!k || !name || keys.has(k) || ![g.away, g.home].includes(p.team) || !americanOdds(p.odds)) return null;
+      keys.add(k);
+      players.push({ k, name, pos: String(p.pos || "").slice(0, 4), team: p.team, odds: p.odds });
+    }
+    games.push({ id: g.id, away: g.away, home: g.home, day: String(g.day || "").slice(0, 12), time: String(g.time || "").slice(0, 8), kickoff: String(g.kickoff || "").slice(0, 30), players });
+  }
+  return { id: c.id, season: Number(c.season) || null, week: c.week, lock_at: c.lock_at, book: String(c.book || "FanDuel").slice(0, 20), priced_at: Date.now(), games };
+}
+
+async function handleContest(request, env, session, json) {
+  const owner = isOwnerSession(session);
+  const uid = session.uid || session.name;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS contests (id TEXT PRIMARY KEY, config TEXT NOT NULL, created INTEGER NOT NULL)").run();
+  await env.DB.prepare(
+    "CREATE TABLE IF NOT EXISTS contest_entries (contest TEXT NOT NULL, uid TEXT NOT NULL, name TEXT NOT NULL, contact TEXT NOT NULL, picks TEXT NOT NULL, updated INTEGER NOT NULL, PRIMARY KEY (contest, uid))"
+  ).run();
+  const row = await env.DB.prepare("SELECT config FROM contests ORDER BY created DESC LIMIT 1").first();
+  let contest = null;
+  try {
+    contest = row ? JSON.parse(row.config) : null;
+  } catch (e) {
+    contest = null;
+  }
+  const locked = !!contest && Date.now() >= contest.lock_at;
+
+  if (request.method === "GET") {
+    // A Discord name is a fine leaderboard name; an email login's "name" is the email, so it isn't.
+    const defaults = session.kind === "email" ? { name: "", contact: session.name || "" } : { name: session.name || "", contact: session.kind === "buildr" ? "" : session.name || "" };
+    if (!contest) return json({ owner, defaults, contest: null, entries: [], me: null, now: Date.now() });
+    const { results } = await env.DB.prepare("SELECT uid, name, contact, picks, updated FROM contest_entries WHERE contest = ? ORDER BY updated").bind(contest.id).all();
+    let me = null;
+    const entries = [];
+    for (const r of results || []) {
+      let picks = {};
+      try {
+        picks = JSON.parse(r.picks);
+      } catch (e) {
+        picks = {};
+      }
+      const mine = r.uid === uid;
+      if (mine) me = { name: r.name, contact: r.contact, picks, updated: r.updated };
+      const e = { name: r.name, updated: r.updated, mine };
+      if (locked || owner || mine) e.picks = picks; // picks stay hidden until the lock
+      if (owner) Object.assign(e, { contact: r.contact, uid: r.uid });
+      entries.push(e);
+    }
+    return json({ owner, defaults, contest, locked, entries, me, now: Date.now() });
+  }
+  if (request.method !== "POST") return json({ error: "method" }, 405);
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    return json({ error: "bad json" }, 400);
+  }
+  const action = body && body.action;
+  if (action === "open") {
+    if (!owner) return json({ error: "owner only" }, 403);
+    const clean = cleanContest(body.contest);
+    if (!clean) return json({ error: "bad contest" }, 400);
+    await env.DB.prepare("INSERT INTO contests (id, config, created) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET config = excluded.config, created = excluded.created")
+      .bind(clean.id, JSON.stringify(clean), Date.now())
+      .run();
+    if (body.clear) await env.DB.prepare("DELETE FROM contest_entries WHERE contest = ?").bind(clean.id).run();
+    return json({ ok: true });
+  }
+  if (action === "remove") {
+    if (!owner) return json({ error: "owner only" }, 403);
+    if (!contest || typeof body.uid !== "string") return json({ error: "bad item" }, 400);
+    await env.DB.prepare("DELETE FROM contest_entries WHERE contest = ? AND uid = ?").bind(contest.id, body.uid).run();
+    return json({ ok: true });
+  }
+  if (action !== "enter") return json({ error: "bad action" }, 400);
+  if (!contest) return json({ error: "not open" }, 409);
+  if (locked) return json({ error: "locked" }, 409);
+  const name = String(body.name || "").trim().slice(0, 30);
+  const contact = String(body.contact || "").trim().slice(0, 100);
+  if (name.length < 2) return json({ error: "name" }, 400);
+  if (contact.length < 3) return json({ error: "contact" }, 400);
+  const picks = {};
+  for (const g of contest.games) {
+    const k = body.picks && body.picks[g.id];
+    if (!g.players.some((p) => p.k === k)) return json({ error: "picks" }, 400);
+    picks[g.id] = k;
+  }
+  await env.DB.prepare(
+    "INSERT INTO contest_entries (contest, uid, name, contact, picks, updated) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(contest, uid) DO UPDATE SET name = excluded.name, contact = excluded.contact, picks = excluded.picks, updated = excluded.updated"
+  )
+    .bind(contest.id, uid, name, contact, JSON.stringify(picks), Date.now())
+    .run();
+  return json({ ok: true });
+}
+
 // ---- SGP price log (NHL Line Stacks, added 2026-10-16) ----
 // Books price a same-game parlay's correlation themselves, each its own way,
 // and no free history of those prices exists. So the owner logs what books
@@ -645,6 +764,10 @@ async function handleApi(request, env, session, json) {
   if (url.pathname === "/api/sgp-prices") {
     if (!env.DB) return json({ error: "no database" }, 503);
     return handleSgpPrices(request, env, session, json);
+  }
+  if (url.pathname === "/api/contest") {
+    if (!env.DB) return json({ error: "no database" }, 503);
+    return handleContest(request, env, session, json);
   }
   if (PROMO_PAYOUTS[url.pathname]) {
     if (!env.DB) return json({ error: "no database" }, 503);

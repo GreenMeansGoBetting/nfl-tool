@@ -7,10 +7,29 @@ paths:
   - "nfl_tool/site/my-plays.*"
   - "nfl_tool/site/plays-grading.js"
   - "nfl_tool/site/parlay-wheel.js"
+  - "nfl_tool/site/contest.*"
 ---
 # Possible Plays, Pick Tracker and Promo Tools
 
 Stories behind these rules: `docs/history.md`, "Possible Plays, picks and promos".
+
+## $100 CONTEST (`contest.html/.js`, `/api/contest`; built 2026-11-20)
+
+The owner's free weekly TD contest for members. One player per game (every game left in the week,
+through Monday night), $10 fake money on each, $10 x games bankroll; a hit pays at the locked
+price, a miss loses $10, a player with no snaps that week gets the $10 back.
+- **One price for everyone: FanDuel's** (the owner, 2026-11-20), the build's `player_td_odds[].fd`
+  (`book_td_odds`). The owner presses "Lock FanDuel Prices & Open Contest" (owner-only bar) after
+  the video; that snapshot (games, players, prices, lock time) is the contest, saved by the login
+  code (D1 `contests`, `contest_entries`, made on first use). Re-lock keeps or clears entries.
+- **Locks Sunday 1:00 PM ET** (the Sunday game's date): the server refuses saves after it. One
+  entry per account (replaced on save); leaderboard name + Discord/email contact (contact only ever
+  sent to the owner). Before the lock members see who entered, not their picks.
+- Graded on the page from data.json (`player_td_results` any_td, `player_snaps` for "didn't play"),
+  so results come the morning after each game. Rank: bankroll, then FEWER correct picks, then the
+  longest price that hit, then split (the owner's tie rule).
+- The menu pill is owner-only until launch: drop `owner: true` on it in sync.js `SPORT_PAGES.nfl`.
+- Tests: `test_ci_contest.py` (API), `test_contest_site.py` (page).
 
 ## My Plays (`my-plays.html/.js`; built 2026-10-20)
 

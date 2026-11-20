@@ -1108,6 +1108,8 @@ def book_td_odds(book_odds: dict, roster_teams: dict, roster_positions: dict | N
             out.setdefault(side[0], []).append({
                 "name": name, "position": (roster_positions or {}).get(name), "best_odds": int(best),
                 "best_book": US_BOOKS[best_book], "fair_odds": novig_price_to_american(fair), "implied_prob": round(fair, 3),
+                # FanDuel's own price: the $100 CONTEST's one price for everyone (contest.js).
+                "fd": int(by_book["fanduel"]["o"]) if "o" in by_book.get("fanduel", {}) else None,
             })
     return out
 

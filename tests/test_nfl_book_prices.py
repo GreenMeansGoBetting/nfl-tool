@@ -42,6 +42,12 @@ class BookTdOdds(unittest.TestCase):
         self.assertEqual([r["name"] for r in self.rows["ARI"]], ["Trey McBride"])
         self.assertNotIn("Practice Squad Guy", self.by)  # on neither roster
 
+    def test_fanduel_price_kept(self):
+        # The $100 CONTEST prices every pick at FanDuel's number (contest.js).
+        self.assertEqual(self.by["Jaleel McLaughlin"]["fd"], 600)
+        self.assertEqual(self.by["Bo Nix"]["fd"], 320)
+        self.assertIsNone(self.by["Trey McBride"]["fd"])  # BetMGM only
+
     def test_no_vig_chance(self):
         # Two-sided DraftKings: +450 / -800 -> 0.1818 / (0.1818 + 0.8889).
         self.assertAlmostEqual(self.by["Jaleel McLaughlin"]["implied_prob"], 0.17, places=2)

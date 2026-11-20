@@ -45,7 +45,7 @@ class TopMenu(unittest.TestCase):
         page = SITE.open("game-overview.html")
         try:
             page.click(".page-nav .nfl-trigger")
-            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Opening Drive Tool", "/opening-drives.html", False], ["Best Plays", "/best-plays.html", False], ["Receiving", "/player-props.html#receiving", False], ["Rushing", "/player-props.html#rushing", False], ["Passing", "/player-props.html#passing", False]])
+            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["$100 CONTEST", "/contest.html", False], ["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Opening Drive Tool", "/opening-drives.html", False], ["Best Plays", "/best-plays.html", False], ["Receiving", "/player-props.html#receiving", False], ["Rushing", "/player-props.html#rushing", False], ["Passing", "/player-props.html#passing", False]])
             # The owner, 2026-11-04: every sport's menu is colored pills like Prop Research, no New tags.
             self.assertEqual(page.evaluate("() => [...document.querySelectorAll('.nav-menu:not(.acct-menu):not(.promo-menu) a')].every((a) => a.classList.contains('nav-pill') && a.style.getPropertyValue('--pill-h'))"), True)
             self.assertEqual(page.evaluate("() => document.querySelectorAll('.nav-menu .upd-new').length"), 0)
