@@ -573,7 +573,7 @@
    "first_price": 230,
    "first_book": "fliff",
    "first_seen": "2026-11-17T21:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|anytime_td|ARI|tylerallgeier": {
    "game": "ARI_KC",
@@ -597,7 +597,7 @@
    "first_price": 380,
    "first_book": "fanatics",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|anytime_td|KC|xavierworthy": {
    "game": "ARI_KC",
@@ -621,7 +621,7 @@
    "first_price": 360,
    "first_book": "fanatics",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|first_td|ARI|treymcbride": {
    "game": "ARI_KC",
@@ -645,7 +645,7 @@
    "first_price": 2122,
    "first_book": null,
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|first_td|ARI|tylerallgeier": {
    "game": "ARI_KC",
@@ -669,7 +669,7 @@
    "first_price": 1718,
    "first_book": null,
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|passing_attempts|KC|patrickmahomes": {
    "game": "ARI_KC",
@@ -693,7 +693,7 @@
    "first_price": -124,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|passing_completions|KC|patrickmahomes": {
    "game": "ARI_KC",
@@ -717,7 +717,7 @@
    "first_price": -102,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|passing_touchdowns|ARI|carsonbeck": {
    "game": "ARI_KC",
@@ -741,7 +741,7 @@
    "first_price": 106,
    "first_book": "caesars",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_longestReception|ARI|elijahhiggins": {
    "game": "ARI_KC",
@@ -765,7 +765,7 @@
    "first_price": -106,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_receptions|ARI|elijahhiggins": {
    "game": "ARI_KC",
@@ -789,7 +789,7 @@
    "first_price": 109,
    "first_book": "caesars",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_receptions|ARI|reggievirgil": {
    "game": "ARI_KC",
@@ -813,7 +813,7 @@
    "first_price": -102,
    "first_book": "4cx",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_receptions|ARI|treymcbride": {
    "game": "ARI_KC",
@@ -837,7 +837,7 @@
    "first_price": 103,
    "first_book": "caesars",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_receptions|ARI|tylerallgeier": {
    "game": "ARI_KC",
@@ -861,7 +861,7 @@
    "first_price": -125,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_receptions|KC|joshdowns": {
    "game": "ARI_KC",
@@ -885,7 +885,7 @@
    "first_price": -123,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_yards|ARI|elijahhiggins": {
    "game": "ARI_KC",
@@ -909,7 +909,7 @@
    "first_price": -108,
    "first_book": "prophetx",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_yards|ARI|reggievirgil": {
    "game": "ARI_KC",
@@ -933,7 +933,7 @@
    "first_price": -111,
    "first_book": "prophetx",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_yards|ARI|treymcbride": {
    "game": "ARI_KC",
@@ -957,7 +957,7 @@
    "first_price": -113,
    "first_book": "prophetx",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_yards|ARI|tylerallgeier": {
    "game": "ARI_KC",
@@ -981,7 +981,7 @@
    "first_price": -107,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_yards|KC|joshdowns": {
    "game": "ARI_KC",
@@ -1005,7 +1005,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T20:54Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|receiving_yards|KC|rasheerice": {
    "game": "ARI_KC",
@@ -1029,7 +1029,7 @@
    "first_price": -110,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|rushing_longestRush|KC|patrickmahomes": {
    "game": "ARI_KC",
@@ -1053,7 +1053,7 @@
    "first_price": -127,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T01:52Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_KC|rushing_yards|ARI|carsonbeck": {
    "game": "ARI_KC",
@@ -1077,7 +1077,7 @@
    "first_price": -108,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "ARI_SEA|anytime_td|ARI|michaelwilson": {
    "game": "ARI_SEA",
@@ -2898,7 +2898,7 @@
    "first_price": -120,
    "first_book": "fliff",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "BAL_CAR|first_td|BAL|derrickhenry": {
    "game": "BAL_CAR",
@@ -2922,7 +2922,7 @@
    "first_price": 488,
    "first_book": null,
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "BAL_CAR|passing_attempts|BAL|jacobybrissett": {
    "game": "BAL_CAR",
@@ -2946,7 +2946,7 @@
    "first_price": -108,
    "first_book": "caesars",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "BAL_CAR|passing_completions|BAL|jacobybrissett": {
    "game": "BAL_CAR",
@@ -2970,7 +2970,7 @@
    "first_price": -106,
    "first_book": "caesars",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "BAL_CAR|receiving_yards|CAR|tetairoamcmillan": {
    "game": "BAL_CAR",
@@ -2994,7 +2994,7 @@
    "first_price": -114,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "BAL_CAR|rushing_attempts|CAR|chubahubbard": {
    "game": "BAL_CAR",
@@ -3018,7 +3018,7 @@
    "first_price": -102,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "BAL_CAR|rushing_yards|BAL|derrickhenry": {
    "game": "BAL_CAR",
@@ -3042,7 +3042,7 @@
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "BUF_MIN|anytime_td|BUF|jamescook": {
    "game": "BUF_MIN",
@@ -6862,7 +6862,7 @@
    "first_price": 177,
    "first_book": "4cx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CIN_WAS|first_td|WAS|stefondiggs": {
    "game": "CIN_WAS",
@@ -6886,7 +6886,7 @@
    "first_price": 1438,
    "first_book": null,
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CIN_WAS|passing_attempts|WAS|jaydendaniels": {
    "game": "CIN_WAS",
@@ -6910,7 +6910,7 @@
    "first_price": -106,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CIN_WAS|passing_completions|WAS|jaydendaniels": {
    "game": "CIN_WAS",
@@ -6934,7 +6934,7 @@
    "first_price": -129,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CIN_WAS|passing_touchdowns|CIN|joeburrow": {
    "game": "CIN_WAS",
@@ -6958,7 +6958,7 @@
    "first_price": -103,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CIN_WAS|receiving_receptions|WAS|chigokonkwo": {
    "game": "CIN_WAS",
@@ -6982,7 +6982,7 @@
    "first_price": 126,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CIN_WAS|rushing+receiving_yards|CIN|chasebrown": {
    "game": "CIN_WAS",
@@ -7006,7 +7006,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CIN_WAS|rushing_attempts|CIN|chasebrown": {
    "game": "CIN_WAS",
@@ -7030,7 +7030,7 @@
    "first_price": 106,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CIN_WAS|rushing_yards|CIN|chasebrown": {
    "game": "CIN_WAS",
@@ -7054,7 +7054,7 @@
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "CLE_NO|anytime_td|CLE|isaiahbond": {
    "game": "CLE_NO",
@@ -15676,7 +15676,7 @@
    "first_price": -126,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T17:07Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|passing_completions|JAX|trevorlawrence": {
    "game": "JAX_NYG",
@@ -15700,7 +15700,7 @@
    "first_price": -120,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T17:07Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|passing_interceptions|NYG|jjmccarthy": {
    "game": "JAX_NYG",
@@ -15724,7 +15724,7 @@
    "first_price": -144,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|passing_touchdowns|JAX|trevorlawrence": {
    "game": "JAX_NYG",
@@ -15748,7 +15748,7 @@
    "first_price": -135,
    "first_book": "betmgm",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|passing_touchdowns|NYG|jjmccarthy": {
    "game": "JAX_NYG",
@@ -15772,7 +15772,7 @@
    "first_price": -188,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|passing_yards|JAX|trevorlawrence": {
    "game": "JAX_NYG",
@@ -15796,7 +15796,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|passing_yards|NYG|jjmccarthy": {
    "game": "JAX_NYG",
@@ -15820,7 +15820,7 @@
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|receiving_receptions|JAX|parkerwashington": {
    "game": "JAX_NYG",
@@ -15844,7 +15844,7 @@
    "first_price": -125,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T21:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|receiving_receptions|NYG|darnellmooney": {
    "game": "JAX_NYG",
@@ -15868,7 +15868,7 @@
    "first_price": 102,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|receiving_receptions|NYG|maliknabers": {
    "game": "JAX_NYG",
@@ -15892,7 +15892,7 @@
    "first_price": -114,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T21:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|receiving_yards|JAX|brentonstrange": {
    "game": "JAX_NYG",
@@ -15916,7 +15916,7 @@
    "first_price": -112,
    "first_book": "caesars",
    "first_seen": "2026-11-17T21:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|receiving_yards|JAX|jakobimeyers": {
    "game": "JAX_NYG",
@@ -15940,7 +15940,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T21:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|receiving_yards|JAX|parkerwashington": {
    "game": "JAX_NYG",
@@ -15964,7 +15964,7 @@
    "first_price": -113,
    "first_book": "caesars",
    "first_seen": "2026-11-17T21:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|receiving_yards|NYG|malachifields": {
    "game": "JAX_NYG",
@@ -15988,7 +15988,7 @@
    "first_price": -106,
    "first_book": "prophetx",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_NYG|rushing_yards|JAX|trevorlawrence": {
    "game": "JAX_NYG",
@@ -16012,7 +16012,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T01:52Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "JAX_TEN|anytime_td|JAX|ameerabdullah": {
    "game": "JAX_TEN",
@@ -19510,7 +19510,7 @@
    "first_price": 414,
    "first_book": "4cx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|anytime_td|DEN|jkdobbins": {
    "game": "LV_DEN",
@@ -19534,7 +19534,7 @@
    "first_price": 230,
    "first_book": "fanatics",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|anytime_td|LV|codywhite": {
    "game": "LV_DEN",
@@ -19558,7 +19558,7 @@
    "first_price": 1500,
    "first_book": "fanatics",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|first_td|DEN|jkdobbins": {
    "game": "LV_DEN",
@@ -19582,7 +19582,7 @@
    "first_price": 1076,
    "first_book": null,
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|first_td|LV|ashtonjeanty": {
    "game": "LV_DEN",
@@ -19606,7 +19606,7 @@
    "first_price": 1076,
    "first_book": null,
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|first_td|LV|codywhite": {
    "game": "LV_DEN",
@@ -19630,7 +19630,7 @@
    "first_price": 7043,
    "first_book": null,
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|passing_attempts|DEN|bonix": {
    "game": "LV_DEN",
@@ -19654,7 +19654,7 @@
    "first_price": -105,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|passing_attempts|LV|fernandomendoza": {
    "game": "LV_DEN",
@@ -19678,7 +19678,7 @@
    "first_price": 102,
    "first_book": "caesars",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|passing_completions|DEN|bonix": {
    "game": "LV_DEN",
@@ -19702,7 +19702,7 @@
    "first_price": -106,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|passing_completions|LV|fernandomendoza": {
    "game": "LV_DEN",
@@ -19726,7 +19726,7 @@
    "first_price": -125,
    "first_book": "betmgm",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|passing_touchdowns|LV|fernandomendoza": {
    "game": "LV_DEN",
@@ -19750,7 +19750,7 @@
    "first_price": 141,
    "first_book": "prophetx",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|passing_yards|DEN|bonix": {
    "game": "LV_DEN",
@@ -19774,7 +19774,7 @@
    "first_price": -113,
    "first_book": "prophetx",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|receiving_receptions|DEN|jonahcoleman": {
    "game": "LV_DEN",
@@ -19798,7 +19798,7 @@
    "first_price": 108,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|receiving_receptions|LV|ashtonjeanty": {
    "game": "LV_DEN",
@@ -19822,7 +19822,7 @@
    "first_price": 116,
    "first_book": "caesars",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|receiving_yards|DEN|jonahcoleman": {
    "game": "LV_DEN",
@@ -19846,7 +19846,7 @@
    "first_price": -108,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|rushing_attempts|LV|ashtonjeanty": {
    "game": "LV_DEN",
@@ -19870,7 +19870,7 @@
    "first_price": -108,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|rushing_attempts|LV|mikewashington": {
    "game": "LV_DEN",
@@ -19894,7 +19894,7 @@
    "first_price": -101,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T20:54Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_DEN|rushing_yards|LV|ashtonjeanty": {
    "game": "LV_DEN",
@@ -19918,7 +19918,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "LV_NYJ|anytime_td|LV|ashtonjeanty": {
    "game": "LV_NYJ",
@@ -21117,7 +21117,7 @@
    "first_price": -175,
    "first_book": "fanatics",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|anytime_td|MIA|olliegordon": {
    "game": "MIA_BUF",
@@ -21141,7 +21141,7 @@
    "first_price": 125,
    "first_book": "fanatics",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|first_td|MIA|olliegordon": {
    "game": "MIA_BUF",
@@ -21165,7 +21165,7 @@
    "first_price": 852,
    "first_book": null,
    "first_seen": "2026-11-17T17:07Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|passing+rushing_yards|BUF|joshallen": {
    "game": "MIA_BUF",
@@ -21189,7 +21189,7 @@
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|passing_attempts|BUF|joshallen": {
    "game": "MIA_BUF",
@@ -21213,7 +21213,7 @@
    "first_price": -103,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T17:07Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|passing_attempts|MIA|kylemccord": {
    "game": "MIA_BUF",
@@ -21237,7 +21237,7 @@
    "first_price": -123,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|passing_completions|BUF|joshallen": {
    "game": "MIA_BUF",
@@ -21261,7 +21261,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|passing_completions|MIA|kylemccord": {
    "game": "MIA_BUF",
@@ -21285,7 +21285,7 @@
    "first_price": 102,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|passing_yards|BUF|joshallen": {
    "game": "MIA_BUF",
@@ -21309,7 +21309,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|passing_yards|MIA|kylemccord": {
    "game": "MIA_BUF",
@@ -21333,7 +21333,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|receiving_yards|BUF|djmoore": {
    "game": "MIA_BUF",
@@ -21357,7 +21357,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|receiving_yards|BUF|khalilshakir": {
    "game": "MIA_BUF",
@@ -21381,7 +21381,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|rushing_attempts|BUF|jamescook": {
    "game": "MIA_BUF",
@@ -21405,7 +21405,7 @@
    "first_price": -108,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|rushing_attempts|BUF|joshallen": {
    "game": "MIA_BUF",
@@ -21429,7 +21429,7 @@
    "first_price": 104,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|rushing_longestRush|BUF|jamescook": {
    "game": "MIA_BUF",
@@ -21453,7 +21453,7 @@
    "first_price": -106,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|rushing_yards|BUF|jamescook": {
    "game": "MIA_BUF",
@@ -21477,7 +21477,7 @@
    "first_price": -113,
    "first_book": "prophetx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_BUF|rushing_yards|BUF|joshallen": {
    "game": "MIA_BUF",
@@ -21501,7 +21501,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIA_IND|anytime_td|IND|jonathantaylor": {
    "game": "MIA_IND",
@@ -23749,7 +23749,7 @@
    "first_price": 177,
    "first_book": "4cx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|passing_attempts|SF|brockpurdy": {
    "game": "MIN_SF",
@@ -23773,7 +23773,7 @@
    "first_price": -101,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|passing_completions|MIN|kirkcousins": {
    "game": "MIN_SF",
@@ -23797,7 +23797,7 @@
    "first_price": -104,
    "first_book": "prophetx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|passing_completions|SF|brockpurdy": {
    "game": "MIN_SF",
@@ -23821,7 +23821,7 @@
    "first_price": -133,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|passing_yards|SF|brockpurdy": {
    "game": "MIN_SF",
@@ -23845,7 +23845,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|receiving_receptions|MIN|jauanjennings": {
    "game": "MIN_SF",
@@ -23869,7 +23869,7 @@
    "first_price": -130,
    "first_book": "fanduel",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|receiving_receptions|MIN|justinjefferson": {
    "game": "MIN_SF",
@@ -23893,7 +23893,7 @@
    "first_price": 118,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|receiving_receptions|SF|georgekittle": {
    "game": "MIN_SF",
@@ -23917,7 +23917,7 @@
    "first_price": -118,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|receiving_yards|MIN|jauanjennings": {
    "game": "MIN_SF",
@@ -23941,7 +23941,7 @@
    "first_price": -108,
    "first_book": "caesars",
    "first_seen": "2026-11-20T01:52Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|receiving_yards|MIN|justinjefferson": {
    "game": "MIN_SF",
@@ -23965,7 +23965,7 @@
    "first_price": -110,
    "first_book": "prophetx",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|receiving_yards|SF|christianmccaffrey": {
    "game": "MIN_SF",
@@ -23989,7 +23989,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|rushing+receiving_yards|SF|christianmccaffrey": {
    "game": "MIN_SF",
@@ -24013,7 +24013,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|rushing_attempts|MIN|aaronjones": {
    "game": "MIN_SF",
@@ -24037,7 +24037,7 @@
    "first_price": -104,
    "first_book": "fanduel",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|rushing_attempts|MIN|jordanmason": {
    "game": "MIN_SF",
@@ -24061,7 +24061,7 @@
    "first_price": -120,
    "first_book": "fanatics",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|rushing_attempts|SF|kaelonblack": {
    "game": "MIN_SF",
@@ -24085,7 +24085,7 @@
    "first_price": -108,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|rushing_yards|MIN|jordanmason": {
    "game": "MIN_SF",
@@ -24109,7 +24109,7 @@
    "first_price": -109,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "MIN_SF|rushing_yards|SF|kaelonblack": {
    "game": "MIN_SF",
@@ -24133,7 +24133,7 @@
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NE_CHI|anytime_td|NE|coreykiner": {
    "game": "NE_CHI",
@@ -25382,7 +25382,7 @@
    "first_price": 950,
    "first_book": "fanatics",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|receiving_receptions|NO|alvinkamara": {
    "game": "NO_CHI",
@@ -25406,7 +25406,7 @@
    "first_price": -119,
    "first_book": "prophetx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|receiving_receptions|NO|devaughnvele": {
    "game": "NO_CHI",
@@ -25430,7 +25430,7 @@
    "first_price": 125,
    "first_book": "caesars",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|receiving_receptions|NO|jordyntyson": {
    "game": "NO_CHI",
@@ -25454,7 +25454,7 @@
    "first_price": 118,
    "first_book": "prophetx",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|receiving_receptions|NO|travisetienne": {
    "game": "NO_CHI",
@@ -25478,7 +25478,7 @@
    "first_price": 105,
    "first_book": "prophetx",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|rushing+receiving_yards|NO|alvinkamara": {
    "game": "NO_CHI",
@@ -25502,7 +25502,7 @@
    "first_price": -110,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|rushing_attempts|CHI|dandreswift": {
    "game": "NO_CHI",
@@ -25526,7 +25526,7 @@
    "first_price": -111,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|rushing_attempts|CHI|kylemonangai": {
    "game": "NO_CHI",
@@ -25550,7 +25550,7 @@
    "first_price": 100,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|rushing_attempts|NO|audricestime": {
    "game": "NO_CHI",
@@ -25574,7 +25574,7 @@
    "first_price": 106,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T19:27Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|rushing_attempts|NO|travisetienne": {
    "game": "NO_CHI",
@@ -25598,7 +25598,7 @@
    "first_price": -117,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T19:27Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|rushing_longestRush|CHI|kylemonangai": {
    "game": "NO_CHI",
@@ -25622,7 +25622,7 @@
    "first_price": -114,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|rushing_longestRush|NO|audricestime": {
    "game": "NO_CHI",
@@ -25646,7 +25646,7 @@
    "first_price": -106,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NO_CHI|rushing_yards|CHI|kylemonangai": {
    "game": "NO_CHI",
@@ -25670,7 +25670,7 @@
    "first_price": -125,
    "first_book": "fliff",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYG_HOU|anytime_td|HOU|jaylinnoel": {
    "game": "NYG_HOU",
@@ -28344,7 +28344,7 @@
    "first_price": 450,
    "first_book": "fanatics",
    "first_seen": "2026-11-18T19:27Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|first_td|LAC|keatonmitchell": {
    "game": "NYJ_LAC",
@@ -28368,7 +28368,7 @@
    "first_price": 2464,
    "first_book": null,
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|passing_attempts|LAC|justinherbert": {
    "game": "NYJ_LAC",
@@ -28392,7 +28392,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|passing_completions|LAC|justinherbert": {
    "game": "NYJ_LAC",
@@ -28416,7 +28416,7 @@
    "first_price": -128,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|passing_yards|LAC|justinherbert": {
    "game": "NYJ_LAC",
@@ -28440,7 +28440,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T20:54Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|receiving_longestReception|NYJ|kenyonsadiq": {
    "game": "NYJ_LAC",
@@ -28464,7 +28464,7 @@
    "first_price": -118,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|receiving_receptions|NYJ|kenyonsadiq": {
    "game": "NYJ_LAC",
@@ -28488,7 +28488,7 @@
    "first_price": 121,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|receiving_yards|NYJ|braelonallen": {
    "game": "NYJ_LAC",
@@ -28512,7 +28512,7 @@
    "first_price": -106,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|receiving_yards|NYJ|garrettwilson": {
    "game": "NYJ_LAC",
@@ -28536,7 +28536,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|receiving_yards|NYJ|kenyonsadiq": {
    "game": "NYJ_LAC",
@@ -28560,7 +28560,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|rushing_yards|LAC|keatonmitchell": {
    "game": "NYJ_LAC",
@@ -28584,7 +28584,7 @@
    "first_price": -111,
    "first_book": "prophetx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "NYJ_LAC|rushing_yards|LAC|kimanividal": {
    "game": "NYJ_LAC",
@@ -28608,7 +28608,7 @@
    "first_price": -110,
    "first_book": "prophetx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PHI_WAS|anytime_td|PHI|saquonbarkley": {
    "game": "PHI_WAS",
@@ -29757,7 +29757,7 @@
    "first_price": 151,
    "first_book": "4cx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|anytime_td|PIT|germiebernard": {
    "game": "PIT_PHI",
@@ -29781,7 +29781,7 @@
    "first_price": 475,
    "first_book": "fanatics",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|first_td|PHI|devontasmith": {
    "game": "PIT_PHI",
@@ -29805,7 +29805,7 @@
    "first_price": 1438,
    "first_book": null,
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|first_td|PIT|dkmetcalf": {
    "game": "PIT_PHI",
@@ -29829,7 +29829,7 @@
    "first_price": 1076,
    "first_book": null,
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|passing_attempts|PHI|joemilton": {
    "game": "PIT_PHI",
@@ -29853,7 +29853,7 @@
    "first_price": -113,
    "first_book": "caesars",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|passing_attempts|PIT|aaronrodgers": {
    "game": "PIT_PHI",
@@ -29877,7 +29877,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|passing_completions|PHI|joemilton": {
    "game": "PIT_PHI",
@@ -29901,7 +29901,7 @@
    "first_price": -110,
    "first_book": "caesars",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|passing_completions|PIT|aaronrodgers": {
    "game": "PIT_PHI",
@@ -29925,7 +29925,7 @@
    "first_price": -127,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|passing_yards|PHI|joemilton": {
    "game": "PIT_PHI",
@@ -29949,7 +29949,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_longestReception|PHI|saquonbarkley": {
    "game": "PIT_PHI",
@@ -29973,7 +29973,7 @@
    "first_price": -111,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_longestReception|PIT|jaylenwarren": {
    "game": "PIT_PHI",
@@ -29997,7 +29997,7 @@
    "first_price": -110,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_receptions|PHI|devontasmith": {
    "game": "PIT_PHI",
@@ -30021,7 +30021,7 @@
    "first_price": 100,
    "first_book": "prophetx",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_receptions|PHI|saquonbarkley": {
    "game": "PIT_PHI",
@@ -30045,7 +30045,7 @@
    "first_price": 151,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_yards|PHI|devontasmith": {
    "game": "PIT_PHI",
@@ -30069,7 +30069,7 @@
    "first_price": -115,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_yards|PHI|saquonbarkley": {
    "game": "PIT_PHI",
@@ -30093,7 +30093,7 @@
    "first_price": -119,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_yards|PIT|jaylenwarren": {
    "game": "PIT_PHI",
@@ -30117,7 +30117,7 @@
    "first_price": -109,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_yards|PIT|patfreiermuth": {
    "game": "PIT_PHI",
@@ -30141,7 +30141,7 @@
    "first_price": -108,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|receiving_yards|PIT|ricodowdle": {
    "game": "PIT_PHI",
@@ -30165,7 +30165,7 @@
    "first_price": -105,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T01:52Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing+receiving_yards|PHI|saquonbarkley": {
    "game": "PIT_PHI",
@@ -30189,7 +30189,7 @@
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing+receiving_yards|PIT|ricodowdle": {
    "game": "PIT_PHI",
@@ -30213,7 +30213,7 @@
    "first_price": -113,
    "first_book": "fanduel",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing_attempts|PHI|joemilton": {
    "game": "PIT_PHI",
@@ -30237,7 +30237,7 @@
    "first_price": 112,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T17:26Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing_attempts|PHI|saquonbarkley": {
    "game": "PIT_PHI",
@@ -30261,7 +30261,7 @@
    "first_price": -110,
    "first_book": "fanatics",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing_attempts|PIT|jaylenwarren": {
    "game": "PIT_PHI",
@@ -30285,7 +30285,7 @@
    "first_price": -125,
    "first_book": "fliff",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing_longestRush|PHI|joemilton": {
    "game": "PIT_PHI",
@@ -30309,7 +30309,7 @@
    "first_price": -112,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing_longestRush|PHI|saquonbarkley": {
    "game": "PIT_PHI",
@@ -30333,7 +30333,7 @@
    "first_price": -102,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing_yards|PHI|joemilton": {
    "game": "PIT_PHI",
@@ -30357,7 +30357,7 @@
    "first_price": -113,
    "first_book": "prophetx",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing_yards|PHI|saquonbarkley": {
    "game": "PIT_PHI",
@@ -30381,7 +30381,7 @@
    "first_price": -110,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "PIT_PHI|rushing_yards|PIT|jaylenwarren": {
    "game": "PIT_PHI",
@@ -30405,7 +30405,7 @@
    "first_price": -111,
    "first_book": "betmgm",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "SEA_LV|anytime_td|LV|ashtonjeanty": {
    "game": "SEA_LV",
@@ -32672,7 +32672,7 @@
    "first_price": -112,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|passing_attempts|DET|jaredgoff": {
    "game": "TB_DET",
@@ -32696,7 +32696,7 @@
    "first_price": -112,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|passing_attempts|TB|jalondaniels": {
    "game": "TB_DET",
@@ -32720,7 +32720,7 @@
    "first_price": -223,
    "first_book": "novig",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|passing_completions|DET|jaredgoff": {
    "game": "TB_DET",
@@ -32744,7 +32744,7 @@
    "first_price": -110,
    "first_book": "fanatics",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|passing_yards|DET|jaredgoff": {
    "game": "TB_DET",
@@ -32768,7 +32768,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|receiving_longestReception|DET|jahmyrgibbs": {
    "game": "TB_DET",
@@ -32792,7 +32792,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T19:27Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|receiving_longestReception|DET|jamesonwilliams": {
    "game": "TB_DET",
@@ -32816,7 +32816,7 @@
    "first_price": -111,
    "first_book": "draftkings",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|receiving_longestReception|TB|buckyirving": {
    "game": "TB_DET",
@@ -32840,7 +32840,7 @@
    "first_price": 100,
    "first_book": "fanduel",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|receiving_receptions|DET|amonrastbrown": {
    "game": "TB_DET",
@@ -32864,7 +32864,7 @@
    "first_price": 107,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|receiving_receptions|DET|jamesonwilliams": {
    "game": "TB_DET",
@@ -32888,7 +32888,7 @@
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|receiving_receptions|TB|emekaegbuka": {
    "game": "TB_DET",
@@ -32912,7 +32912,7 @@
    "first_price": 134,
    "first_book": "fanduel",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|receiving_yards|DET|amonrastbrown": {
    "game": "TB_DET",
@@ -32936,7 +32936,7 @@
    "first_price": -113,
    "first_book": "draftkings",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TB_DET|receiving_yards|DET|jamesonwilliams": {
    "game": "TB_DET",
@@ -32960,7 +32960,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_CIN|anytime_td|TEN|elicayomanor": {
    "game": "TEN_CIN",
@@ -33359,7 +33359,7 @@
    "first_price": 2930,
    "first_book": null,
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|passing_interceptions|DAL|dakprescott": {
    "game": "TEN_DAL",
@@ -33383,7 +33383,7 @@
    "first_price": 154,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|receiving_longestReception|DAL|brevynspannford": {
    "game": "TEN_DAL",
@@ -33407,7 +33407,7 @@
    "first_price": -108,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|receiving_longestReception|DAL|javontewilliams": {
    "game": "TEN_DAL",
@@ -33431,7 +33431,7 @@
    "first_price": 101,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|receiving_receptions|DAL|brevynspannford": {
    "game": "TEN_DAL",
@@ -33455,7 +33455,7 @@
    "first_price": -109,
    "first_book": "caesars",
    "first_seen": "2026-11-17T21:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|receiving_receptions|TEN|elicayomanor": {
    "game": "TEN_DAL",
@@ -33479,7 +33479,7 @@
    "first_price": 108,
    "first_book": "draftkings",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|receiving_receptions|TEN|tonypollard": {
    "game": "TEN_DAL",
@@ -33503,7 +33503,7 @@
    "first_price": 131,
    "first_book": "caesars",
    "first_seen": "2026-11-17T21:13Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|receiving_yards|DAL|brevynspannford": {
    "game": "TEN_DAL",
@@ -33527,7 +33527,7 @@
    "first_price": -111,
    "first_book": "prophetx",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|rushing_attempts|DAL|javontewilliams": {
    "game": "TEN_DAL",
@@ -33551,7 +33551,7 @@
    "first_price": -115,
    "first_book": "fanatics",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "TEN_DAL|rushing_yards|TEN|camward": {
    "game": "TEN_DAL",
@@ -33575,7 +33575,7 @@
    "first_price": -114,
    "first_book": "fanduel",
    "first_seen": "2026-11-20T07:34Z",
-   "last_seen": "2026-11-20T07:34Z"
+   "last_seen": "2026-11-20T14:46Z"
   },
   "WAS_NYG|first_td|NYG|isaiahlikely": {
    "game": "WAS_NYG",
