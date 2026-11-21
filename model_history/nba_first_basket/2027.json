@@ -20916,88 +20916,91 @@
  "401910032": {
   "away": "DEN",
   "date": "2026-11-22",
-  "first_home": 0.5,
+  "first_home": 0.435,
   "home": "CHI",
   "jumpers": [
    [
     "3112335",
     "Nikola Jokic"
    ],
-   null
+   [
+    "4397189",
+    "Jalen Smith"
+   ]
   ],
   "players": {
    "2595516": [
     "Norman Powell",
-    0.111,
+    0.091,
     null,
     false,
     null
    ],
    "3064290": [
     "Aaron Gordon",
-    0.09,
+    0.102,
     null,
     false,
     null
    ],
    "3112335": [
     "Nikola Jokic",
-    0.106,
+    0.12,
     null,
     false,
     null
    ],
    "3138196": [
     "Cameron Johnson",
-    0.088,
+    0.099,
     null,
     false,
     null
    ],
    "3936299": [
     "Jamal Murray",
-    0.105,
+    0.118,
     null,
     false,
     null
    ],
-   "4278067": [
-    "Nic Claxton",
-    0.09,
+   "4397189": [
+    "Jalen Smith",
+    0.098,
     null,
     false,
     null
    ],
    "4431767": [
     "Christian Braun",
-    0.092,
+    0.104,
     null,
     false,
     null
    ],
    "4432822": [
     "Isaac Okoro",
-    0.09,
+    0.074,
     null,
     false,
     null
    ],
    "4711294": [
     "Matas Buzelis",
-    0.077,
+    0.066,
     null,
     false,
     null
    ],
    "4871145": [
     "Josh Giddey",
-    0.113,
+    0.088,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.5
+  "tip_home": 0.303
  },
  "401910033": {
   "away": "DAL",
@@ -21565,14 +21568,14 @@
    ],
    "3134908": [
     "Jakob Poeltl",
-    0.082,
+    0.081,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.097,
+    0.096,
     null,
     false,
     null
@@ -21580,13 +21583,6 @@
    "4395725": [
     "Tyler Herro",
     0.09,
-    null,
-    false,
-    null
-   ],
-   "4432241": [
-    "Jamal Shead",
-    0.101,
     null,
     false,
     null
@@ -21600,7 +21596,7 @@
    ],
    "4433134": [
     "Scottie Barnes",
-    0.133,
+    0.128,
     null,
     false,
     null
@@ -21614,7 +21610,14 @@
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.108,
+    0.103,
+    null,
+    false,
+    null
+   ],
+   "5093267": [
+    "Collin Murray-Boyles",
+    0.111,
     null,
     false,
     null
@@ -21714,88 +21717,91 @@
  "401910041": {
   "away": "CLE",
   "date": "2026-11-23",
-  "first_home": 0.5,
+  "first_home": 0.42,
   "home": "CHI",
   "jumpers": [
    [
     "4066328",
     "Jarrett Allen"
    ],
-   null
+   [
+    "4397189",
+    "Jalen Smith"
+   ]
   ],
   "players": {
    "2595516": [
     "Norman Powell",
-    0.111,
+    0.088,
     null,
     false,
     null
    ],
    "3908809": [
     "Donovan Mitchell",
-    0.106,
+    0.123,
     null,
     false,
     null
    ],
    "3992": [
     "James Harden",
-    0.092,
+    0.106,
     null,
     false,
     null
    ],
    "4066328": [
     "Jarrett Allen",
-    0.099,
+    0.115,
     null,
     false,
     null
    ],
-   "4278067": [
-    "Nic Claxton",
-    0.09,
+   "4397189": [
+    "Jalen Smith",
+    0.095,
     null,
     false,
     null
    ],
    "4432822": [
     "Isaac Okoro",
-    0.09,
+    0.072,
     null,
     false,
     null
    ],
    "4576087": [
     "Peyton Watson",
-    0.081,
+    0.094,
     null,
     false,
     null
    ],
    "4711294": [
     "Matas Buzelis",
-    0.077,
+    0.064,
     null,
     false,
     null
    ],
    "4871145": [
     "Josh Giddey",
-    0.113,
+    0.085,
     null,
     false,
     null
    ],
    "5041951": [
     "Meleek Thomas",
-    0.102,
+    0.119,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.5
+  "tip_home": 0.258
  },
  "401910042": {
   "away": "PHX",
