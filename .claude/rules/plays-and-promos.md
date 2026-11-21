@@ -22,7 +22,7 @@ price, a miss loses $10, a player with no snaps that week gets the $10 back.
   (`book_td_odds`). The owner presses "Lock FanDuel Prices & Open Contest" (owner-only bar) after
   the video; that snapshot (games, players, prices, lock time) is the contest, saved by the login
   code (D1 `contests`, `contest_entries`, made on first use). Re-lock keeps or clears entries.
-- **FanDuel's anytime TD is an "alternate" quote at SmartStake** (Yes only), so smartstake.py asks
+- **FanDuel's anytime TD is an "alternate" quote at SmartStake** (Yes only), so nfl_odds.py asks
   for the TD market on its own call with alternate quotes (2026-11-21: without it only Fliff, 4CX,
   Fanatics and Pinnacle came back and the lock failed). The page refuses to lock while a game has
   no FanDuel prices and names the games.

@@ -58,7 +58,7 @@ DATA = {"season": 2027, "season_label": "2026-27", "schedule": [GAME], "injuries
             "rebounds": {"1": {"name": "Player One", "q": quotes(6.5) + [["betmgm", "o", 7.5, 120, ""]]}},
             "pra": {"1": {"name": "Player One", "q": quotes(38.5)}},
             "first_basket": {"1": {"name": "Player One", "q": [["draftkings", "o", None, 600, ""]]}},
-            # Yes / No, no line (smartstake.add_yes_no: Yes = "o", No = "u"); no book prices his triple double
+            # Yes / No, no line (nba_odds.add_yes_no: Yes = "o", No = "u"); no book prices his triple double
             "double_double": {"1": {"name": "Player One", "q": [["draftkings", "o", None, 250, ""], ["fanduel", "o", None, 280, ""],
                                                                 ["draftkings", "u", None, -350, ""]]}},
         }}}}

@@ -12,7 +12,10 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nfl_tool"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nfl_tool" / "nba"))
 import smartstake  # noqa: E402
+import nfl_odds  # noqa: E402
+import nba_odds  # noqa: E402
 
 GAME = {"event_id": "evt_1", "away": "Cincinnati Bengals", "home": "pittsburgh steelers", "starts_at": "2026-10-18T17:00:00Z"}
 
@@ -31,7 +34,7 @@ class BookOdds(unittest.TestCase):
             quote("pinnacle", "football_player_receptions", "under", 6.5, -108, "JA'MARR CHASE", 7),
         ]
         quotes = [q for q in quotes if q["book"] in smartstake.US_BOOKS] + [quote("bet99", "football_player_receptions", "over", 6.5, 120, "Ja'Marr Chase", 7)]
-        games = smartstake.build_book_odds([q for q in quotes if q["book"] in smartstake.US_BOOKS], smartstake.NFL_TEAMS, ["Ja'Marr Chase"])
+        games = nfl_odds.build_nfl_book_odds([q for q in quotes if q["book"] in smartstake.US_BOOKS], ["Ja'Marr Chase"])
         row = games["CIN_PIT"]["props"]["receiving_receptions"]["jamarrchase"]
         self.assertEqual(row["name"], "Ja'Marr Chase")
         self.assertEqual(sorted(q[0] for q in row["q"]), ["draftkings", "fanduel", "pinnacle"])
@@ -39,10 +42,10 @@ class BookOdds(unittest.TestCase):
         self.assertNotIn("bet99", smartstake.US_BOOKS)
 
     def test_anytime_td_is_the_half_point_line_only(self):
-        games = smartstake.build_book_odds([
+        games = nfl_odds.build_nfl_book_odds([
             quote("fanduel", "football_player_touchdowns", "over", 0.5, 150, "Chase Brown", 9),
             quote("fanduel", "football_player_touchdowns", "over", 1.5, 900, "Chase Brown", 9),
-        ], smartstake.NFL_TEAMS)
+        ])
         self.assertEqual(games["CIN_PIT"]["td"]["chasebrown"]["q"], [["fanduel", "o", 0.5, 150, "https://fanduel.test/x"]])
 
     def test_anytime_td_asks_for_alternate_quotes(self):
@@ -52,21 +55,21 @@ class BookOdds(unittest.TestCase):
 
         def fetch(key, league, markets, max_pages=30, alternate=False):
             calls.append((tuple(markets), alternate))
-            if markets == [smartstake.NFL_TD_MARKET]:
-                return [quote("fanduel", smartstake.NFL_TD_MARKET, "yes", 0.5, 165, "Chase Brown", 9, alternate=True),
-                        quote("fanduel", smartstake.NFL_TD_MARKET, "no", 0.5, -230, "Chase Brown", 9, alternate=True),
-                        quote("draftkings", smartstake.NFL_TD_MARKET, "over", 1.5, 1100, "Chase Brown", 9, alternate=True),
-                        quote("pinnacle", smartstake.NFL_TD_MARKET, "over", 0.5, 150, "Chase Brown", 9)]
+            if markets == [nfl_odds.NFL_TD_MARKET]:
+                return [quote("fanduel", nfl_odds.NFL_TD_MARKET, "yes", 0.5, 165, "Chase Brown", 9, alternate=True),
+                        quote("fanduel", nfl_odds.NFL_TD_MARKET, "no", 0.5, -230, "Chase Brown", 9, alternate=True),
+                        quote("draftkings", nfl_odds.NFL_TD_MARKET, "over", 1.5, 1100, "Chase Brown", 9, alternate=True),
+                        quote("pinnacle", nfl_odds.NFL_TD_MARKET, "over", 0.5, 150, "Chase Brown", 9)]
             return [quote("betmgm", "football_moneyline", "awayteam", None, 140)]
 
         original = smartstake.fetch_quotes
         smartstake.fetch_quotes = fetch
         try:
-            odds, debug = smartstake.fetch_nfl_book_odds("key", ["Chase Brown"], None, "2026-10-18T00:00:00Z")
+            odds, debug = nfl_odds.fetch_nfl_book_odds("key", ["Chase Brown"], None, "2026-10-18T00:00:00Z")
         finally:
             smartstake.fetch_quotes = original
-        self.assertIn(((smartstake.NFL_TD_MARKET,), True), calls)
-        self.assertTrue(all(smartstake.NFL_TD_MARKET not in m for m, alt in calls if not alt))
+        self.assertIn(((nfl_odds.NFL_TD_MARKET,), True), calls)
+        self.assertTrue(all(nfl_odds.NFL_TD_MARKET not in m for m, alt in calls if not alt))
         td = odds["CIN_PIT"]["td"]["chasebrown"]["q"]
         self.assertIn(["fanduel", "o", 0.5, 165, "https://fanduel.test/x"], td)  # Yes kept as the Over
         self.assertEqual(sorted(q[0] for q in td), ["fanduel", "pinnacle"])  # No and 2+ TDs left out
@@ -82,18 +85,18 @@ class BookOdds(unittest.TestCase):
         original = smartstake.fetch_quotes
         smartstake.fetch_quotes = fetch
         try:
-            odds, debug = smartstake.fetch_nfl_book_odds("key", [], None, "2026-10-18T00:00:00Z")
+            odds, debug = nfl_odds.fetch_nfl_book_odds("key", [], None, "2026-10-18T00:00:00Z")
         finally:
             smartstake.fetch_quotes = original
         self.assertEqual(odds["CIN_PIT"]["lines"]["ml"][0][0], "betmgm")
         self.assertIn("td down", debug["td_error"])
 
     def test_game_lines_use_away_and_home(self):
-        games = smartstake.build_book_odds([
+        games = nfl_odds.build_nfl_book_odds([
             quote("betmgm", "football_moneyline", "awayteam", None, 140),
             quote("betmgm", "football_points_handicap", "hometeam", -3.5, -105),
             quote("betmgm", "football_points", "under", 44.5, -110),
-        ], smartstake.NFL_TEAMS)
+        ])
         lines = games["CIN_PIT"]["lines"]
         self.assertEqual(lines["ml"][0][:4], ["betmgm", "away", None, 140])
         self.assertEqual(lines["spread"][0][:4], ["betmgm", "home", -3.5, -105])
@@ -110,13 +113,13 @@ class BookOdds(unittest.TestCase):
         self.assertNotIn("CIN_PIT", smartstake.lock_started(fresh, None, after_kickoff))
 
     def test_no_key_or_failure_never_breaks_the_build(self):
-        odds, debug = smartstake.fetch_nfl_book_odds(None, [], None, "2026-10-18T00:00:00Z")
+        odds, debug = nfl_odds.fetch_nfl_book_odds(None, [], None, "2026-10-18T00:00:00Z")
         self.assertEqual(odds, {})
         self.assertIn("skipped", debug)
         original = smartstake.fetch_quotes
         smartstake.fetch_quotes = lambda *a, **k: (_ for _ in ()).throw(OSError("boom"))
         try:
-            odds, debug = smartstake.fetch_nfl_book_odds("key", [], None, "2026-10-18T00:00:00Z")
+            odds, debug = nfl_odds.fetch_nfl_book_odds("key", [], None, "2026-10-18T00:00:00Z")
         finally:
             smartstake.fetch_quotes = original
         self.assertEqual(odds, {})
@@ -154,7 +157,7 @@ class BookOdds(unittest.TestCase):
             smartstake._get(key + "\n", "/v1/markets", {"league": "nba"})
             self.assertEqual(sent, [f"Bearer {key}"])
             smartstake.urllib.request.urlopen = fake_refused
-            odds, debug = smartstake.fetch_nfl_book_odds(key, [], None, "2026-10-18T00:00:00Z")
+            odds, debug = nfl_odds.fetch_nfl_book_odds(key, [], None, "2026-10-18T00:00:00Z")
         finally:
             smartstake.urllib.request.urlopen = original
         self.assertEqual(odds, {})
@@ -175,8 +178,8 @@ class FirstBasket(unittest.TestCase):
                   {"key": "basketball_first_field_goal", "name": "First Field Goal Scorer"},
                   {"key": "basketball_1q_first_basket", "name": "1st Quarter First Basket"},
                   {"key": "basketball_player_points", "name": "Player Points"}]
-        self.assertEqual(smartstake.first_basket_market_keys(listed), ["basketball_first_points_scorer"])
-        self.assertEqual(smartstake.first_basket_market_keys([]), [])
+        self.assertEqual(nba_odds.first_basket_market_keys(listed), ["basketball_first_points_scorer"])
+        self.assertEqual(nba_odds.first_basket_market_keys([]), [])
 
     def test_yes_prices_are_kept_by_player(self):
         game = {"event_id": "evt_9", "away": "Milwaukee Bucks", "home": "Washington Wizards", "starts_at": "2026-10-21T23:00:00Z"}
@@ -195,9 +198,9 @@ class FirstBasket(unittest.TestCase):
                   {"key": "basketball_player_triple_double_yes_no", "name": "Player Triple Double"},
                   {"key": "basketball_1q_player_double_double", "name": "1st Quarter Player Double Double"},
                   {"key": "basketball_player_points", "name": "Player Points"}]
-        self.assertEqual(smartstake.yes_no_market_keys(listed), {"basketball_player_double_double_yes_no": "double_double",
+        self.assertEqual(nba_odds.yes_no_market_keys(listed), {"basketball_player_double_double_yes_no": "double_double",
                                                                  "basketball_player_triple_double_yes_no": "triple_double"})
-        self.assertEqual(smartstake.yes_no_market_keys([]), smartstake.NBA_YES_NO_GUESS)
+        self.assertEqual(nba_odds.yes_no_market_keys([]), nba_odds.NBA_YES_NO_GUESS)
         game = {"event_id": "evt_9", "away": "Milwaukee Bucks", "home": "Washington Wizards", "starts_at": "2026-10-21T23:00:00Z"}
         q = lambda book, side, odds: {**game, "book": book, "market_key": "basketball_player_double_double_yes_no", "side": side, "line": None,
                                        "odds": odds, "participant": "Myles Turner", "player_id": 5, "bet_url": "", "alternate": False, "live": False}

@@ -71,6 +71,12 @@ imported by it (rules in game-previews.md).
 
 ## Every book's price: SmartStake (`nfl_tool/smartstake.py`, 2026-10-14)
 
+- **One file per sport (2026-11-21):** `smartstake.py` is only the shared plumbing (API calls, US books,
+  quotes -> prices, odds lock, alt ladders) and rebuilds every sport; each sport's markets and fetch are
+  `nfl_odds.py` (NFL), `nba/nba_odds.py`, `nhl/nhl_odds.py`, so a change there rebuilds only that sport.
+  The owner, after an NFL-only fix rebuilt NBA and NHL: "WE AREN'T DOING THOSE SPORTS". New sport-only
+  odds code goes in that sport's file, never in smartstake.py.
+
 - The owner is a SmartStake partner with their WRITTEN permission to show the odds to members
   (their API terms otherwise allow internal use only). Key: GitHub secret `SMARTSTAKE_API_KEY`,
   passed to the NFL build step. Docs: https://www.smartstake.app/api (needs `Accept-Encoding: gzip`).
@@ -94,7 +100,7 @@ imported by it (rules in game-previews.md).
   measure (chance minus the price's break-even, in points: PLAY from `lean`, CHECK from `check`,
   else PASS). No model number = no tags: the NFL pop-ups (props, TDs, game lines) just rank the
   books. Book odds never feed the model math: `over_odds` / `under_odds` stay Novig's.
-- Shared with the NHL build (`fetch_nhl_book_odds`, nhl.md): `smartstake.py` and `site/book-odds.js`
+- Shared with the NHL build (`nhl_odds.fetch_nhl_book_odds`, nhl.md): `smartstake.py` and `site/book-odds.js`
   are shared by both sports, and `/book-odds.js` is in the middleware's SHARED_FILES (the NHL
   pages load `../book-odds.js`), so book-odds.js carries its own helpers (no common.js there).
   Each build keeps only the games on its own schedule (`keep`): the board runs days ahead.

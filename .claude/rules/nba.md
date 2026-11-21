@@ -115,7 +115,7 @@ assister and blocker; turnovers the stealer) and `stints`. Health check:
   `share`, `zones`, `kinds`, `assisted`, `with[<teammate>]` on / off splits for `MIN_TOGETHER` 20+),
   `out[<team>][<game id>]`. Backtest copy: `props_2026.json` (re-save:
   `py nfl_tool/nba/props.py --season 2026 --data-dir data/nba --write`).
-- **SmartStake** (`fetch_nba_book_odds`): points key from `/v1/markets` (`nba_prop_market_keys`: the
+- **SmartStake** (`nba_odds.fetch_nba_book_odds`, nfl_tool/nba/nba_odds.py): points key from `/v1/markets` (`nba_prop_market_keys`: the
   stat alone, never a combo / quarter / half / first scorer), fallback `basketball_player_points`.
   data.json `book_odds` (players by ESPN id, matched by name + team) and `book_odds_debug`; locks at
   tip. `version.json` `nba.book_odds`, `book_markets`, `props`.
@@ -458,7 +458,7 @@ The owner's assist tool after five mock-ups (notes: `docs/assist-spots-notes.md`
 - `LOG_FIELDS` (props.py): new fields go after the first eleven (`BOX_EXTRA`).
 - Markets (`NBA_PROP_MARKETS`): points, rebounds, assists, threes, pra, pr, pa, ra, steals, blocks,
   stocks, turnovers; asked only when listed (`nba_listed_markets`, `max_pages=60`). No fouls.
-- **Double Double / Triple Double** (the owner, 2026-11-20; `smartstake.add_yes_no`, `alternate=True`): Yes = "o",
+- **Double Double / Triple Double** (the owner, 2026-11-20; `nba_odds.add_yes_no`, `alternate=True`): Yes = "o",
   No = "u", no line (`props.double_double` / `triple_double`). Card rows "Yes / No" in the Line column, Yes in Over,
   No in Under, This Season = games with 10+ in 2 / 3 of pts, reb, ast, stl, blk (sync.js `GMG_NBA_YES_NO`,
   `gmgNbaTens`); saved with side "yes" / "no", graded by `gradeNbaPlay`. version.json `nba.yes_no`: players priced per market (or the error).
@@ -923,7 +923,7 @@ and Value record below (off the page).
 - **Starters:** compact table per team, PG to C (banner: lineup tag): Shot Early / 1st Shot / Scored
   1st / Team Share (1st Shot, 1st Pts) with "x of y", Best. Colored from the first start
   (`MIN_STARTS` 1). The jumper's name shortens, never his height.
-- **Prices: Best = SmartStake, then Novig.** `smartstake.add_first_basket` (`first_basket_market_keys`,
+- **Prices: Best = SmartStake, then Novig.** `nba_odds.add_first_basket` (`first_basket_market_keys`,
   fallback `basketball_first_points_scorer`) **with `alternate=True`** (books send it as alternates,
   Yes only) into `book_odds[...].props.first_basket`. No book = Novig's `FIRST_BASKET` price, labeled
   Novig, not clickable.

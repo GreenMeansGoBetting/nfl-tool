@@ -52,6 +52,7 @@ import lines_model
 
 sys.path.insert(1, str(Path(__file__).resolve().parent.parent))  # nfl_tool/, for smartstake.py
 import smartstake  # noqa: E402
+import nhl_odds  # noqa: E402  the NHL's own SmartStake markets (smartstake.py is the shared part)
 
 API ="https://api-web.nhle.com/v1"
 REST = "https://api.nhle.com/stats/rest/en"
@@ -3828,7 +3829,7 @@ def main():
     # Every US book's price (SmartStake) for the Shots and Goals rows' odds
     # panel. Optional: no key or a failed fetch = Novig's price only, as before.
     find = player_finder(stats["skaters"], stats["goalies"])
-    book_odds, book_odds_debug = smartstake.fetch_nhl_book_odds(
+    book_odds, book_odds_debug = nhl_odds.fetch_nhl_book_odds(
         os.environ.get("SMARTSTAKE_API_KEY"), team_namer(teams),
         lambda name, away, home: find(away, name) or find(home, name),
         (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),

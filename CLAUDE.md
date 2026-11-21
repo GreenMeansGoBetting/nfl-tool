@@ -66,7 +66,7 @@ message, so every line costs usage); detail belongs in a rules file.
 
 - NFL build: `nfl_tool/build_stats.py` -> `site/data.json` (untracked, built in CI); `gmg_model.py`
   (GMG score model, picks, locked record); `line_grades.py` (OL / DL grades); `best_plays_record.py`.
-  Odds: `smartstake.py` (every US book -> `book_odds`, shown by `site/book-odds.js`),
+  Odds: `smartstake.py` shared + `nfl_odds.py` (every US book -> `book_odds`, shown by `site/book-odds.js`),
   `novig_event_markets.graphql` (sent verbatim). See data-pipeline.md.
 - **NBA** (`nfl_tool/nba/`, `site/nba/`) and **NHL** (`nfl_tool/nhl/`, `site/nhl/`): file lists
   are in nba.md / nhl.md, "Files".

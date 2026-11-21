@@ -451,7 +451,7 @@ King of the Crease's saves model read as a prop; no model of its own.
 - **Record** (`model_history/nhl_saves/<month>.json`, `SAVES_RECORD_COLS`, `SAVES_FACTORS`): every
   starter with a main line; **a goalie who didn't start is left out** (books void it).
   `saves_record_summary`: Points' buckets, over / under, fade / with, CLV, ledger, `honest`.
-- **Every book's saves price:** `smartstake.saves_market_keys` finds the market in `/v1/markets` by
+- **Every book's saves price:** `nhl_odds.saves_market_keys` finds the market in `/v1/markets` by
   name (never a guessed key); `props.saves`. `best_saves_prices` swaps each Novig line's prices for
   the best US book at the SAME line (`over_book` / `under_book`, `nv_*` = Novig's) before King of
   the Crease reads it; the fair `chance` stays Novig's. `version.json` `nhl.book_saves`.

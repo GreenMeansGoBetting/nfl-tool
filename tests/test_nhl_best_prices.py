@@ -73,11 +73,11 @@ class BestSavesPrices(unittest.TestCase):
         self.assertIs(build_nhl.best_saves_prices(SAVES, None, GAMES), SAVES)
 
     def test_the_saves_market_is_found_by_name_never_guessed(self):
-        import smartstake
+        import nhl_odds
         listed = [{"key": "hockey_player_saves", "name": "Player Saves"}, {"key": "hockey_period_1_player_saves", "name": "1st Period Player Saves"},
                   {"key": "hockey_team_saves", "name": "Team Saves"}, {"key": "hockey_player_shots_on_goal", "name": "Player Shots On Goal"}]
-        self.assertEqual(smartstake.saves_market_keys(listed), ["hockey_player_saves"])
-        self.assertEqual(smartstake.saves_market_keys(None), [])
+        self.assertEqual(nhl_odds.saves_market_keys(listed), ["hockey_player_saves"])
+        self.assertEqual(nhl_odds.saves_market_keys(None), [])
 
 
 if __name__ == "__main__":

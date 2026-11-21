@@ -175,10 +175,15 @@ PAGE_ONLY_FILES = ("CLAUDE.md", "README.md")
 SPORTS = ("nfl", "nba", "nhl")
 # Build code per sport. build_nba.py / build_nhl.py import only their own
 # folder plus smartstake.py and the Novig query, which stay "every sport".
+# smartstake.py is only the shared SmartStake plumbing since 2026-11-21: each
+# sport's own markets are nfl_odds.py, nba/nba_odds.py, nhl/nhl_odds.py (the
+# owner, after an NFL-only odds fix rebuilt NBA and NHL: "WE AREN'T DOING
+# THOSE SPORTS").
 SPORT_BUILD = {
     "nfl_tool/nba/": ("nba",),
     "nfl_tool/nhl/": ("nhl",),
     "nfl_tool/build_stats.py": ("nfl",),
+    "nfl_tool/nfl_odds.py": ("nfl",),
     "nfl_tool/gmg_model.py": ("nfl",),
     "nfl_tool/line_grades.py": ("nfl",),
     "nfl_tool/best_plays_record.py": ("nfl",),
@@ -258,7 +263,7 @@ def build_plan(event, changed, gitignore=None):
 TEST_SPORT = (
     ("nfl_tool/nba/", "nba"), ("nfl_tool/site/nba/", "nba"), ("tests/test_nba_", "nba"), ("model_history/nba_", "nba"),
     ("nfl_tool/nhl/", "nhl"), ("nfl_tool/site/nhl/", "nhl"), ("tests/test_nhl_", "nhl"), ("model_history/nhl_", "nhl"),
-    ("nfl_tool/build_stats.py", "nfl"), ("nfl_tool/gmg_model.py", "nfl"), ("nfl_tool/line_grades.py", "nfl"),
+    ("nfl_tool/build_stats.py", "nfl"), ("nfl_tool/nfl_odds.py", "nfl"), ("nfl_tool/gmg_model.py", "nfl"), ("nfl_tool/line_grades.py", "nfl"),
     ("nfl_tool/best_plays_record.py", "nfl"), ("model_history/nfl_", "nfl"), ("model_history/gmg_model", "nfl"),
 )
 TEST_NONE = ("docs/", ".claude/", "CLAUDE.md", "README.md")

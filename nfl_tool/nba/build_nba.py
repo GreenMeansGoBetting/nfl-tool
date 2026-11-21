@@ -41,6 +41,7 @@ import shots  # noqa: E402
 import shot_types  # noqa: E402
 import zone_matchups  # noqa: E402
 import smartstake  # noqa: E402
+import nba_odds  # noqa: E402  the NBA's own SmartStake markets (smartstake.py is the shared part)
 import identity  # noqa: E402
 import kotc  # noqa: E402
 import predict  # noqa: E402
@@ -1030,7 +1031,7 @@ def nba_book_odds(teams: dict, rosters, games: list, previous: dict | None, now_
         return ids.get((n, away)) or ids.get((n, home))
 
     keep = {f"{g['away']}_{g['home']}" for g in games}
-    return smartstake.fetch_nba_book_odds(os.environ.get("SMARTSTAKE_API_KEY"), team_of, player_key,
+    return nba_odds.fetch_nba_book_odds(os.environ.get("SMARTSTAKE_API_KEY"), team_of, player_key,
                                           (previous or {}).get("book_odds"), now_utc.strftime("%Y-%m-%dT%H:%MZ"), keep, fast=fast)
 
 

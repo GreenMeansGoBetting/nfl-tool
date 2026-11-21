@@ -42,7 +42,8 @@ import pandas as pd
 
 from gmg_model import compute_gmg_model, eastern_now, game_has_started, kickoff_utc
 from line_grades import compute_line_grades, load_ngs
-from smartstake import US_BOOKS, fetch_nfl_book_odds
+from smartstake import US_BOOKS
+from nfl_odds import fetch_nfl_book_odds
 
 PBP_URL = "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_{season}.csv.gz"
 ROSTER_URL = "https://github.com/nflverse/nflverse-data/releases/download/weekly_rosters/roster_weekly_{season}.csv.gz"

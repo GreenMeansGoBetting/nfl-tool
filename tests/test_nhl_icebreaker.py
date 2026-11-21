@@ -19,6 +19,7 @@ from helpers import nhl_game  # first: puts nfl_tool/nhl on the import path
 
 import build_nhl as b
 import smartstake
+import nhl_odds
 
 
 def secs(text):
@@ -199,7 +200,7 @@ class FirstGoalMarket(unittest.TestCase):
             {"market_key": "hockey_player_1st_goal", "market_name": "Player 1st Goal"},
             "hockey_player_first_goal_scorer",
         ]
-        self.assertEqual(smartstake.first_goal_market_keys(listed), ["hockey_first_goalscorer", "hockey_player_1st_goal", "hockey_player_first_goal_scorer"])
+        self.assertEqual(nhl_odds.first_goal_market_keys(listed), ["hockey_first_goalscorer", "hockey_player_1st_goal", "hockey_player_first_goal_scorer"])
 
     def test_yes_is_kept_as_the_over_and_no_is_dropped(self):
         quote = {"event_id": 1, "home": "Buffalo Sabres", "away": "Florida Panthers", "starts_at": "2026-10-20T23:00:00Z", "market_key": "hockey_first_goalscorer",

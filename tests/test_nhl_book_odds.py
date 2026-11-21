@@ -11,7 +11,9 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nfl_tool"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nfl_tool" / "nhl"))
 import smartstake  # noqa: E402
+import nhl_odds  # noqa: E402
 
 TEAMS = {"montreal canadiens": "MTL", "washington capitals": "WSH", "dallas stars": "DAL", "colorado avalanche": "COL"}
 
@@ -30,7 +32,7 @@ class NhlBookOdds(unittest.TestCase):
         smartstake.fetch_quotes = lambda *a, **k: quotes
         smartstake.fetch_markets = markets or (lambda *a: [{"key": "hockey_first_goalscorer", "name": "First Goalscorer"}])
         try:
-            return smartstake.fetch_nhl_book_odds(
+            return nhl_odds.fetch_nhl_book_odds(
                 "key", lambda full: TEAMS.get((full or "").lower()),
                 lambda name, away, home: ids.get((away, name.lower())) or ids.get((home, name.lower())),
                 None, "2026-10-14T12:00:00Z", keep=keep)
@@ -98,7 +100,7 @@ class NhlBookOdds(unittest.TestCase):
         smartstake.fetch_quotes = fetch
         smartstake.fetch_markets = lambda *a: [{"key": "hockey_player_saves", "name": "Player Saves"}]
         try:
-            odds, debug = smartstake.fetch_nhl_book_odds(
+            odds, debug = nhl_odds.fetch_nhl_book_odds(
                 "key", lambda full: TEAMS.get((full or "").lower()),
                 lambda name, away, home: {"tom wilson": 8476880, "nick suzuki": 8480018}.get(name.lower()),
                 None, "2026-10-14T12:00:00Z")
@@ -120,7 +122,7 @@ class NhlBookOdds(unittest.TestCase):
             return [quote("hockey_player_goals", "over", 0.5, 217, "SUZUKI, NICK", 2)]
         smartstake.fetch_quotes, smartstake.fetch_markets = fetch, lambda *a: []
         try:
-            odds, debug = smartstake.fetch_nhl_book_odds("key", lambda full: TEAMS.get((full or "").lower()),
+            odds, debug = nhl_odds.fetch_nhl_book_odds("key", lambda full: TEAMS.get((full or "").lower()),
                                                         lambda name, away, home: 8480018, None, "2026-10-14T12:00:00Z")
         finally:
             smartstake.fetch_quotes, smartstake.fetch_markets = original
@@ -128,7 +130,7 @@ class NhlBookOdds(unittest.TestCase):
         self.assertIn("error", debug["ladders"])
 
     def test_no_key_never_breaks_the_build(self):
-        odds, debug = smartstake.fetch_nhl_book_odds(None, TEAMS.get, lambda *a: None, None, "2026-10-14T12:00:00Z")
+        odds, debug = nhl_odds.fetch_nhl_book_odds(None, TEAMS.get, lambda *a: None, None, "2026-10-14T12:00:00Z")
         self.assertEqual((odds, list(debug)), ({}, ["skipped"]))
 
 

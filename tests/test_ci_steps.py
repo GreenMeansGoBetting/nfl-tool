@@ -190,6 +190,17 @@ class FastLane(unittest.TestCase):
             self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/site/app.js", path])[0], ["nfl", "nba", "nhl"], path)
             self.assertEqual(ci_steps.lane_decision("push", [path])[0], "full", path)
 
+    def test_each_sports_odds_file_rebuilds_only_that_sport(self):
+        """2026-11-21: an NFL-only odds fix in smartstake.py rebuilt NBA and NHL too (the owner:
+        "WE AREN'T DOING THOSE SPORTS"). Each sport's own SmartStake markets have their own file."""
+        for path, sport in (("nfl_tool/nfl_odds.py", "nfl"), ("nfl_tool/nba/nba_odds.py", "nba"), ("nfl_tool/nhl/nhl_odds.py", "nhl")):
+            self.assertEqual(ci_steps.build_plan("push", [path])[0], [sport], path)
+            self.assertEqual(ci_steps.test_plan("push", [path])[0], sport, path)
+        # and the shared file holds no one sport's markets or fetch
+        shared = (ROOT / "nfl_tool" / "smartstake.py").read_text(encoding="utf-8")
+        for name in ("NFL_", "NBA_", "NHL_", "def fetch_nfl", "def fetch_nba", "def fetch_nhl"):
+            self.assertNotIn(name, shared.split('"""', 2)[2], name)
+
     def test_the_sport_map_matches_what_the_builds_import(self):
         """A basketball or hockey build that starts importing a football file
         (or any root file but smartstake.py) must move that file to every sport."""

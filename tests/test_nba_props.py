@@ -25,6 +25,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 import build_nba  # noqa: E402
 import props  # noqa: E402
 import smartstake  # noqa: E402
+import nba_odds  # noqa: E402
 from test_nba_possessions import EVENTS, MINUTES, box, game  # noqa: E402
 
 POINTS = {11: 3, 12: 0, 13: 0, 14: 2, 15: 2, 16: 0, 21: 0, 22: 0, 23: 3, 24: 0, 25: 0}
@@ -116,15 +117,15 @@ class SmartStakeNba(unittest.TestCase):
                   {"key": "basketball_first_points_scorer", "name": "1st Points Scorer"},
                   {"key": "basketball_team_points", "name": "Team Total Points"},
                   {"key": "basketball_player_most_points_yes_no", "name": "Player Most Points"}]
-        self.assertEqual(smartstake.nba_prop_market_keys(listed), {"basketball_player_points": "points"})
+        self.assertEqual(nba_odds.nba_prop_market_keys(listed), {"basketball_player_points": "points"})
 
     def test_the_player_cards_markets_are_asked_for_only_when_listed(self):
         # The NBA player card (2026-10-21) prices every market; a key SmartStake doesn't list is never sent.
         listed = [{"key": "basketball_player_points"}, {"key": "basketball_player_rebounds"},
                   {"key": "basketball_player_points_rebounds_assists"}, {"key": "basketball_player_fouls"}]
-        self.assertEqual(smartstake.nba_listed_markets(listed), {"basketball_player_points": "points",
+        self.assertEqual(nba_odds.nba_listed_markets(listed), {"basketball_player_points": "points",
                          "basketball_player_rebounds": "rebounds", "basketball_player_points_rebounds_assists": "pra"})
-        self.assertEqual(smartstake.nba_listed_markets([]), {})
+        self.assertEqual(nba_odds.nba_listed_markets([]), {})
 
     def test_quotes_land_on_players_by_espn_id(self):
         q = {"event_id": 1, "book": "draftkings", "market_key": "basketball_player_points", "player_id": 7,
@@ -170,7 +171,7 @@ class FastOdds(unittest.TestCase):
         real, real_sleep = smartstake._get, smartstake.time.sleep
         smartstake._get, smartstake.time.sleep = fake_get, lambda s: None
         try:
-            games, debug = smartstake.fetch_nba_book_odds("k", lambda full: {"detroit pistons": "DET", "philadelphia 76ers": "PHI"}.get(full.lower()),
+            games, debug = nba_odds.fetch_nba_book_odds("k", lambda full: {"detroit pistons": "DET", "philadelphia 76ers": "PHI"}.get(full.lower()),
                                                           lambda name, a, h: ids.get(smartstake.norm_player(name)), previous, "2026-10-25T20:00Z", fast=True)
         finally:
             smartstake._get, smartstake.time.sleep = real, real_sleep
@@ -218,7 +219,7 @@ class FastOdds(unittest.TestCase):
         real = smartstake._get
         smartstake._get = down
         try:
-            games, debug = smartstake.fetch_nba_book_odds("k", lambda full: None, lambda *a: None, previous, "2026-10-25T20:00Z", keep={"DET_PHI"})
+            games, debug = nba_odds.fetch_nba_book_odds("k", lambda full: None, lambda *a: None, previous, "2026-10-25T20:00Z", keep={"DET_PHI"})
         finally:
             smartstake._get = real
         self.assertIn("error", debug)
