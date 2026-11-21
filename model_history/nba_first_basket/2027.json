@@ -20310,7 +20310,7 @@
    ],
    "3138160": [
     "Caleb Martin",
-    0.064,
+    0.061,
     1500,
     false,
     "hard_rock"
@@ -20338,10 +20338,17 @@
    ],
    "4278049": [
     "Daniel Gafford",
-    0.079,
+    0.074,
     900,
     false,
     "draftkings"
+   ],
+   "4278078": [
+    "P.J. Washington",
+    0.081,
+    null,
+    false,
+    null
    ],
    "4396907": [
     "Darius Garland",
@@ -20350,23 +20357,16 @@
     true,
     "bet365"
    ],
-   "4432582": [
-    "Max Christie",
-    0.064,
-    null,
-    false,
-    null
-   ],
    "5041939": [
     "Cooper Flagg",
-    0.099,
+    0.094,
     700,
     false,
     "thescore"
    ],
    "6442": [
     "Kyrie Irving",
-    0.092,
+    0.088,
     950,
     false,
     "fanduel"
@@ -21015,14 +21015,21 @@
   "players": {
    "3138160": [
     "Caleb Martin",
-    0.071,
+    0.068,
     null,
     false,
     null
    ],
    "4278049": [
     "Daniel Gafford",
-    0.089,
+    0.083,
+    null,
+    false,
+    null
+   ],
+   "4278078": [
+    "P.J. Washington",
+    0.091,
     null,
     false,
     null
@@ -21030,13 +21037,6 @@
    "4397077": [
     "Jaxson Hayes",
     0.084,
-    null,
-    false,
-    null
-   ],
-   "4432582": [
-    "Max Christie",
-    0.072,
     null,
     false,
     null
@@ -21064,7 +21064,7 @@
    ],
    "5041939": [
     "Cooper Flagg",
-    0.111,
+    0.105,
     null,
     false,
     null
@@ -21078,7 +21078,7 @@
    ],
    "6442": [
     "Kyrie Irving",
-    0.103,
+    0.098,
     null,
     false,
     null
