@@ -12198,14 +12198,14 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.2656,
+    "lead": 0.2657,
     "name": "Victor Wembanyama",
     "proj": 45.5,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.1236,
+    "lead": 0.1237,
     "name": "Jayson Tatum",
     "proj": 39.7,
     "team": "BOS"
@@ -12331,9 +12331,9 @@
    },
    {
     "id": "6606",
-    "lead": 0.0047,
+    "lead": 0.0044,
     "name": "Damian Lillard",
-    "proj": 27.3,
+    "proj": 27.2,
     "team": "POR"
    },
    {
@@ -12389,7 +12389,7 @@
     "id": "5105565",
     "lead": 0.0008,
     "name": "Donovan Clingan",
-    "proj": 21.4,
+    "proj": 21.3,
     "team": "POR"
    },
    {
