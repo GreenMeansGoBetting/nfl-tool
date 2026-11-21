@@ -34,7 +34,7 @@ price, a miss loses $10, a player with no snaps that week gets the $10 back.
 - Graded on the page from data.json (`player_td_results` any_td, `player_snaps` for "didn't play"),
   so results come the morning after each game. Rank: bankroll, then FEWER correct picks, then the
   longest price that hit, then split (the owner's tie rule).
-- The menu pill is owner-only until launch: drop `owner: true` on it in sync.js `SPORT_PAGES.nfl`.
+- The menu pill (top of the NFL menu, sync.js `SPORT_PAGES.nfl`) shows for every member since 2026-11-21 (owner-only before).
 - Tests: `test_ci_contest.py` (API), `test_contest_site.py` (page).
 
 ## My Plays (`my-plays.html/.js`; built 2026-10-20)
