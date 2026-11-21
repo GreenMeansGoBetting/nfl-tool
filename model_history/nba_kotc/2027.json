@@ -12219,7 +12219,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0805,
+    "lead": 0.0804,
     "name": "Cooper Flagg",
     "proj": 37.4,
     "team": "DAL"
@@ -12282,7 +12282,7 @@
    },
    {
     "id": "3155942",
-    "lead": 0.0122,
+    "lead": 0.0121,
     "name": "Domantas Sabonis",
     "proj": 29.8,
     "team": "SAC"
@@ -12324,9 +12324,9 @@
    },
    {
     "id": "4845367",
-    "lead": 0.0043,
+    "lead": 0.0044,
     "name": "Stephon Castle",
-    "proj": 27.8,
+    "proj": 27.9,
     "team": "SA"
    },
    {
@@ -12575,18 +12575,18 @@
     "team": "POR"
    },
    {
+    "id": "5061589",
+    "lead": 0.0,
+    "name": "Yves Missi",
+    "proj": 16.5,
+    "team": "NO"
+   },
+   {
     "id": "3936099",
     "lead": 0.0,
     "name": "Derrick Jones Jr.",
     "proj": 16.5,
     "team": "LAC"
-   },
-   {
-    "id": "5061589",
-    "lead": 0.0,
-    "name": "Yves Missi",
-    "proj": 16.4,
-    "team": "NO"
    },
    {
     "id": "4592479",
