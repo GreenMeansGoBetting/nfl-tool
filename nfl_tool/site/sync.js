@@ -379,6 +379,16 @@ window.GMGSettings = { open: openGmgSettings };
 // "only when people click into nhl today").
 const GMG_UPDATES = [
   {
+    id: "2026-11-21",
+    heading: "$100 CONTEST",
+    until: "2026-11-22",
+    items: [
+      ["🏈", "<b>$100 CONTEST</b>: free for every member. Pick ONE player in every game, Sunday through Monday Night, to score a TD. Each pick is a $10 fake bet at FanDuel's price, the same price for everyone even if the line moves. Highest bankroll after Monday Night wins $100."],
+      ["🔒", "<b>Picks Lock Sunday 1:00 PM ET</b>: change your picks as often as you like until then. It's at the top of the NFL menu."],
+      ["🏆", "<b>Leaderboard</b>: see who has entered now. Everyone's picks show at the lock, and results come in the morning after each game."],
+    ],
+  },
+  {
     id: "2026-11-18",
     heading: "Wednesday Updates",
     items: [
