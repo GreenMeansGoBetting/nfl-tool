@@ -20224,38 +20224,38 @@
   "players": {
    "3062679": [
     "Josh Hart",
-    0.059,
+    0.06,
     1220,
     false,
     "draftkings"
    ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.091,
+    0.095,
     600,
     false,
     "fanduel"
    ],
    "3147657": [
     "Mikal Bridges",
-    0.076,
+    0.079,
     1000,
+    false,
+    "fanduel"
+   ],
+   "3914044": [
+    "Landry Shamet",
+    0.081,
+    1100,
     false,
     "fanduel"
    ],
    "3934672": [
     "Jalen Brunson",
-    0.107,
+    0.111,
     500,
     false,
     "bet365"
-   ],
-   "3934719": [
-    "OG Anunoby",
-    0.094,
-    null,
-    false,
-    null
    ],
    "4431736": [
     "Toumani Camara",
@@ -21114,7 +21114,7 @@
   "players": {
    "3062679": [
     "Josh Hart",
-    0.062,
+    0.064,
     null,
     false,
     null
@@ -21128,14 +21128,14 @@
    ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.097,
+    0.1,
     null,
     false,
     null
    ],
    "3147657": [
     "Mikal Bridges",
-    0.081,
+    0.084,
     null,
     false,
     null
@@ -21147,16 +21147,16 @@
     false,
     null
    ],
-   "3934672": [
-    "Jalen Brunson",
-    0.113,
+   "3914044": [
+    "Landry Shamet",
+    0.086,
     null,
     false,
     null
    ],
-   "3934719": [
-    "OG Anunoby",
-    0.099,
+   "3934672": [
+    "Jalen Brunson",
+    0.118,
     null,
     false,
     null
