@@ -20199,6 +20199,11 @@
     "fanduel"
    ]
   },
+  "result": {
+   "scorer": "1966",
+   "team": "PHI",
+   "tip": "PHI"
+  },
   "tip_home": 0.569
  },
  "401910024": {
@@ -20288,7 +20293,7 @@
     "bet365"
    ]
   },
-  "tip_home": 0.331
+  "tip_home": 0.332
  },
  "401910025": {
   "away": "LAC",
@@ -20397,7 +20402,7 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.083,
+    0.082,
     900,
     false,
     "bet365"
@@ -20575,29 +20580,15 @@
   "players": {
    "3064440": [
     "Zach LaVine",
-    0.092,
+    0.093,
     1160,
     true,
     "draftkings"
-   ],
-   "3078576": [
-    "Derrick White",
-    0.088,
-    900,
-    false,
-    "fanduel"
    ],
    "3155942": [
     "Domantas Sabonis",
     0.109,
     800,
-    false,
-    "bet365"
-   ],
-   "4065648": [
-    "Jayson Tatum",
-    0.136,
-    600,
     false,
     "bet365"
    ],
@@ -20608,19 +20599,33 @@
     false,
     "draftkings"
    ],
+   "4065804": [
+    "Sam Hauser",
+    0.109,
+    null,
+    false,
+    null
+   ],
    "4251": [
     "Paul George",
-    0.121,
+    0.13,
     545,
     false,
     "draftkings"
    ],
    "4397424": [
     "Neemias Queta",
-    0.073,
+    0.078,
     650,
     false,
     "fanduel"
+   ],
+   "4593841": [
+    "Baylor Scheierman",
+    0.096,
+    null,
+    false,
+    null
    ],
    "4594327": [
     "Keegan Murray",
@@ -20631,7 +20636,7 @@
    ],
    "4683689": [
     "Jordan Walsh",
-    0.064,
+    0.068,
     1000,
     false,
     "caesars"
@@ -20987,7 +20992,7 @@
    ],
    "4711294": [
     "Matas Buzelis",
-    0.066,
+    0.067,
     null,
     false,
     null
@@ -21000,7 +21005,7 @@
     null
    ]
   },
-  "tip_home": 0.303
+  "tip_home": 0.304
  },
  "401910033": {
   "away": "DAL",
@@ -21123,7 +21128,7 @@
    ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.096,
+    0.097,
     null,
     false,
     null
@@ -21178,12 +21183,12 @@
     null
    ]
   },
-  "tip_home": 0.412
+  "tip_home": 0.413
  },
  "401910035": {
   "away": "BOS",
   "date": "2026-11-22",
-  "first_home": 0.451,
+  "first_home": 0.452,
   "home": "GS",
   "jumpers": [
    [
@@ -21196,16 +21201,9 @@
    ]
   ],
   "players": {
-   "3078576": [
-    "Derrick White",
-    0.097,
-    null,
-    false,
-    null
-   ],
-   "4065648": [
-    "Jayson Tatum",
-    0.148,
+   "4065804": [
+    "Sam Hauser",
+    0.12,
     null,
     false,
     null
@@ -21219,21 +21217,28 @@
    ],
    "4251": [
     "Paul George",
-    0.132,
+    0.142,
     null,
     false,
     null
    ],
    "4397424": [
     "Neemias Queta",
-    0.08,
+    0.086,
+    null,
+    false,
+    null
+   ],
+   "4593841": [
+    "Baylor Scheierman",
+    0.105,
     null,
     false,
     null
    ],
    "4683689": [
     "Jordan Walsh",
-    0.07,
+    0.075,
     null,
     false,
     null
@@ -21272,7 +21277,7 @@
  "401910036": {
   "away": "MEM",
   "date": "2026-11-23",
-  "first_home": 0.446,
+  "first_home": 0.447,
   "home": "CHA",
   "jumpers": [
    [
@@ -21361,7 +21366,7 @@
  "401910037": {
   "away": "POR",
   "date": "2026-11-23",
-  "first_home": 0.448,
+  "first_home": 0.453,
   "home": "PHI",
   "jumpers": [
    [
@@ -21376,14 +21381,14 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.087,
+    0.094,
     null,
     false,
     null
    ],
    "2581018": [
     "Kentavious Caldwell-Pope",
-    0.069,
+    0.067,
     null,
     false,
     null
@@ -21397,28 +21402,28 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.105,
+    0.104,
     null,
     false,
     null
    ],
    "4431736": [
     "Toumani Camara",
-    0.087,
+    0.086,
     null,
     false,
     null
    ],
    "4683021": [
     "Deni Avdija",
-    0.136,
+    0.134,
     null,
     false,
     null
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.096,
+    0.095,
     null,
     false,
     null
@@ -21439,13 +21444,13 @@
    ],
    "6606": [
     "Damian Lillard",
-    0.128,
+    0.127,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.343
+  "tip_home": 0.358
  },
  "401910038": {
   "away": "OKC",
@@ -21539,7 +21544,7 @@
  "401910039": {
   "away": "MIL",
   "date": "2026-11-23",
-  "first_home": 0.542,
+  "first_home": 0.547,
   "home": "TOR",
   "jumpers": [
    [
@@ -21554,14 +21559,14 @@
   "players": {
    "3133628": [
     "Myles Turner",
-    0.085,
+    0.083,
     null,
     false,
     null
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.073,
+    0.072,
     null,
     false,
     null
@@ -21575,60 +21580,60 @@
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.096,
+    0.097,
     null,
     false,
     null
    ],
    "4395725": [
     "Tyler Herro",
-    0.09,
+    0.095,
     null,
     false,
     null
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.114,
+    0.11,
     null,
     false,
     null
    ],
    "4433134": [
     "Scottie Barnes",
-    0.128,
+    0.13,
     null,
     false,
     null
    ],
    "4591725": [
     "Ryan Rollins",
-    0.078,
+    0.075,
     null,
     false,
     null
    ],
    "4684272": [
     "Ja'Kobe Walter",
-    0.103,
+    0.104,
     null,
     false,
     null
    ],
    "5093267": [
     "Collin Murray-Boyles",
-    0.111,
+    0.112,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.625
+  "tip_home": 0.64
  },
  "401910040": {
   "away": "BKN",
   "date": "2026-11-23",
-  "first_home": 0.511,
+  "first_home": 0.51,
   "home": "MIN",
   "jumpers": [
    [
@@ -21699,7 +21704,7 @@
    ],
    "5107173": [
     "Danny Wolf",
-    0.082,
+    0.083,
     null,
     false,
     null
@@ -21712,7 +21717,7 @@
     null
    ]
   },
-  "tip_home": 0.532
+  "tip_home": 0.531
  },
  "401910041": {
   "away": "CLE",
