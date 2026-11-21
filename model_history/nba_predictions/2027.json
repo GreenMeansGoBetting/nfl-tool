@@ -24436,7 +24436,7 @@ null
 ],
 "total": 213.5,
 "total_odds": [
--108,
+-106,
 104
 ]
 },
@@ -24724,8 +24724,8 @@ null
 ],
 "total": 229.5,
 "total_odds": [
-102,
--104
+104,
+-108
 ]
 },
 "date": "2026-11-21",
@@ -25156,8 +25156,8 @@ null
 ],
 "total": 227.5,
 "total_odds": [
--122,
--125
+-111,
+-121
 ]
 },
 "date": "2026-11-22",
@@ -25287,8 +25287,8 @@ null
 "away": "OKC",
 "book": {
 "ml": [
-147,
--156
+135,
+-153
 ],
 "spread": [
 null,
@@ -25425,18 +25425,18 @@ null
 "away": "ORL",
 "book": {
 "ml": [
--194,
+-203,
 186
 ],
 "spread": [
-null,
-null
+-5.5,
+5.5
 ],
 "spread_odds": [
 null,
 null
 ],
-"total": null,
+"total": 221.5,
 "total_odds": [
 null,
 null
@@ -25448,8 +25448,14 @@ null
 0.5497,
 0.4503
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3695,
+0.6305
+],
+"total": [
+0.5327,
+0.4673
+]
 },
 "fair_spread": 1.5,
 "home": "WSH",
@@ -25567,14 +25573,14 @@ null
 308
 ],
 "spread": [
-null,
-null
+-8.5,
+8.5
 ],
 "spread_odds": [
-null,
-null
+-113,
+-117
 ],
-"total": null,
+"total": 238.5,
 "total_odds": [
 null,
 null
@@ -25586,8 +25592,14 @@ null
 0.6212,
 0.3788
 ],
-"spread": null,
-"total": null
+"spread": [
+0.3447,
+0.6553
+],
+"total": [
+0.4565,
+0.5435
+]
 },
 "fair_spread": 3.7,
 "home": "CHI",
@@ -25701,8 +25713,8 @@ null
 "away": "DAL",
 "book": {
 "ml": [
--122,
-104
+-127,
+106
 ],
 "spread": [
 null,
@@ -25840,7 +25852,7 @@ null
 "book": {
 "ml": [
 300,
--365
+-355
 ],
 "spread": [
 null,
@@ -26391,7 +26403,7 @@ null
 "away": "OKC",
 "book": {
 "ml": [
--317,
+-308,
 251
 ],
 "spread": [
@@ -27358,7 +27370,7 @@ null
 "book": {
 "ml": [
 -1150,
-669
+700
 ],
 "spread": [
 null,
