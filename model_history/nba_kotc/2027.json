@@ -12212,7 +12212,7 @@
    },
    {
     "id": "3136195",
-    "lead": 0.108,
+    "lead": 0.1079,
     "name": "Karl-Anthony Towns",
     "proj": 39.2,
     "team": "NY"
@@ -12233,7 +12233,7 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0579,
+    "lead": 0.0578,
     "name": "Darius Acuff Jr.",
     "proj": 35.3,
     "team": "SAC"
@@ -12268,9 +12268,9 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0218,
+    "lead": 0.0222,
     "name": "Ty Jerome",
-    "proj": 31.9,
+    "proj": 32.0,
     "team": "MEM"
    },
    {
@@ -12382,7 +12382,7 @@
     "id": "3448",
     "lead": 0.0011,
     "name": "Brook Lopez",
-    "proj": 22.3,
+    "proj": 22.2,
     "team": "LAC"
    },
    {
@@ -12414,6 +12414,13 @@
     "team": "NO"
    },
    {
+    "id": "4433247",
+    "lead": 0.0004,
+    "name": "Jonathan Kuminga",
+    "proj": 21.0,
+    "team": "MIN"
+   },
+   {
     "id": "4432848",
     "lead": 0.0003,
     "name": "Jaime Jaquez Jr.",
@@ -12433,13 +12440,6 @@
     "name": "Jrue Holiday",
     "proj": 21.0,
     "team": "POR"
-   },
-   {
-    "id": "4433247",
-    "lead": 0.0003,
-    "name": "Jonathan Kuminga",
-    "proj": 20.9,
-    "team": "MIN"
    },
    {
     "id": "4433083",
