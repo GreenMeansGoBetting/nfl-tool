@@ -169,11 +169,14 @@ function playsFor(date) {
   return out.map(mineFirst);
 }
 // A member with books turned off in My Books sees the best price among their own books (and the
-// edge on it); the list itself stays the build's plays.
+// edge on it); the list itself stays the build's plays. When the build's book is one they turned
+// off and none of their books has the bet, the play is left out of their list (`notMine`), never
+// shown at a book they don't use (a member, 2026-11-21).
 function mineFirst(x) {
   const line = x.market === "goal" ? 0.5 : x.play.line;
-  const mine = memberPrice(x, BOOK_STAT[x.market], x.play.side, line, x.play.price, priceBook(x));
-  if (!mine) return x;
+  const book = priceBook(x);
+  const mine = memberPrice(x, BOOK_STAT[x.market], x.play.side, line, x.play.price, book);
+  if (!mine) return typeof bookHidden === "function" && bookHidden(book) ? { ...x, notMine: true } : x;
   return { ...x, myBook: mine.book, play: { ...x.play, price: mine.price, edge: x.play.chance - breakEven(mine.price) } };
 }
 // The Rating sort: Strong and Shots' Play first, then Lean, then Check.
@@ -186,9 +189,11 @@ const SORTS = {
   market: (x) => ({ goal: 0, sog: 1, pts: 2, saves: 3 })[x.market],
   rating: (x) => RATING_ORDER[x.market === "sog" ? "play" : x.r.size] || 0,
 };
-function sortedPlays(date) {
+// notMine true = only the plays left out because none of the member's books has them.
+function sortedPlays(date, notMine = false) {
   const get = SORTS[bestView.sort] || SORTS.edge;
   return playsFor(date)
+    .filter((x) => !x.notMine === !notMine)
     .filter((x) => nameMatches(x.r.name))
     .filter((x) => Math.round(x.play.edge * 1000) / 10 >= bestView.minEdge)
     .filter((x) => bestView.lineup === "all" || x.posted)
@@ -328,11 +333,13 @@ function renderTable() {
   if (nhlIsPast(PAST_PAGE, days()[dayIndex])) return nhlPastTable(PAST_PAGE);
   const date = days()[dayIndex];
   const rows = sortedPlays(date);
+  const left = sortedPlays(date, true).length;
+  const leftNote = left ? `${left} play${left === 1 ? "" : "s"} left out: none of your books has ${left === 1 ? "it" : "them"} (<a href="#" class="bo-edit-books">Edit My Books</a>)` : "";
   const showResult = rows.some((x) => x.result);
   const width = COLUMNS.length + (showResult ? 1 : 0) + 1;
   if (!rows.length && !nameSearching()) {
     const any = gamesOn(date).some(anyBoard);
-    el("best-content").innerHTML = `<p class="no-data-note">${!any ? `No projections for ${gameId ? "this game" : "this day"} yet. They are made for games in the next two days.` : "No plays with an edge right now. Prices and lineups fill in through the day as the page refreshes."}</p>`;
+    el("best-content").innerHTML = `<p class="no-data-note">${!any ? `No projections for ${gameId ? "this game" : "this day"} yet. They are made for games in the next two days.` : left ? `No plays at your books right now. ${leftNote}.` : "No plays with an edge right now. Prices and lineups fill in through the day as the page refreshes."}</p>`;
     return;
   }
   const head = COLUMNS.map((c) => {
@@ -352,7 +359,7 @@ function renderTable() {
     })
     .join("");
   const counts = MARKETS.filter(([k]) => bestView.markets[k]).map(([k, label]) => `${rows.filter((x) => x.market === k).length} ${label.toLowerCase()}`).join(" &middot; ");
-  el("best-content").innerHTML = `<p class="best-count">${rows.length} plays <span class="muted-label">${counts}</span></p>
+  el("best-content").innerHTML = `<p class="best-count">${rows.length} plays <span class="muted-label">${counts}${leftNote ? ` &middot; ${leftNote}` : ""}</span></p>
     <div class="nba-box shots-box"><div class="shots-scroll"><table class="data-table shots-table best-table">
       <thead><tr>${head}${showResult ? `<th>Result</th>` : ""}<th class="shots-spacer"></th></tr></thead>
       <tbody>${body || nameSearchMiss(width)}</tbody>

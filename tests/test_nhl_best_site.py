@@ -263,6 +263,37 @@ class Filters(unittest.TestCase):
         self.assertEqual(got["mine"]["edge"], round((got["chance"] - 0.8) * 1000))
         self.assertEqual(SITE.errors, [])
 
+    def test_a_play_none_of_the_members_books_has_is_left_out(self):
+        """A member, 2026-11-21: Best Plays showed books they don't have. A play whose build book
+        is turned off and that none of their books has is left out of their list (a note says how
+        many), never shown at a book they turned off; a book turned off that isn't the play's
+        changes nothing."""
+        before = reset()
+        self.assertTrue(before)
+        got = PAGE.evaluate("""() => {
+            const look = () => { render(); return { rows: document.querySelectorAll('.best-row').length,
+              names: [...new Set([...document.querySelectorAll('.best-odds .best-book-name')].map((e) => e.textContent))],
+              note: (document.querySelector('#best-content') || {}).textContent || '' }; };
+            const saved = DATA.book_odds; DATA.book_odds = {};
+            try {
+              localStorage.setItem(MY_BOOKS_KEY, JSON.stringify({ hidden: ['draftkings'] }));
+              const other = look();
+              localStorage.setItem(MY_BOOKS_KEY, JSON.stringify({ hidden: ['novig'] }));
+              return { other, off: look() };
+            } finally {
+              localStorage.removeItem(MY_BOOKS_KEY);
+              DATA.book_odds = saved;
+              render();
+            }
+        }""")
+        self.assertEqual(got["other"]["rows"], len(before))
+        self.assertNotIn("left out", got["other"]["note"])
+        # every price in the saved sample is Novig's: with Novig off and no other book, none is left
+        self.assertEqual(got["off"]["rows"], 0)
+        self.assertNotIn("Novig", got["off"]["names"])
+        self.assertIn(f"{len(before)} plays left out: none of your books has them", got["off"]["note"])
+        self.assertEqual(SITE.errors, [])
+
     def test_minimum_edge_and_lineup_filters(self):
         every = reset()
         high = reset(minEdge=7)

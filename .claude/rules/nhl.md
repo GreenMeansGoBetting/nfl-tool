@@ -484,8 +484,11 @@ An edge of `UNSURE_EDGE` (25 points) or more is filed **"unsure"** by `shots_pla
   `tests/test_nhl_best_prices.py`.
 - **On the page the member's books come first:** if the build's book is one they turned off, every
   prop page and Best Plays show the best price among their books at that line and the edge on it
-  (`memberPrice` / `buildBook`; none = the build's). Listed plays and buckets stay the build's. A My
-  Books change redraws. Test: `test_a_member_sees_the_best_price_on_their_own_books`.
+  (`memberPrice` / `buildBook`; none = the build's on the prop pages). Listed plays and buckets stay
+  the build's, except **Best Plays leaves out a play none of their books has** (`notMine`, "N plays
+  left out" + Edit My Books; a member, 2026-11-21: it showed books they don't have). A My Books change
+  redraws. Tests: `test_a_member_sees_the_best_price_on_their_own_books`,
+  `test_a_play_none_of_the_members_books_has_is_left_out`.
 - **Every book's price** (`smartstake.fetch_nhl_book_odds`; `SMARTSTAKE_API_KEY` on the NHL step of
   deploy.yml AND nhl-refresh.yml): `book_odds["AWAY_HOME"].props.{sog,goals,saves,first_goal}[id]`,
   matched by `player_finder` on either team. US books, odds lock (data-pipeline.md).
