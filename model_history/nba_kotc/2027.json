@@ -12198,7 +12198,7 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.2657,
+    "lead": 0.2656,
     "name": "Victor Wembanyama",
     "proj": 45.5,
     "team": "SA"
@@ -12219,7 +12219,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0833,
+    "lead": 0.0832,
     "name": "Cooper Flagg",
     "proj": 37.4,
     "team": "DAL"
@@ -12240,7 +12240,7 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0519,
+    "lead": 0.0518,
     "name": "Jalen Brunson",
     "proj": 34.9,
     "team": "NY"
@@ -12289,16 +12289,16 @@
    },
    {
     "id": "3155942",
-    "lead": 0.0118,
+    "lead": 0.0117,
     "name": "Domantas Sabonis",
     "proj": 29.6,
     "team": "SAC"
    },
    {
     "id": "4395628",
-    "lead": 0.011,
+    "lead": 0.0112,
     "name": "Zion Williamson",
-    "proj": 28.9,
+    "proj": 29.0,
     "team": "NO"
    },
    {
@@ -12324,9 +12324,9 @@
    },
    {
     "id": "4845367",
-    "lead": 0.0047,
+    "lead": 0.0048,
     "name": "Stephon Castle",
-    "proj": 27.9,
+    "proj": 28.0,
     "team": "SA"
    },
    {
@@ -12408,14 +12408,14 @@
    },
    {
     "id": "4397136",
-    "lead": 0.0005,
+    "lead": 0.0006,
     "name": "Saddiq Bey",
-    "proj": 23.4,
+    "proj": 23.5,
     "team": "NO"
    },
    {
     "id": "4432848",
-    "lead": 0.0004,
+    "lead": 0.0003,
     "name": "Jaime Jaquez Jr.",
     "proj": 22.8,
     "team": "MIL"
@@ -12473,7 +12473,7 @@
     "id": "4869780",
     "lead": 0.0002,
     "name": "Derik Queen",
-    "proj": 19.6,
+    "proj": 19.7,
     "team": "NO"
    },
    {
@@ -12564,7 +12564,7 @@
     "id": "4395723",
     "lead": 0.0,
     "name": "Keldon Johnson",
-    "proj": 17.4,
+    "proj": 17.5,
     "team": "SA"
    },
    {
