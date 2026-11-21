@@ -24276,7 +24276,7 @@ null
 "book": {
 "ml": [
 525,
--567
+-545
 ],
 "spread": [
 12.5,
@@ -24289,7 +24289,7 @@ null
 "total": 229.5,
 "total_odds": [
 -100,
--108
+-106
 ]
 },
 "date": "2026-11-21",
@@ -24563,7 +24563,7 @@ null
 "away": "LAC",
 "book": {
 "ml": [
-186,
+190,
 -199
 ],
 "spread": [
@@ -24707,7 +24707,7 @@ null
 "away": "MEM",
 "book": {
 "ml": [
-199,
+203,
 -213
 ],
 "spread": [
@@ -24720,8 +24720,8 @@ null
 ],
 "total": 227.5,
 "total_odds": [
-104,
--111
+-106,
+-102
 ]
 },
 "date": "2026-11-21",
@@ -24860,12 +24860,12 @@ null
 ],
 "spread_odds": [
 111,
--120
+-117
 ],
 "total": 226.5,
 "total_odds": [
 -127,
-102
+-100
 ]
 },
 "date": "2026-11-21",
@@ -24995,8 +24995,8 @@ null
 "away": "BOS",
 "book": {
 "ml": [
--614,
-545
+-590,
+525
 ],
 "spread": [
 -13.5,
@@ -25004,7 +25004,7 @@ null
 ],
 "spread_odds": [
 -104,
--100
+-104
 ],
 "total": 218.5,
 "total_odds": [
@@ -25139,8 +25139,8 @@ null
 "away": "DET",
 "book": {
 "ml": [
-null,
-null
+-203,
+-114
 ],
 "spread": [
 null,
@@ -25277,8 +25277,8 @@ null
 "away": "OKC",
 "book": {
 "ml": [
-null,
-null
+-835,
+-1049
 ],
 "spread": [
 null,
@@ -25415,8 +25415,8 @@ null
 "away": "ORL",
 "book": {
 "ml": [
-null,
-null
+-1393,
+-681
 ],
 "spread": [
 null,
@@ -25553,8 +25553,8 @@ null
 "away": "DEN",
 "book": {
 "ml": [
-null,
-null
+-2074,
+-576
 ],
 "spread": [
 null,
@@ -25691,8 +25691,8 @@ null
 "away": "DAL",
 "book": {
 "ml": [
-null,
-null
+-170,
+-150
 ],
 "spread": [
 null,
@@ -25829,8 +25829,8 @@ null
 "away": "IND",
 "book": {
 "ml": [
-null,
-null
+182,
+-2173
 ],
 "spread": [
 null,
@@ -25967,8 +25967,8 @@ null
 "away": "BOS",
 "book": {
 "ml": [
-null,
-null
+-614,
+170
 ],
 "spread": [
 null,
@@ -26105,8 +26105,8 @@ null
 "away": "MEM",
 "book": {
 "ml": [
-null,
-null
+-233,
+-113
 ],
 "spread": [
 null,
@@ -26243,8 +26243,8 @@ null
 "away": "POR",
 "book": {
 "ml": [
-null,
-null
+-117,
+-223
 ],
 "spread": [
 null,
@@ -26381,8 +26381,8 @@ null
 "away": "OKC",
 "book": {
 "ml": [
-null,
-null
+-641,
+141
 ],
 "spread": [
 null,
@@ -26519,7 +26519,7 @@ null
 "away": "MIL",
 "book": {
 "ml": [
-null,
+239,
 null
 ],
 "spread": [
@@ -26657,8 +26657,8 @@ null
 "away": "BKN",
 "book": {
 "ml": [
-null,
-null
+264,
+-1718
 ],
 "spread": [
 null,
@@ -26795,8 +26795,8 @@ null
 "away": "CLE",
 "book": {
 "ml": [
-null,
-null
+-852,
+170
 ],
 "spread": [
 null,
@@ -27071,7 +27071,7 @@ null
 "away": "LAC",
 "book": {
 "ml": [
-null,
+239,
 null
 ],
 "spread": [
@@ -27209,7 +27209,7 @@ null
 "away": "UTAH",
 "book": {
 "ml": [
-null,
+317,
 null
 ],
 "spread": [
@@ -27348,7 +27348,7 @@ null
 "book": {
 "ml": [
 null,
-null
+388
 ],
 "spread": [
 null,
