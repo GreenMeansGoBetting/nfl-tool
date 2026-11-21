@@ -20209,91 +20209,81 @@
  "401910024": {
   "away": "POR",
   "date": "2026-11-21",
-  "first_home": 0.444,
+  "first_home": 0.5,
   "home": "NY",
   "jumpers": [
    [
     "5105565",
     "Donovan Clingan"
    ],
-   [
-    "3136195",
-    "Karl-Anthony Towns"
-   ]
+   null
   ],
   "players": {
    "3062679": [
     "Josh Hart",
-    0.06,
+    0.087,
     1220,
-    false,
+    true,
     "draftkings"
-   ],
-   "3136195": [
-    "Karl-Anthony Towns",
-    0.095,
-    600,
-    false,
-    "fanduel"
    ],
    "3147657": [
     "Mikal Bridges",
-    0.079,
+    0.114,
     1000,
-    false,
+    true,
     "fanduel"
    ],
    "3914044": [
     "Landry Shamet",
-    0.081,
+    0.117,
     1100,
-    false,
+    true,
     "fanduel"
    ],
    "3934672": [
     "Jalen Brunson",
-    0.111,
+    0.162,
     500,
     false,
     "bet365"
    ],
    "4431736": [
     "Toumani Camara",
-    0.088,
+    0.079,
     1040,
     false,
     "draftkings"
    ],
    "4683021": [
     "Deni Avdija",
-    0.137,
+    0.123,
     650,
     false,
     "fanduel"
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.096,
+    0.087,
     1200,
     true,
     "fanduel"
    ],
    "5105565": [
     "Donovan Clingan",
-    0.084,
+    0.076,
     700,
     false,
     "bet365"
    ],
    "6606": [
     "Damian Lillard",
-    0.129,
+    0.116,
     750,
     false,
     "bet365"
    ]
   },
-  "tip_home": 0.332
+  "tip_home": 0.5
  },
  "401910025": {
   "away": "LAC",
@@ -21099,91 +21089,81 @@
  "401910034": {
   "away": "IND",
   "date": "2026-11-22",
-  "first_home": 0.471,
+  "first_home": 0.5,
   "home": "NY",
   "jumpers": [
    [
     "4017837",
     "Ivica Zubac"
    ],
-   [
-    "3136195",
-    "Karl-Anthony Towns"
-   ]
+   null
   ],
   "players": {
    "3062679": [
     "Josh Hart",
-    0.064,
+    0.087,
     null,
     false,
     null
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.109,
-    null,
-    false,
-    null
-   ],
-   "3136195": [
-    "Karl-Anthony Towns",
-    0.1,
+    0.103,
     null,
     false,
     null
    ],
    "3147657": [
     "Mikal Bridges",
-    0.084,
+    0.114,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.124,
+    0.117,
     null,
     false,
     null
    ],
    "3914044": [
     "Landry Shamet",
-    0.086,
+    0.117,
     null,
     false,
     null
    ],
    "3934672": [
     "Jalen Brunson",
-    0.118,
+    0.162,
     null,
     false,
     null
    ],
    "4017837": [
     "Ivica Zubac",
-    0.094,
+    0.089,
     null,
     false,
     null
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.094,
+    0.089,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.087,
+    0.082,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.413
+  "tip_home": 0.5
  },
  "401910035": {
   "away": "BOS",
