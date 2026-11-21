@@ -45,6 +45,49 @@ class BookOdds(unittest.TestCase):
         ], smartstake.NFL_TEAMS)
         self.assertEqual(games["CIN_PIT"]["td"]["chasebrown"]["q"], [["fanduel", "o", 0.5, 150, "https://fanduel.test/x"]])
 
+    def test_anytime_td_asks_for_alternate_quotes(self):
+        # 2026-11-21: FanDuel's anytime TD (Yes only) comes back flagged alternate; the main-line
+        # call dropped it, leaving four books and no FanDuel price for the $100 CONTEST.
+        calls = []
+
+        def fetch(key, league, markets, max_pages=30, alternate=False):
+            calls.append((tuple(markets), alternate))
+            if markets == [smartstake.NFL_TD_MARKET]:
+                return [quote("fanduel", smartstake.NFL_TD_MARKET, "yes", 0.5, 165, "Chase Brown", 9, alternate=True),
+                        quote("fanduel", smartstake.NFL_TD_MARKET, "no", 0.5, -230, "Chase Brown", 9, alternate=True),
+                        quote("draftkings", smartstake.NFL_TD_MARKET, "over", 1.5, 1100, "Chase Brown", 9, alternate=True),
+                        quote("pinnacle", smartstake.NFL_TD_MARKET, "over", 0.5, 150, "Chase Brown", 9)]
+            return [quote("betmgm", "football_moneyline", "awayteam", None, 140)]
+
+        original = smartstake.fetch_quotes
+        smartstake.fetch_quotes = fetch
+        try:
+            odds, debug = smartstake.fetch_nfl_book_odds("key", ["Chase Brown"], None, "2026-10-18T00:00:00Z")
+        finally:
+            smartstake.fetch_quotes = original
+        self.assertIn(((smartstake.NFL_TD_MARKET,), True), calls)
+        self.assertTrue(all(smartstake.NFL_TD_MARKET not in m for m, alt in calls if not alt))
+        td = odds["CIN_PIT"]["td"]["chasebrown"]["q"]
+        self.assertIn(["fanduel", "o", 0.5, 165, "https://fanduel.test/x"], td)  # Yes kept as the Over
+        self.assertEqual(sorted(q[0] for q in td), ["fanduel", "pinnacle"])  # No and 2+ TDs left out
+        self.assertEqual(debug["td_books"], ["draftkings", "fanduel", "pinnacle"])
+        self.assertEqual(odds["CIN_PIT"]["lines"]["ml"][0][0], "betmgm")
+
+    def test_a_failed_td_call_keeps_every_other_price(self):
+        def fetch(key, league, markets, max_pages=30, alternate=False):
+            if alternate:
+                raise OSError("td down")
+            return [quote("betmgm", "football_moneyline", "awayteam", None, 140)]
+
+        original = smartstake.fetch_quotes
+        smartstake.fetch_quotes = fetch
+        try:
+            odds, debug = smartstake.fetch_nfl_book_odds("key", [], None, "2026-10-18T00:00:00Z")
+        finally:
+            smartstake.fetch_quotes = original
+        self.assertEqual(odds["CIN_PIT"]["lines"]["ml"][0][0], "betmgm")
+        self.assertIn("td down", debug["td_error"])
+
     def test_game_lines_use_away_and_home(self):
         games = smartstake.build_book_odds([
             quote("betmgm", "football_moneyline", "awayteam", None, 140),

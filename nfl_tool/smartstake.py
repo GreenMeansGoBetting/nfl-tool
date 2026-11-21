@@ -361,11 +361,26 @@ def fetch_nfl_book_odds(api_key: str | None, roster_names, previous: dict | None
     if not api_key:
         return only_games(lock_started({}, previous, now_iso), keep), {"skipped": "no SMARTSTAKE_API_KEY"}
     try:
-        markets = [*NFL_PROP_MARKETS, NFL_TD_MARKET, *NFL_LINE_MARKETS]
+        markets = [*NFL_PROP_MARKETS, *NFL_LINE_MARKETS]
         quotes = fetch_quotes(api_key, "nfl", markets)
-        games = build_book_odds(quotes, NFL_TEAMS, roster_names)
+        # Anytime TD on its own call WITH alternate quotes (2026-11-21): FanDuel, DraftKings and the
+        # other one-sided (Yes only) books come back flagged alternate, so the main-line call above
+        # kept only Fliff, 4CX, Fanatics and Pinnacle and the $100 CONTEST had no FanDuel prices.
+        # build_book_odds keeps the 0.5 line only (2+ TDs dropped); a book's Yes counts as the Over.
+        # A failed TD call costs only the TD prices.
+        td_debug = None
+        try:
+            quotes += fetch_quotes(api_key, "nfl", [NFL_TD_MARKET], max_pages=60, alternate=True)
+        except Exception as e:
+            print(f"WARNING: SmartStake anytime TD fetch failed ({e}) -- TD prices left out this run.", file=sys.stderr)
+            td_debug = str(e)[:200]
+        games = build_book_odds(quotes, NFL_TEAMS, roster_names, yes_markets=(NFL_TD_MARKET,))
         books = sorted({q["book"] for q in quotes})
-        return only_games(lock_started(games, previous, now_iso), keep), {"quotes": len(quotes), "games": len(games), "books": books}
+        td_books = sorted({q["book"] for q in quotes if q.get("market_key") == NFL_TD_MARKET})
+        debug = {"quotes": len(quotes), "games": len(games), "books": books, "td_books": td_books}
+        if td_debug:
+            debug["td_error"] = td_debug
+        return only_games(lock_started(games, previous, now_iso), keep), debug
     except Exception as e:
         print(f"WARNING: SmartStake fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)
         return only_games(lock_started({}, previous, now_iso), keep), {"error": str(e)[:200]}

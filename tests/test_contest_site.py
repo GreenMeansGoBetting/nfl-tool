@@ -121,6 +121,46 @@ class Page(unittest.TestCase):
         self.assertEqual(sent["lock_at"], 4099053600000)
         page.close()
 
+    def test_lock_refused_on_the_page_when_a_game_has_no_fanduel_prices(self):
+        # 2026-11-21: the build had no FanDuel TD prices and the server answered "bad contest".
+        global DATA
+        saved = DATA
+        DATA = json.loads(json.dumps(saved))
+        DATA["player_td_odds"]["CIN"][0]["fd"] = None
+        DATA["player_td_odds"]["WAS"][0]["fd"] = None
+        try:
+            page, posts = open_page({"contest": None}, owner=True)
+            page.wait_for_selector(".ct-row")
+            said = []
+            page.on("dialog", lambda d: (said.append(d.message), d.accept()))
+            page.locator("[data-act=open]").click()
+            page.wait_for_function("() => true")
+            self.assertEqual(posts, [])
+            self.assertIn("CIN @ WAS", said[0])
+            page.close()
+        finally:
+            DATA = saved
+
+    def test_a_flexed_game_takes_the_books_kickoff(self):
+        # 2026-11-21: PIT @ PHI flexed to 1:00, JAX @ NYG to 4:25; the schedule still had the old times.
+        global DATA
+        saved = DATA
+        DATA = json.loads(json.dumps(saved))
+        DATA["book_odds"] = {"CIN_WAS": {"kickoff": "2099-11-22T21:25:00Z"}}  # moved to Sunday 4:25 PM ET
+        try:
+            page, posts = open_page({"contest": None}, owner=True)
+            page.wait_for_selector(".ct-row")
+            slots = page.locator(".ct-slot").all_inner_texts()
+            self.assertEqual(slots, ["Sunday 1:00 PM ET", "Sunday 4:25 PM ET"])
+            page.on("dialog", lambda d: d.accept())
+            page.locator("[data-act=open]").click()
+            page.wait_for_function("() => true")
+            moved = posts[0]["contest"]["games"][1]
+            self.assertEqual((moved["id"], moved["day"], moved["time"]), ("2026_11_CIN_WAS", "Sunday", "16:25"))
+            page.close()
+        finally:
+            DATA = saved
+
     def test_after_the_lock_picks_grade_and_rank(self):
         a = {"name": "Achane Fan", "updated": 1, "picks": {"2026_11_MIA_BUF": "MIA|De'Von Achane", "2026_11_CIN_WAS": "CIN|Ja'Marr Chase"}}
         b = {"name": "Cook Fan", "updated": 2, "picks": {"2026_11_MIA_BUF": "BUF|James Cook", "2026_11_CIN_WAS": "WAS|Terry McLaurin"}}

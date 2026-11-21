@@ -55,7 +55,15 @@
     const now = Date.now();
     const games = DATA.schedule
       .filter((g) => g.week === week && g.status !== "final")
-      .map((g) => ({ ...g, ms: easternToUtc(g.date, g.time || "13:00") }))
+      .map((g) => {
+        // Flexed games (2026-11-21: JAX @ NYG to 4:25, PIT @ PHI to 1:00): the books' kickoff is
+        // current, the schedule's can be days behind. Day and time are read back in Eastern.
+        const book = ((DATA.book_odds || {})[`${g.away}_${g.home}`] || {}).kickoff;
+        const ms = book && Number.isFinite(Date.parse(book)) ? Date.parse(book) : easternToUtc(g.date, g.time || "13:00");
+        const day = etLabel(ms, { weekday: "long" });
+        const time = new Date(ms).toLocaleTimeString("en-GB", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: false });
+        return { ...g, ms, weekday: day, time };
+      })
       .filter((g) => g.ms > now)
       .sort((a, b) => a.ms - b.ms)
       .map((g) => {
@@ -399,6 +407,10 @@
       if (what === "open" || what === "relock" || what === "clear") {
         const fresh = draftContest();
         if (!fresh) return alert("No games left this week to lock.");
+        // Every game needs FanDuel prices or nobody could finish an entry (2026-11-21: the build
+        // had none and the lock came back "bad contest").
+        const empty = fresh.games.filter((g) => !g.players.length).map((g) => `${g.away} @ ${g.home}`);
+        if (empty.length) return alert(`No FanDuel TD prices yet for: ${empty.join(", ")}. Nothing was locked. Try again after the next data update.`);
         if (what === "open" && !confirm(`Lock FanDuel's prices now and open the contest to members? ${fresh.games.length} games, picks lock ${lockLabel(fresh.lock_at)}.`)) return;
         if (what === "relock" && !confirm("Replace every price with FanDuel's price right now? Entries stay, but their prices change.")) return;
         if (what === "clear" && !confirm("Re-lock prices AND delete every entry? This can't be undone.")) return;
