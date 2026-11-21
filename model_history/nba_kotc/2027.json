@@ -12198,98 +12198,98 @@
   "board": [
    {
     "id": "5104157",
-    "lead": 0.2596,
+    "lead": 0.2628,
     "name": "Victor Wembanyama",
-    "proj": 45.6,
+    "proj": 45.7,
     "team": "SA"
    },
    {
     "id": "4065648",
-    "lead": 0.128,
+    "lead": 0.1275,
     "name": "Jayson Tatum",
     "proj": 40.2,
     "team": "BOS"
    },
    {
     "id": "3136195",
-    "lead": 0.1259,
+    "lead": 0.1255,
     "name": "Karl-Anthony Towns",
     "proj": 39.6,
     "team": "NY"
    },
    {
     "id": "5041939",
-    "lead": 0.079,
+    "lead": 0.0785,
     "name": "Cooper Flagg",
     "proj": 37.4,
     "team": "DAL"
    },
    {
     "id": "4431678",
-    "lead": 0.0703,
+    "lead": 0.07,
     "name": "Tyrese Maxey",
     "proj": 36.4,
     "team": "PHI"
    },
    {
     "id": "5142620",
-    "lead": 0.0644,
+    "lead": 0.0641,
     "name": "Darius Acuff Jr.",
     "proj": 36.6,
     "team": "SAC"
    },
    {
     "id": "3934672",
-    "lead": 0.0519,
+    "lead": 0.0517,
     "name": "Jalen Brunson",
     "proj": 35.2,
     "team": "NY"
    },
    {
     "id": "4683021",
-    "lead": 0.0491,
+    "lead": 0.0488,
     "name": "Deni Avdija",
     "proj": 35.0,
     "team": "POR"
    },
    {
     "id": "3059318",
-    "lead": 0.0404,
+    "lead": 0.0403,
     "name": "Joel Embiid",
     "proj": 34.2,
     "team": "PHI"
    },
    {
     "id": "6442",
-    "lead": 0.0229,
+    "lead": 0.0228,
     "name": "Kyrie Irving",
     "proj": 31.9,
     "team": "DAL"
    },
    {
     "id": "1966",
-    "lead": 0.0161,
+    "lead": 0.0159,
     "name": "LeBron James",
     "proj": 30.3,
     "team": "PHI"
    },
    {
     "id": "4396907",
-    "lead": 0.016,
+    "lead": 0.0158,
     "name": "Darius Garland",
     "proj": 30.4,
     "team": "LAC"
    },
    {
     "id": "3155942",
-    "lead": 0.0118,
+    "lead": 0.0116,
     "name": "Domantas Sabonis",
     "proj": 29.8,
     "team": "SAC"
    },
    {
     "id": "4251",
-    "lead": 0.011,
+    "lead": 0.0109,
     "name": "Paul George",
     "proj": 29.4,
     "team": "BOS"
@@ -12508,7 +12508,7 @@
     "id": "4065732",
     "lead": 0.0,
     "name": "De'Andre Hunter",
-    "proj": 19.5,
+    "proj": 19.6,
     "team": "SAC"
    },
    {
@@ -12603,18 +12603,18 @@
     "team": "MIL"
    },
    {
+    "id": "4277956",
+    "lead": 0.0,
+    "name": "Jordan Poole",
+    "proj": 15.5,
+    "team": "NO"
+   },
+   {
     "id": "4278049",
     "lead": 0.0,
     "name": "Daniel Gafford",
     "proj": 15.5,
     "team": "DAL"
-   },
-   {
-    "id": "4277956",
-    "lead": 0.0,
-    "name": "Jordan Poole",
-    "proj": 15.4,
-    "team": "NO"
    }
   ],
   "season_used": "2026-27"
