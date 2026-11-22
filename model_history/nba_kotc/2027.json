@@ -12623,21 +12623,21 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.1792,
+    "lead": 0.1791,
     "name": "Giannis Antetokounmpo",
     "proj": 47.0,
     "team": "MIA"
    },
    {
     "id": "3112335",
-    "lead": 0.1508,
+    "lead": 0.1507,
     "name": "Nikola Jokic",
     "proj": 45.2,
     "team": "DEN"
    },
    {
     "id": "4278073",
-    "lead": 0.1493,
+    "lead": 0.1492,
     "name": "Shai Gilgeous-Alexander",
     "proj": 45.6,
     "team": "OKC"
@@ -12686,7 +12686,7 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0311,
+    "lead": 0.031,
     "name": "Jalen Brunson",
     "proj": 36.7,
     "team": "NY"
@@ -12700,9 +12700,9 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0196,
+    "lead": 0.0199,
     "name": "Cooper Flagg",
-    "proj": 35.6,
+    "proj": 35.7,
     "team": "DAL"
    },
    {
@@ -12762,18 +12762,18 @@
     "team": "ATL"
    },
    {
+    "id": "5041955",
+    "lead": 0.0015,
+    "name": "Darryn Peterson",
+    "proj": 26.4,
+    "team": "UTAH"
+   },
+   {
     "id": "4712849",
     "lead": 0.0014,
     "name": "Anthony Black",
     "proj": 28.1,
     "team": "ORL"
-   },
-   {
-    "id": "5041955",
-    "lead": 0.0014,
-    "name": "Darryn Peterson",
-    "proj": 26.3,
-    "team": "UTAH"
    },
    {
     "id": "4277905",
