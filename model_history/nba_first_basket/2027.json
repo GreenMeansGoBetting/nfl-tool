@@ -3724,21 +3724,21 @@
   "players": {
    "3078576": [
     "Derrick White",
-    0.082,
+    0.083,
     null,
     false,
     null
    ],
    "4065648": [
     "Jayson Tatum",
-    0.127,
+    0.131,
     null,
     false,
     null
    ],
-   "4251": [
-    "Paul George",
-    0.112,
+   "4066354": [
+    "Payton Pritchard",
+    0.108,
     null,
     false,
     null
@@ -3752,7 +3752,7 @@
    ],
    "4397424": [
     "Neemias Queta",
-    0.068,
+    0.067,
     null,
     false,
     null
@@ -21485,17 +21485,24 @@
   "players": {
    "3078576": [
     "Derrick White",
-    0.098,
+    0.099,
     1000,
     false,
     "fanduel"
    ],
    "4065648": [
     "Jayson Tatum",
-    0.151,
+    0.156,
     550,
     false,
     "fanduel"
+   ],
+   "4066354": [
+    "Payton Pritchard",
+    0.128,
+    null,
+    false,
+    null
    ],
    "4066436": [
     "De'Anthony Melton",
@@ -21504,23 +21511,16 @@
     false,
     "bet365"
    ],
-   "4251": [
-    "Paul George",
-    0.133,
-    650,
-    false,
-    "bet365"
-   ],
    "4397424": [
     "Neemias Queta",
-    0.081,
+    0.08,
     650,
     false,
     "fanduel"
    ],
    "4683689": [
     "Jordan Walsh",
-    0.071,
+    0.07,
     null,
     false,
     null
