@@ -3620,7 +3620,7 @@
  "401909314": {
   "away": "DET",
   "date": "2026-11-24",
-  "first_home": 0.518,
+  "first_home": 0.527,
   "home": "ORL",
   "jumpers": [
    [
@@ -3635,76 +3635,76 @@
   "players": {
    "3908845": [
     "John Collins",
-    0.086,
+    0.09,
     null,
     false,
     null
    ],
    "4066320": [
     "Desmond Bane",
-    0.094,
+    0.096,
     null,
     false,
     null
    ],
    "4066372": [
     "Kevin Huerter",
-    0.093,
+    0.088,
     null,
     false,
     null
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.1,
+    0.102,
     null,
     false,
     null
    ],
    "4432165": [
     "Jalen Suggs",
-    0.081,
+    0.083,
     null,
     false,
     null
    ],
    "4432166": [
     "Cade Cunningham",
-    0.097,
+    0.094,
     null,
     false,
     null
    ],
    "4566434": [
     "Franz Wagner",
-    0.139,
+    0.141,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.088,
+    0.086,
     null,
     false,
     null
    ],
    "4712849": [
     "Anthony Black",
-    0.083,
+    0.085,
     null,
     false,
     null
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.098,
+    0.095,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.554
+  "tip_home": 0.582
  },
  "401909315": {
   "away": "BOS",
@@ -3766,14 +3766,14 @@
    ],
    "5142718": [
     "AJ Dybantsa",
-    0.101,
+    0.1,
     null,
     false,
     null
    ],
    "5160992": [
     "Alex Sarr",
-    0.098,
+    0.097,
     null,
     false,
     null
@@ -3793,7 +3793,7 @@
     null
    ]
   },
-  "tip_home": 0.6
+  "tip_home": 0.598
  },
  "401909316": {
   "away": "DAL",
@@ -21020,6 +21020,11 @@
     "bet365"
    ]
   },
+  "result": {
+   "scorer": "4701230",
+   "team": "ATL",
+   "tip": "ATL"
+  },
   "tip_home": 0.47
  },
  "401910030": {
@@ -21107,7 +21112,7 @@
  "401910031": {
   "away": "ORL",
   "date": "2026-11-22",
-  "first_home": 0.515,
+  "first_home": 0.514,
   "home": "WSH",
   "jumpers": [
    [
@@ -21129,7 +21134,7 @@
    ],
    "4277847": [
     "Wendell Carter Jr.",
-    0.093,
+    0.094,
     800,
     false,
     "bet365"
@@ -21191,7 +21196,7 @@
     "draftkings"
    ]
   },
-  "tip_home": 0.545
+  "tip_home": 0.543
  },
  "401910032": {
   "away": "DEN",
@@ -21280,7 +21285,7 @@
     "fanduel"
    ]
   },
-  "tip_home": 0.305
+  "tip_home": 0.306
  },
  "401910033": {
   "away": "DAL",
@@ -21520,7 +21525,7 @@
    ],
    "4709138": [
     "Brandin Podziemski",
-    0.122,
+    0.123,
     650,
     false,
     "bet365"
@@ -21547,7 +21552,7 @@
     "bet365"
    ]
   },
-  "tip_home": 0.333
+  "tip_home": 0.334
  },
  "401910036": {
   "away": "MEM",
@@ -21567,7 +21572,7 @@
   "players": {
    "4065733": [
     "Ty Jerome",
-    0.123,
+    0.122,
     null,
     false,
     null
@@ -21636,7 +21641,7 @@
     null
    ]
   },
-  "tip_home": 0.358
+  "tip_home": 0.36
  },
  "401910037": {
   "away": "POR",
@@ -21896,7 +21901,7 @@
     null
    ]
   },
-  "tip_home": 0.639
+  "tip_home": 0.638
  },
  "401910040": {
   "away": "BKN",
@@ -21985,7 +21990,7 @@
     null
    ]
   },
-  "tip_home": 0.548
+  "tip_home": 0.547
  },
  "401910041": {
   "away": "CLE",
@@ -22079,7 +22084,7 @@
  "401910042": {
   "away": "PHX",
   "date": "2026-11-23",
-  "first_home": 0.477,
+  "first_home": 0.476,
   "home": "NO",
   "jumpers": [
    [
@@ -22094,7 +22099,7 @@
   "players": {
    "3136193": [
     "Devin Booker",
-    0.129,
+    0.13,
     null,
     false,
     null
@@ -22122,7 +22127,7 @@
    ],
    "4395628": [
     "Zion Williamson",
-    0.1,
+    0.099,
     null,
     false,
     null
@@ -22163,12 +22168,12 @@
     null
    ]
   },
-  "tip_home": 0.43
+  "tip_home": 0.428
  },
  "401910043": {
   "away": "LAC",
   "date": "2026-11-23",
-  "first_home": 0.457,
+  "first_home": 0.458,
   "home": "HOU",
   "jumpers": [
    [
@@ -22225,7 +22230,7 @@
    ],
    "4396907": [
     "Darius Garland",
-    0.143,
+    0.142,
     null,
     false,
     null
@@ -22246,13 +22251,13 @@
    ],
    "4871144": [
     "Alperen Sengun",
-    0.092,
+    0.093,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.372
+  "tip_home": 0.373
  },
  "401910044": {
   "away": "UTAH",
@@ -22314,7 +22319,7 @@
    ],
    "4433627": [
     "Keyonte George",
-    0.108,
+    0.107,
     700,
     false,
     "fanduel"
@@ -22430,6 +22435,6 @@
     null
    ]
   },
-  "tip_home": 0.151
+  "tip_home": 0.152
  }
 }
