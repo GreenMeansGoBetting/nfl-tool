@@ -12623,7 +12623,7 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2109,
+    "lead": 0.2108,
     "name": "Giannis Antetokounmpo",
     "proj": 46.9,
     "team": "MIA"
@@ -12637,7 +12637,7 @@
    },
    {
     "id": "3112335",
-    "lead": 0.1618,
+    "lead": 0.1617,
     "name": "Nikola Jokic",
     "proj": 45.2,
     "team": "DEN"
@@ -12713,18 +12713,18 @@
     "team": "IND"
    },
    {
+    "id": "5175737",
+    "lead": 0.0043,
+    "name": "Yaxel Lendeborg",
+    "proj": 29.2,
+    "team": "GS"
+   },
+   {
     "id": "4066261",
     "lead": 0.0042,
     "name": "Bam Adebayo",
     "proj": 29.8,
     "team": "MIA"
-   },
-   {
-    "id": "5175737",
-    "lead": 0.004,
-    "name": "Yaxel Lendeborg",
-    "proj": 29.1,
-    "team": "GS"
    },
    {
     "id": "4251",
@@ -12735,7 +12735,7 @@
    },
    {
     "id": "4278053",
-    "lead": 0.0034,
+    "lead": 0.0033,
     "name": "Davion Mitchell",
     "proj": 28.8,
     "team": "MIA"
@@ -12968,7 +12968,7 @@
     "id": "4397424",
     "lead": 0.0,
     "name": "Neemias Queta",
-    "proj": 18.7,
+    "proj": 18.8,
     "team": "BOS"
    },
    {
