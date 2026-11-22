@@ -21574,7 +21574,7 @@
   "players": {
    "4065733": [
     "Ty Jerome",
-    0.116,
+    0.123,
     null,
     false,
     null
@@ -21589,6 +21589,13 @@
    "4396971": [
     "Naz Reid",
     0.112,
+    null,
+    false,
+    null
+   ],
+   "4433083": [
+    "Cam Spencer",
+    0.093,
     null,
     false,
     null
@@ -21609,7 +21616,7 @@
    ],
    "4600663": [
     "Zach Edey",
-    0.101,
+    0.11,
     null,
     false,
     null
@@ -21623,21 +21630,14 @@
    ],
    "4903027": [
     "Cedric Coward",
-    0.095,
-    null,
-    false,
-    null
-   ],
-   "5041935": [
-    "Cameron Boozer",
-    0.121,
+    0.101,
     null,
     false,
     null
    ],
    "5112087": [
     "Jaylen Wells",
-    0.092,
+    0.099,
     null,
     false,
     null
