@@ -29342,19 +29342,19 @@
     "Domantas Sabonis",
     "SAC",
     "BOS",
-    -0.1514,
+    -0.1526,
     "under",
     true,
     12.5,
-    -121,
-    "caesars"
+    -120,
+    "draftkings"
    ],
    [
     "4065648",
     "Jayson Tatum",
     "BOS",
     "SAC",
-    0.0871,
+    0.0877,
     "over",
     false,
     26.5,
@@ -29366,7 +29366,7 @@
     "Sam Hauser",
     "BOS",
     "SAC",
-    0.0975,
+    0.0912,
     "over",
     false,
     11.5,
@@ -29378,11 +29378,11 @@
     "Paul George",
     "BOS",
     "SAC",
-    0.1057,
+    0.1048,
     "over",
     false,
     24.5,
-    -101,
+    102,
     "prophetx"
    ],
    [
@@ -29390,7 +29390,7 @@
     "Neemias Queta",
     "BOS",
     "SAC",
-    0.2073,
+    0.1993,
     "over",
     true,
     12.5,
@@ -29402,12 +29402,12 @@
     "Precious Achiuwa",
     "SAC",
     "BOS",
-    -0.1356,
+    -0.1315,
     "under",
     true,
-    5.5,
-    -130,
-    "draftkings"
+    4.5,
+    -102,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -29416,23 +29416,11 @@
     "De'Andre Hunter",
     "SAC",
     "BOS",
-    0.2657,
+    0.2645,
     "over",
     true,
     1.5,
     -155,
-    "betmgm"
-   ],
-   [
-    "4065804",
-    "Sam Hauser",
-    "BOS",
-    "SAC",
-    0.0554,
-    "over",
-    false,
-    2.5,
-    -116,
     "4cx"
    ],
    [
@@ -29440,7 +29428,7 @@
     "Paul George",
     "BOS",
     "SAC",
-    0.1013,
+    0.0956,
     "over",
     false,
     3.5,
@@ -29452,11 +29440,11 @@
     "Keegan Murray",
     "SAC",
     "BOS",
-    0.2625,
+    0.2616,
     "over",
     true,
     1.5,
-    -107,
+    -108,
     "prophetx"
    ]
   ]
