@@ -21216,13 +21216,6 @@
    ]
   ],
   "players": {
-   "2595516": [
-    "Norman Powell",
-    0.091,
-    800,
-    false,
-    "fanduel"
-   ],
    "3064290": [
     "Aaron Gordon",
     0.102,
@@ -21251,9 +21244,16 @@
     false,
     "bet365"
    ],
+   "4278067": [
+    "Nic Claxton",
+    0.08,
+    null,
+    false,
+    null
+   ],
    "4397189": [
     "Jalen Smith",
-    0.098,
+    0.101,
     770,
     false,
     "fliff"
@@ -21267,21 +21267,21 @@
    ],
    "4432822": [
     "Isaac Okoro",
-    0.074,
+    0.077,
     1400,
     true,
     "fanduel"
    ],
    "4711294": [
     "Matas Buzelis",
-    0.067,
+    0.07,
     950,
     false,
     "bet365"
    ],
    "4871145": [
     "Josh Giddey",
-    0.088,
+    0.09,
     1100,
     false,
     "bet365"
@@ -22017,13 +22017,6 @@
    ]
   ],
   "players": {
-   "2595516": [
-    "Norman Powell",
-    0.088,
-    null,
-    false,
-    null
-   ],
    "3908809": [
     "Donovan Mitchell",
     0.123,
@@ -22045,16 +22038,23 @@
     false,
     null
    ],
+   "4278067": [
+    "Nic Claxton",
+    0.078,
+    null,
+    false,
+    null
+   ],
    "4397189": [
     "Jalen Smith",
-    0.095,
+    0.097,
     null,
     false,
     null
    ],
    "4432822": [
     "Isaac Okoro",
-    0.072,
+    0.074,
     null,
     false,
     null
@@ -22068,14 +22068,14 @@
    ],
    "4711294": [
     "Matas Buzelis",
-    0.064,
+    0.067,
     null,
     false,
     null
    ],
    "4871145": [
     "Josh Giddey",
-    0.085,
+    0.087,
     null,
     false,
     null
