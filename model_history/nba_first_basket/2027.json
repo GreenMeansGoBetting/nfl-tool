@@ -21054,7 +21054,7 @@
    ],
    "3133626": [
     "Kenrich Williams",
-    0.079,
+    0.08,
     null,
     false,
     null
@@ -21068,7 +21068,7 @@
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.092,
+    0.088,
     1015,
     false,
     "fliff"
@@ -21080,23 +21080,23 @@
     false,
     "bet365"
    ],
-   "4278073": [
-    "Shai Gilgeous-Alexander",
-    0.103,
-    850,
-    false,
-    "bet365"
-   ],
    "4683778": [
     "Jared McCain",
-    0.095,
+    0.097,
     1160,
     true,
     "draftkings"
    ],
    "4900671": [
     "Ajay Mitchell",
-    0.087,
+    0.092,
+    950,
+    false,
+    "fanduel"
+   ],
+   "5174983": [
+    "Aday Mara",
+    0.1,
     950,
     false,
     "fanduel"
@@ -21780,14 +21780,7 @@
    ],
    "4222252": [
     "Isaiah Hartenstein",
-    0.091,
-    null,
-    false,
-    null
-   ],
-   "4278073": [
-    "Shai Gilgeous-Alexander",
-    0.102,
+    0.087,
     null,
     false,
     null
@@ -21808,14 +21801,21 @@
    ],
    "4683778": [
     "Jared McCain",
-    0.094,
+    0.096,
     null,
     false,
     null
    ],
    "4900671": [
     "Ajay Mitchell",
-    0.086,
+    0.091,
+    null,
+    false,
+    null
+   ],
+   "5174983": [
+    "Aday Mara",
+    0.098,
     null,
     false,
     null
