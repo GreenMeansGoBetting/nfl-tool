@@ -3722,23 +3722,23 @@
    ]
   ],
   "players": {
-   "4065804": [
-    "Sam Hauser",
-    0.096,
+   "3078576": [
+    "Derrick White",
+    0.082,
     null,
     false,
     null
    ],
-   "4066354": [
-    "Payton Pritchard",
-    0.109,
+   "4065648": [
+    "Jayson Tatum",
+    0.127,
     null,
     false,
     null
    ],
    "4251": [
     "Paul George",
-    0.115,
+    0.112,
     null,
     false,
     null
@@ -3759,7 +3759,7 @@
    ],
    "4683689": [
     "Jordan Walsh",
-    0.06,
+    0.059,
     null,
     false,
     null
@@ -21483,19 +21483,19 @@
    ]
   ],
   "players": {
-   "4065804": [
-    "Sam Hauser",
-    0.115,
+   "3078576": [
+    "Derrick White",
+    0.098,
     900,
-    true,
+    false,
     "fanduel"
    ],
-   "4066354": [
-    "Payton Pritchard",
-    0.13,
-    null,
+   "4065648": [
+    "Jayson Tatum",
+    0.151,
+    600,
     false,
-    null
+    "fanduel"
    ],
    "4066436": [
     "De'Anthony Melton",
@@ -21506,7 +21506,7 @@
    ],
    "4251": [
     "Paul George",
-    0.137,
+    0.133,
     null,
     false,
     null
@@ -21663,28 +21663,28 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.095,
-    null,
-    false,
-    null
-   ],
-   "2581018": [
-    "Kentavious Caldwell-Pope",
-    0.068,
+    0.086,
     null,
     false,
     null
    ],
    "3059318": [
     "Joel Embiid",
-    0.093,
+    0.085,
+    null,
+    false,
+    null
+   ],
+   "3917376": [
+    "Jaylen Brown",
+    0.103,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.106,
+    0.095,
     null,
     false,
     null
@@ -21719,7 +21719,7 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.08,
+    0.073,
     null,
     false,
     null
@@ -22108,7 +22108,7 @@
   "players": {
    "3136193": [
     "Devin Booker",
-    0.13,
+    0.129,
     null,
     false,
     null
