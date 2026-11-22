@@ -20479,6 +20479,13 @@
    ]
   ],
   "players": {
+   "3442": [
+    "DeAndre Jordan",
+    0.058,
+    null,
+    false,
+    null
+   ],
    "4066259": [
     "De'Aaron Fox",
     0.128,
@@ -20488,16 +20495,9 @@
    ],
    "4277813": [
     "Herbert Jones",
-    0.07,
+    0.077,
     1650,
     true,
-    "bet365"
-   ],
-   "4395628": [
-    "Zion Williamson",
-    0.086,
-    1000,
-    false,
     "bet365"
    ],
    "4395630": [
@@ -20523,14 +20523,14 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.063,
+    0.069,
     null,
     false,
     null
    ],
    "5061589": [
     "Yves Missi",
-    0.067,
+    0.073,
     1370,
     false,
     "fliff"
@@ -20544,7 +20544,7 @@
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.083,
+    0.093,
     1300,
     true,
     "fanduel"
@@ -21818,6 +21818,13 @@
     false,
     null
    ],
+   "3442": [
+    "DeAndre Jordan",
+    0.076,
+    null,
+    false,
+    null
+   ],
    "4066383": [
     "Miles Bridges",
     0.096,
@@ -21827,14 +21834,7 @@
    ],
    "4277813": [
     "Herbert Jones",
-    0.092,
-    null,
-    false,
-    null
-   ],
-   "4395628": [
-    "Zion Williamson",
-    0.114,
+    0.102,
     null,
     false,
     null
@@ -21855,21 +21855,21 @@
    ],
    "4997538": [
     "Karlo Matkovic",
-    0.083,
+    0.091,
     null,
     false,
     null
    ],
    "5061589": [
     "Yves Missi",
-    0.088,
+    0.096,
     null,
     false,
     null
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.109,
+    0.122,
     null,
     false,
     null
