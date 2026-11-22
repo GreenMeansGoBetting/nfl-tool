@@ -29448,5 +29448,481 @@
     "prophetx"
    ]
   ]
+ },
+ "401910029": {
+  "date": "2026-11-22",
+  "points": [
+   [
+    "4278039",
+    "Nickeil Alexander-Walker",
+    "ATL",
+    "DET",
+    -0.0598,
+    "under",
+    false,
+    20.5,
+    -109,
+    "caesars"
+   ],
+   [
+    "5149077",
+    "Kingston Flemings",
+    "ATL",
+    "DET",
+    -0.1589,
+    "under",
+    true,
+    8.5,
+    -105,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "4066372",
+    "Kevin Huerter",
+    "DET",
+    "ATL",
+    -0.116,
+    "under",
+    false,
+    1.5,
+    147,
+    "draftkings"
+   ],
+   [
+    "4395702",
+    "Isaiah Joe",
+    "DET",
+    "ATL",
+    -0.0649,
+    "under",
+    false,
+    1.5,
+    114,
+    "fanduel"
+   ],
+   [
+    "4431680",
+    "Onyeka Okongwu",
+    "ATL",
+    "DET",
+    -0.5596,
+    "under",
+    true,
+    1.5,
+    152,
+    "fanduel"
+   ],
+   [
+    "4432166",
+    "Cade Cunningham",
+    "DET",
+    "ATL",
+    -0.1179,
+    "under",
+    false,
+    1.5,
+    142,
+    "caesars"
+   ],
+   [
+    "4701230",
+    "Jalen Johnson",
+    "ATL",
+    "DET",
+    -0.2554,
+    "under",
+    true,
+    1.5,
+    -197,
+    "draftkings"
+   ],
+   [
+    "4869342",
+    "Dyson Daniels",
+    "ATL",
+    "DET",
+    -0.1674,
+    "under",
+    true,
+    0.5,
+    -240,
+    "fliff"
+   ],
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "ATL",
+    -0.1171,
+    "under",
+    false,
+    2.5,
+    -192,
+    "fanduel"
+   ],
+   [
+    "5149077",
+    "Kingston Flemings",
+    "ATL",
+    "DET",
+    -0.1381,
+    "under",
+    true,
+    0.5,
+    110,
+    "draftkings"
+   ]
+  ]
+ },
+ "401910030": {
+  "date": "2026-11-22",
+  "points": [
+   [
+    "3032977",
+    "Giannis Antetokounmpo",
+    "MIA",
+    "OKC",
+    -0.1679,
+    "under",
+    true,
+    27.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "4066261",
+    "Bam Adebayo",
+    "MIA",
+    "OKC",
+    -0.0978,
+    "under",
+    false,
+    20.5,
+    -132,
+    "fanduel"
+   ],
+   [
+    "4278073",
+    "Shai Gilgeous-Alexander",
+    "OKC",
+    "MIA",
+    0.0625,
+    "over",
+    false,
+    31.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "4601025",
+    "Pelle Larsson",
+    "MIA",
+    "OKC",
+    -0.0936,
+    "under",
+    false,
+    10.5,
+    -115,
+    "fliff"
+   ],
+   [
+    "4683778",
+    "Jared McCain",
+    "OKC",
+    "MIA",
+    0.1433,
+    "over",
+    true,
+    18.5,
+    -110,
+    "fanduel"
+   ],
+   [
+    "5174983",
+    "Aday Mara",
+    "OKC",
+    "MIA",
+    -0.161,
+    "under",
+    true,
+    12.5,
+    -122,
+    "fanduel"
+   ],
+   [
+    "6475",
+    "Klay Thompson",
+    "MIA",
+    "OKC",
+    0.0877,
+    "over",
+    false,
+    14.5,
+    -130,
+    "fliff"
+   ]
+  ],
+  "threes": [
+   [
+    "4066261",
+    "Bam Adebayo",
+    "MIA",
+    "OKC",
+    -0.1112,
+    "under",
+    false,
+    1.5,
+    -194,
+    "fanduel"
+   ]
+  ]
+ },
+ "401910031": {
+  "date": "2026-11-22",
+  "points": [
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "ORL",
+    0.0932,
+    "over",
+    false,
+    17.5,
+    -112,
+    "fanduel"
+   ],
+   [
+    "4432165",
+    "Jalen Suggs",
+    "ORL",
+    "WSH",
+    -0.052,
+    "under",
+    false,
+    11.5,
+    -102,
+    "caesars"
+   ],
+   [
+    "5142718",
+    "AJ Dybantsa",
+    "WSH",
+    "ORL",
+    0.0542,
+    "over",
+    false,
+    18.5,
+    -107,
+    "caesars"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "ORL",
+    -0.2483,
+    "under",
+    true,
+    10.5,
+    -120,
+    "fanduel"
+   ],
+   [
+    "6583",
+    "Anthony Davis",
+    "WSH",
+    "ORL",
+    0.1036,
+    "over",
+    false,
+    24.5,
+    -102,
+    "prophetx"
+   ]
+  ],
+  "threes": [
+   [
+    "4066320",
+    "Desmond Bane",
+    "ORL",
+    "WSH",
+    -0.0777,
+    "under",
+    false,
+    3.5,
+    -118,
+    "prophetx"
+   ],
+   [
+    "4432165",
+    "Jalen Suggs",
+    "ORL",
+    "WSH",
+    -0.2005,
+    "under",
+    true,
+    1.5,
+    -112,
+    "fanduel"
+   ],
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "WSH",
+    -0.0869,
+    "under",
+    false,
+    1.5,
+    -138,
+    "fanduel"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "WSH",
+    -0.1846,
+    "under",
+    true,
+    1.5,
+    -118,
+    "fanduel"
+   ],
+   [
+    "5142718",
+    "AJ Dybantsa",
+    "WSH",
+    "ORL",
+    0.0569,
+    "over",
+    false,
+    1.5,
+    129,
+    "prophetx"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "ORL",
+    -0.5346,
+    "under",
+    true,
+    1.5,
+    -225,
+    "fanduel"
+   ]
+  ]
+ },
+ "401910032": {
+  "date": "2026-11-22",
+  "points": [
+   [
+    "4431767",
+    "Christian Braun",
+    "DEN",
+    "CHI",
+    0.1994,
+    "over",
+    true,
+    12.5,
+    -115,
+    "fliff"
+   ],
+   [
+    "4711294",
+    "Matas Buzelis",
+    "CHI",
+    "DEN",
+    0.0656,
+    "over",
+    false,
+    15.5,
+    -120,
+    "fliff"
+   ]
+  ],
+  "threes": [
+   [
+    "3112335",
+    "Nikola Jokic",
+    "DEN",
+    "CHI",
+    0.2228,
+    "over",
+    true,
+    1.5,
+    125,
+    "fliff"
+   ],
+   [
+    "4397189",
+    "Jalen Smith",
+    "CHI",
+    "DEN",
+    0.2841,
+    "over",
+    true,
+    1.5,
+    -155,
+    "fliff"
+   ]
+  ]
+ },
+ "401910033": {
+  "date": "2026-11-22",
+  "points": [],
+  "threes": []
+ },
+ "401910034": {
+  "date": "2026-11-22",
+  "points": [
+   [
+    "3149673",
+    "Pascal Siakam",
+    "IND",
+    "NY",
+    -0.0634,
+    "under",
+    false,
+    20.5,
+    -122,
+    "fanduel"
+   ],
+   [
+    "4017837",
+    "Ivica Zubac",
+    "IND",
+    "NY",
+    -0.1704,
+    "under",
+    true,
+    11.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "4278355",
+    "Obi Toppin",
+    "IND",
+    "NY",
+    -0.0548,
+    "under",
+    false,
+    11.5,
+    -114,
+    "fanduel"
+   ]
+  ],
+  "threes": []
+ },
+ "401910035": {
+  "date": "2026-11-22",
+  "points": [],
+  "threes": []
  }
 }
