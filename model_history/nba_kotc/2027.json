@@ -12623,21 +12623,21 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.1861,
+    "lead": 0.1862,
     "name": "Giannis Antetokounmpo",
     "proj": 47.0,
     "team": "MIA"
    },
    {
     "id": "4278073",
-    "lead": 0.1587,
+    "lead": 0.1588,
     "name": "Shai Gilgeous-Alexander",
     "proj": 45.6,
     "team": "OKC"
    },
    {
     "id": "3112335",
-    "lead": 0.1475,
+    "lead": 0.1476,
     "name": "Nikola Jokic",
     "proj": 45.2,
     "team": "DEN"
@@ -12651,9 +12651,9 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0925,
+    "lead": 0.0917,
     "name": "Karl-Anthony Towns",
-    "proj": 41.9,
+    "proj": 41.8,
     "team": "NY"
    },
    {
@@ -12679,14 +12679,14 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0308,
+    "lead": 0.0309,
     "name": "Jalen Brunson",
     "proj": 36.8,
     "team": "NY"
    },
    {
     "id": "4701230",
-    "lead": 0.0275,
+    "lead": 0.0276,
     "name": "Jalen Johnson",
     "proj": 36.4,
     "team": "ATL"
@@ -12714,9 +12714,9 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0052,
+    "lead": 0.005,
     "name": "Pascal Siakam",
-    "proj": 30.4,
+    "proj": 30.3,
     "team": "IND"
    },
    {
@@ -12749,14 +12749,14 @@
    },
    {
     "id": "4712849",
-    "lead": 0.0026,
+    "lead": 0.0027,
     "name": "Anthony Black",
     "proj": 28.1,
     "team": "ORL"
    },
    {
     "id": "5142718",
-    "lead": 0.0023,
+    "lead": 0.0024,
     "name": "AJ Dybantsa",
     "proj": 27.1,
     "team": "WSH"
@@ -12863,7 +12863,7 @@
     "id": "3934719",
     "lead": 0.0002,
     "name": "OG Anunoby",
-    "proj": 22.8,
+    "proj": 22.7,
     "team": "NY"
    },
    {

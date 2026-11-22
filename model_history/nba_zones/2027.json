@@ -29511,7 +29511,7 @@
     "under",
     true,
     1.5,
-    118,
+    109,
     "draftkings"
    ],
    [
@@ -29535,7 +29535,7 @@
     "under",
     true,
     1.5,
-    -197,
+    -190,
     "draftkings"
    ],
    [
@@ -29547,7 +29547,7 @@
     "under",
     true,
     0.5,
-    -232,
+    -273,
     "prophetx"
    ],
    [
@@ -29588,8 +29588,8 @@
     "under",
     true,
     27.5,
-    -114,
-    "fanduel"
+    -112,
+    "draftkings"
    ],
    [
     "4066261",
@@ -29599,9 +29599,9 @@
     -0.0977,
     "under",
     false,
-    20.5,
-    -132,
-    "fanduel"
+    19.5,
+    -119,
+    "draftkings"
    ],
    [
     "4278073",
@@ -29624,8 +29624,8 @@
     "under",
     false,
     10.5,
-    -125,
-    "fliff"
+    -121,
+    "caesars"
    ],
    [
     "4683778",
@@ -29636,8 +29636,8 @@
     "over",
     true,
     18.5,
-    -112,
-    "fanduel"
+    -107,
+    "prophetx"
    ],
    [
     "5174983",
@@ -29648,8 +29648,8 @@
     "under",
     true,
     12.5,
-    -130,
-    "fanduel"
+    -123,
+    "draftkings"
    ],
    [
     "6475",
@@ -29660,8 +29660,8 @@
     "over",
     false,
     14.5,
-    -113,
-    "prophetx"
+    -109,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -29675,6 +29675,30 @@
     false,
     1.5,
     -182,
+    "draftkings"
+   ],
+   [
+    "4278073",
+    "Shai Gilgeous-Alexander",
+    "OKC",
+    "MIA",
+    0.218,
+    "over",
+    true,
+    1.5,
+    -159,
+    "caesars"
+   ],
+   [
+    "4683778",
+    "Jared McCain",
+    "OKC",
+    "MIA",
+    0.2116,
+    "over",
+    true,
+    3.5,
+    124,
     "draftkings"
    ]
   ]
@@ -29691,8 +29715,8 @@
     "over",
     false,
     17.5,
-    -112,
-    "pinnacle"
+    -106,
+    "4cx"
    ],
    [
     "4432165",
@@ -29703,7 +29727,7 @@
     "under",
     false,
     11.5,
-    -102,
+    100,
     "fanduel"
    ],
    [
@@ -29715,7 +29739,7 @@
     "over",
     false,
     18.5,
-    -103,
+    100,
     "prophetx"
    ],
    [
@@ -29753,7 +29777,7 @@
     "under",
     false,
     3.5,
-    -117,
+    -118,
     "prophetx"
    ],
    [
@@ -29777,7 +29801,7 @@
     "under",
     false,
     1.5,
-    -120,
+    -123,
     "prophetx"
    ],
    [
@@ -29789,8 +29813,8 @@
     "under",
     true,
     1.5,
-    -114,
-    "prophetx"
+    -112,
+    "4cx"
    ],
    [
     "5142718",
@@ -29801,8 +29825,8 @@
     "over",
     false,
     1.5,
-    132,
-    "draftkings"
+    129,
+    "prophetx"
    ],
    [
     "5160992",
@@ -29813,7 +29837,7 @@
     "under",
     true,
     1.5,
-    -225,
+    -217,
     "draftkings"
    ],
    [
@@ -29825,7 +29849,7 @@
     "over",
     false,
     1.5,
-    -172,
+    -168,
     "prophetx"
    ]
   ]
@@ -29842,7 +29866,7 @@
     "over",
     true,
     12.5,
-    -115,
+    -120,
     "fliff"
    ],
    [
@@ -29923,8 +29947,8 @@
     "over",
     false,
     1.5,
-    104,
-    "pinnacle"
+    109,
+    "prophetx"
    ],
    [
     "6442",
@@ -29935,8 +29959,8 @@
     "under",
     true,
     3.5,
-    -174,
-    "pinnacle"
+    -170,
+    "caesars"
    ]
   ]
  },
@@ -29951,9 +29975,9 @@
     0.0666,
     "over",
     false,
-    9.5,
-    -135,
-    "fliff"
+    10.5,
+    100,
+    "fanduel"
    ],
    [
     "3149673",
@@ -29964,7 +29988,7 @@
     "under",
     false,
     20.5,
-    -122,
+    -125,
     "fanduel"
    ],
    [
@@ -30009,7 +30033,93 @@
  },
  "401910035": {
   "date": "2026-11-22",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4065804",
+    "Sam Hauser",
+    "BOS",
+    "GS",
+    0.0876,
+    "over",
+    false,
+    8.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "4066436",
+    "De'Anthony Melton",
+    "GS",
+    "BOS",
+    -0.0958,
+    "under",
+    false,
+    10.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "4397886",
+    "Charles Bassey",
+    "GS",
+    "BOS",
+    -0.1794,
+    "under",
+    true,
+    7.5,
+    -125,
+    "fanduel"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "BOS",
+    -0.0757,
+    "under",
+    false,
+    15.5,
+    100,
+    "fanduel"
+   ],
+   [
+    "4897262",
+    "Will Richard",
+    "GS",
+    "BOS",
+    -0.066,
+    "under",
+    false,
+    6.5,
+    100,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "4065648",
+    "Jayson Tatum",
+    "BOS",
+    "GS",
+    0.1814,
+    "over",
+    true,
+    3.5,
+    146,
+    "fanduel"
+   ],
+   [
+    "4066354",
+    "Payton Pritchard",
+    "BOS",
+    "GS",
+    -0.0956,
+    "under",
+    false,
+    2.5,
+    -118,
+    "fanduel"
+   ]
+  ]
  }
 }
