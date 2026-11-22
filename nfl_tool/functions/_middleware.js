@@ -455,6 +455,115 @@ function cleanContest(c) {
   return { id: c.id, season: Number(c.season) || null, week: c.week, lock_at: c.lock_at, book: String(c.book || "FanDuel").slice(0, 20), priced_at: Date.now(), games };
 }
 
+// Live TDs (2026-11-22, the owner: "it would be more fun if we could do a semi live update").
+// After the lock, a GET reads ESPN's free scoreboard and each started game's box score at most
+// once every CONTEST_LIVE_MS (no timer: GitHub's runs hours late), saved in D1 `contest_live`
+// (kind "feed"). Per team: every player in the box score and his rushing / receiving / return
+// TDs (a QB's passing TDs don't count, like FanDuel's anytime TD). A game ESPN calls final is
+// saved once and never fetched again. The owner's hand results (kind "marks", the Tracking tab)
+// beat everything on the page; the morning's data.json beats the feed.
+const CONTEST_LIVE_MS = 120e3;
+const ESPN_NFL = "https://site.api.espn.com/apis/site/v2/sports/football/nfl";
+const ESPN_TEAM = { WSH: "WAS", LAR: "LA" }; // ESPN's letters -> nflverse's
+const ESPN_TD_KEYS = ["rushingTouchdowns", "receivingTouchdowns", "kickReturnTouchdowns", "puntReturnTouchdowns"];
+const CONTEST_MARKS = ["hit", "miss", "void"];
+const espnTeam = (t) => ESPN_TEAM[t] || t;
+
+async function espnJson(url) {
+  const res = await fetch(url, typeof AbortSignal !== "undefined" && AbortSignal.timeout ? { signal: AbortSignal.timeout(8000) } : {});
+  if (!res.ok) throw new Error(`espn ${res.status}`);
+  return res.json();
+}
+
+function espnBox(summary) {
+  const teams = {};
+  for (const t of (summary && summary.boxscore && summary.boxscore.players) || []) {
+    const team = espnTeam(t.team && t.team.abbreviation);
+    if (!team) continue;
+    const tds = {};
+    const played = new Set();
+    for (const cat of t.statistics || []) {
+      const at = (cat.keys || []).map((k, i) => (ESPN_TD_KEYS.includes(k) ? i : -1)).filter((i) => i >= 0);
+      for (const a of cat.athletes || []) {
+        const name = a && a.athlete && a.athlete.displayName;
+        if (!name) continue;
+        played.add(name);
+        for (const i of at) {
+          const n = Number((a.stats || [])[i]) || 0;
+          if (n > 0) tds[name] = (tds[name] || 0) + n;
+        }
+      }
+    }
+    teams[team] = { tds, played: [...played] };
+  }
+  return teams;
+}
+
+async function contestFeed(contest, old) {
+  const games = { ...((old && old.games) || {}) };
+  const board = await espnJson(`${ESPN_NFL}/scoreboard?seasontype=2&week=${contest.week}&dates=${contest.season || new Date().getFullYear()}`);
+  const jobs = [];
+  for (const ev of board.events || []) {
+    const sides = {};
+    for (const c of ((ev.competitions || [])[0] || {}).competitors || []) sides[c.homeAway] = espnTeam(c.team && c.team.abbreviation);
+    const pair = [sides.away, sides.home].sort().join("|");
+    const g = contest.games.find((x) => [x.away, x.home].sort().join("|") === pair);
+    if (!g || (games[g.id] && games[g.id].final)) continue;
+    const st = (ev.status && ev.status.type) || {};
+    const entry = { state: st.state || "pre", detail: String(st.shortDetail || "").slice(0, 40), teams: (games[g.id] && games[g.id].teams) || null };
+    games[g.id] = entry;
+    if (entry.state === "pre") continue;
+    jobs.push(
+      espnJson(`${ESPN_NFL}/summary?event=${encodeURIComponent(ev.id)}`)
+        .then((s) => {
+          entry.teams = espnBox(s);
+          entry.final = entry.state === "post";
+        })
+        .catch(() => null) // keep the last box score; tried again next time
+    );
+  }
+  await Promise.all(jobs);
+  return { games };
+}
+
+async function contestLiveRows(env, id) {
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS contest_live (contest TEXT NOT NULL, kind TEXT NOT NULL, data TEXT NOT NULL, updated INTEGER NOT NULL, PRIMARY KEY (contest, kind))").run();
+  const { results } = await env.DB.prepare("SELECT kind, data, updated FROM contest_live WHERE contest = ?").bind(id).all();
+  const got = {};
+  for (const r of results || []) {
+    try {
+      got[r.kind] = JSON.parse(r.data);
+    } catch (e) {
+      got[r.kind] = null;
+    }
+  }
+  return got;
+}
+
+async function contestLive(env, contest) {
+  const got = await contestLiveRows(env, contest.id);
+  let feed = got.feed || null;
+  const now = Date.now();
+  const started = contest.games.some((g) => !g.kickoff || Date.parse(g.kickoff) <= now);
+  const allFinal = !!feed && contest.games.every((g) => feed.games && feed.games[g.id] && feed.games[g.id].final);
+  if (started && !allFinal && (!feed || now - (feed.fetched || 0) >= CONTEST_LIVE_MS)) {
+    try {
+      feed = await contestFeed(contest, feed);
+    } catch (e) {
+      feed = { games: (feed && feed.games) || {}, error: "espn" };
+    }
+    feed.fetched = now;
+    await contestSave(env, contest.id, "feed", feed);
+  }
+  return { feed, marks: got.marks || {} };
+}
+
+function contestSave(env, id, kind, data) {
+  return env.DB.prepare("INSERT INTO contest_live (contest, kind, data, updated) VALUES (?, ?, ?, ?) ON CONFLICT(contest, kind) DO UPDATE SET data = excluded.data, updated = excluded.updated")
+    .bind(id, kind, JSON.stringify(data), Date.now())
+    .run();
+}
+
 async function handleContest(request, env, session, json) {
   const owner = isOwnerSession(session);
   const uid = session.uid || session.name;
@@ -492,7 +601,13 @@ async function handleContest(request, env, session, json) {
       if (owner) Object.assign(e, { contact: r.contact, uid: r.uid });
       entries.push(e);
     }
-    return json({ owner, defaults, contest, locked, entries, me, now: Date.now() });
+    const out = { owner, defaults, contest, locked, entries, me, now: Date.now() };
+    if (locked) {
+      const { feed, marks } = await contestLive(env, contest);
+      out.live = feed;
+      out.marks = marks;
+    }
+    return json(out);
   }
   if (request.method !== "POST") return json({ error: "method" }, 405);
   let body;
@@ -517,6 +632,21 @@ async function handleContest(request, env, session, json) {
     if (!contest || typeof body.uid !== "string") return json({ error: "bad item" }, 400);
     await env.DB.prepare("DELETE FROM contest_entries WHERE contest = ? AND uid = ?").bind(contest.id, body.uid).run();
     return json({ ok: true });
+  }
+  if (action === "mark") {
+    // The owner's hand result for one picked player (Tracking tab): hit / miss / void, null = back to automatic.
+    if (!owner) return json({ error: "owner only" }, 403);
+    if (!contest || !locked) return json({ error: "not locked" }, 409);
+    const g = contest.games.find((x) => x.id === body.g);
+    if (!g || !g.players.some((p) => p.k === body.k) || (body.result !== null && !CONTEST_MARKS.includes(body.result))) return json({ error: "bad item" }, 400);
+    const marks = (await contestLiveRows(env, contest.id)).marks || {};
+    const game = { ...(marks[g.id] || {}) };
+    if (body.result === null) delete game[body.k];
+    else game[body.k] = body.result;
+    if (Object.keys(game).length) marks[g.id] = game;
+    else delete marks[g.id];
+    await contestSave(env, contest.id, "marks", marks);
+    return json({ ok: true, marks });
   }
   if (action !== "enter") return json({ error: "bad action" }, 400);
   if (!contest) return json({ error: "not open" }, 409);

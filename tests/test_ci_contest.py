@@ -20,19 +20,41 @@ CONTEST_DB = r"""
 window.contestDB = () => {
   const contests = new Map();
   const entries = new Map(); // "contest|uid" -> row
+  const live = new Map(); // "contest|kind" -> row (the live feed and the owner's marks)
   const stmt = (sql, a = []) => ({
     bind: (...args) => stmt(sql, args),
     run: async () => {
-      if (sql.startsWith("INSERT INTO contests")) contests.set(a[0], { id: a[0], config: a[1], created: a[2] });
+      if (sql.startsWith("INSERT INTO contest_live")) live.set(`${a[0]}|${a[1]}`, { contest: a[0], kind: a[1], data: a[2], updated: a[3] });
+      else if (sql.startsWith("INSERT INTO contests")) contests.set(a[0], { id: a[0], config: a[1], created: a[2] });
       else if (sql.startsWith("INSERT INTO contest_entries")) entries.set(`${a[0]}|${a[1]}`, { contest: a[0], uid: a[1], name: a[2], contact: a[3], picks: a[4], updated: a[5] });
       else if (sql.startsWith("DELETE FROM contest_entries WHERE contest = ? AND uid = ?")) entries.delete(`${a[0]}|${a[1]}`);
       else if (sql.startsWith("DELETE FROM contest_entries")) for (const k of [...entries.keys()]) if (k.startsWith(`${a[0]}|`)) entries.delete(k);
       return {};
     },
     first: async () => [...contests.values()].sort((x, y) => y.created - x.created)[0] || null,
-    all: async () => ({ results: [...entries.values()].filter((r) => r.contest === a[0]).sort((x, y) => x.updated - y.updated) }),
+    all: async () => ({ results: sql.includes("FROM contest_live") ? [...live.values()].filter((r) => r.contest === a[0]) : [...entries.values()].filter((r) => r.contest === a[0]).sort((x, y) => x.updated - y.updated) }),
   });
-  return { prepare: (sql) => stmt(sql) };
+  return { prepare: (sql) => stmt(sql), live };
+};
+// ESPN stood in for: MIA @ BUF on (Achane has a rushing TD, Cook played, Allen threw one: a
+// passing TD doesn't count), CIN @ WSH not started (ESPN's WSH = nflverse's WAS).
+window.espnCalls = [];
+window.espnState = "in";
+window.fetch = async (url) => {
+  espnCalls.push(url);
+  const ok = (body) => ({ ok: true, json: async () => body });
+  const team = (abbr, side) => ({ homeAway: side, team: { abbreviation: abbr } });
+  if (url.includes("/scoreboard")) return ok({ events: [
+    { id: "101", status: { type: { state: espnState, shortDetail: espnState === "post" ? "Final" : "5:32 - 2nd" } }, competitions: [{ competitors: [team("BUF", "home"), team("MIA", "away")] }] },
+    { id: "102", status: { type: { state: "pre", shortDetail: "11/23 - 8:15 PM EST" } }, competitions: [{ competitors: [team("WSH", "home"), team("CIN", "away")] }] },
+  ] });
+  if (url.includes("event=101")) return ok({ boxscore: { players: [
+    { team: { abbreviation: "MIA" }, statistics: [{ name: "rushing", keys: ["rushingAttempts", "rushingYards", "rushingTouchdowns"], athletes: [{ athlete: { displayName: "De'Von Achane" }, stats: ["12", "60", "1"] }] }] },
+    { team: { abbreviation: "BUF" }, statistics: [
+      { name: "passing", keys: ["passingYards", "passingTouchdowns"], athletes: [{ athlete: { displayName: "Josh Allen" }, stats: ["200", "1"] }] },
+      { name: "rushing", keys: ["rushingAttempts", "rushingYards", "rushingTouchdowns"], athletes: [{ athlete: { displayName: "James Cook" }, stats: ["15", "70", "0"] }] }] },
+  ] } });
+  return { ok: false, status: 404, json: async () => ({}) };
 };
 true;
 """
@@ -138,6 +160,72 @@ class Contest(unittest.TestCase):
         self.assertEqual([e["uid"] for e in api(uid=OWNER)["body"]["entries"]], ["456"])
         api(uid=OWNER, method="POST", body={"action": "open", "contest": contest(), "clear": True})
         self.assertEqual(api(uid=OWNER)["body"]["entries"], [])
+
+    def locked(self):
+        self.open()
+        self.assertEqual(enter("123")["status"], 200)
+        self.open(lock_in_s=-60)
+        base.PAGE.evaluate("() => { espnCalls.length = 0; espnState = 'in'; }")
+
+    def test_no_live_feed_before_the_lock(self):
+        self.open()
+        base.PAGE.evaluate("() => { espnCalls.length = 0; }")
+        got = api(uid="123")["body"]
+        self.assertNotIn("live", got)
+        self.assertEqual(base.PAGE.evaluate("() => espnCalls.length"), 0)
+
+    def test_live_tds_after_the_lock_from_espn(self):
+        self.locked()
+        live = api(uid="456")["body"]["live"]
+        buf = live["games"]["2026_11_MIA_BUF"]
+        self.assertEqual((buf["state"], buf["detail"]), ("in", "5:32 - 2nd"))
+        self.assertEqual(buf["teams"]["MIA"]["tds"], {"De'Von Achane": 1})
+        self.assertEqual(buf["teams"]["BUF"]["tds"], {})  # Allen's passing TD doesn't count
+        self.assertIn("James Cook", buf["teams"]["BUF"]["played"])
+        self.assertFalse(buf.get("final"))
+        self.assertEqual(live["games"]["2026_11_CIN_WAS"]["state"], "pre")  # WSH matched to WAS
+        # Asked once per 2 minutes, however many members load the page.
+        calls = base.PAGE.evaluate("() => espnCalls.length")
+        self.assertEqual(calls, 2)  # the scoreboard + the one started game
+        api(uid="789")
+        self.assertEqual(base.PAGE.evaluate("() => espnCalls.length"), calls)
+
+    def test_a_final_game_is_saved_and_never_fetched_again(self):
+        self.locked()
+        base.PAGE.evaluate("() => { espnState = 'post'; }")
+        self.assertTrue(api(uid="456")["body"]["live"]["games"]["2026_11_MIA_BUF"]["final"])
+        # Two minutes later: the scoreboard again, but not the finished game's box score.
+        base.PAGE.evaluate("""() => { const r = DB.live.get('2026_11|feed'); const d = JSON.parse(r.data); d.fetched = 0; r.data = JSON.stringify(d); espnCalls.length = 0; }""")
+        got = api(uid="456")["body"]["live"]["games"]["2026_11_MIA_BUF"]
+        self.assertEqual(got["teams"]["MIA"]["tds"], {"De'Von Achane": 1})
+        self.assertEqual([u for u in base.PAGE.evaluate("() => espnCalls") if "event=101" in u], [])
+
+    def test_espn_down_keeps_the_page_working(self):
+        self.locked()
+        base.PAGE.evaluate("() => { window.realFetch = window.fetch; window.fetch = async () => { throw new Error('down'); }; }")
+        try:
+            got = api(uid="456")
+        finally:
+            base.PAGE.evaluate("() => { window.fetch = window.realFetch; }")
+        self.assertEqual(got["status"], 200)
+        self.assertEqual(got["body"]["live"]["error"], "espn")
+        self.assertEqual(len(got["body"]["entries"]), 1)
+
+    def test_owner_marks_a_result_by_hand(self):
+        self.locked()
+        mark = {"action": "mark", "g": "2026_11_CIN_WAS", "k": "CIN|Ja'Marr Chase", "result": "hit"}
+        self.assertEqual(api(uid="456", method="POST", body=mark)["status"], 403)
+        self.assertEqual(api(uid=OWNER, method="POST", body={**mark, "result": "maybe"})["status"], 400)
+        self.assertEqual(api(uid=OWNER, method="POST", body={**mark, "k": "CIN|Nobody"})["status"], 400)
+        self.assertEqual(api(uid=OWNER, method="POST", body=mark)["status"], 200)
+        self.assertEqual(api(uid="456")["body"]["marks"], {"2026_11_CIN_WAS": {"CIN|Ja'Marr Chase": "hit"}})
+        api(uid=OWNER, method="POST", body={**mark, "result": None})  # Auto: back to the feed
+        self.assertEqual(api(uid="456")["body"]["marks"], {})
+
+    def test_marks_wait_for_the_lock(self):
+        self.open()
+        mark = {"action": "mark", "g": "2026_11_CIN_WAS", "k": "CIN|Ja'Marr Chase", "result": "hit"}
+        self.assertEqual(api(uid=OWNER, method="POST", body=mark)["status"], 409)
 
     def test_bad_contest_refused(self):
         bad = contest()

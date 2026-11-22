@@ -58,7 +58,8 @@ DATA = {
 }
 
 
-def open_page(api, owner=False):
+def open_page(api, owner=False, data=None):
+    data = DATA if data is None else data  # read at call time: some tests swap DATA
     posts = []
     page = SITE.context.new_page()
     page.on("pageerror", lambda err: SITE.errors.append(str(err)))
@@ -71,7 +72,7 @@ def open_page(api, owner=False):
             route.fulfill(status=200, content_type="application/json", body=json.dumps({"owner": owner, "defaults": {"name": "Wiz", "contact": "Wiz"}, "entries": [], "me": None, **api}))
 
     page.route("**/api/contest", handle)
-    page.route("**/data.json", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(DATA)))
+    page.route("**/data.json", lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(data)))
     page.goto(f"{SITE.origin}/contest.html")
     page.wait_for_selector(".ct-title")
     page.wait_for_function("() => !document.querySelector('#ct-app').textContent.includes('Loading')")
@@ -176,6 +177,79 @@ class Page(unittest.TestCase):
         self.assertIn("hit", tiles.nth(0).get_attribute("class"))
         self.assertIn("void", tiles.nth(1).get_attribute("class"))
         page.close()
+
+    def test_live_feed_grades_before_the_morning_and_tracking_lists_every_pick(self):
+        # Sunday afternoon: data.json has nothing for MIA @ BUF yet (no snaps, no TDs).
+        a = {"name": "Achane Fan", "updated": 1, "picks": {"2026_11_MIA_BUF": "MIA|De'Von Achane", "2026_11_CIN_WAS": "CIN|Ja'Marr Chase"}}
+        b = {"name": "Cook Fan", "updated": 2, "picks": {"2026_11_MIA_BUF": "BUF|James Cook", "2026_11_CIN_WAS": "CIN|Ja'Marr Chase"}}
+        live = {"fetched": 1795000000000, "games": {
+            "2026_11_MIA_BUF": {"state": "in", "detail": "5:32 - 2nd", "teams": {
+                "MIA": {"tds": {"De'Von Achane": 1}, "played": ["De'Von Achane"]},
+                "BUF": {"tds": {}, "played": ["James Cook"]}}},
+            "2026_11_CIN_WAS": {"state": "pre", "detail": "", "teams": None}}}
+        data = {**DATA, "player_td_results": {}, "player_snaps": {}}
+        page, posts = open_page({"contest": {**CONTEST, "lock_at": EARLIER}, "locked": True, "entries": [b, a], "live": live, "marks": {}}, owner=True, data=data)
+        page.locator("[data-tab=board]").click()
+        rows = page.locator(".ct-lbrow")
+        self.assertEqual(rows.nth(0).locator(".ct-name").inner_text(), "Achane Fan")
+        self.assertIn("$33", rows.nth(0).inner_text())  # $20 + $13: the TD counts now
+        self.assertIn("$20", rows.nth(1).inner_text())  # Cook: no TD yet, nothing lost while it's on
+        page.locator("[data-tab=track]").click()
+        res = page.locator(".ct-track .ct-res")
+        self.assertEqual(res.count(), 3)  # Achane, Cook, Chase (picked twice: one row)
+        text = page.locator(".ct-track").inner_text()
+        self.assertIn("5:32 - 2nd", text)
+        self.assertIn("No TD Yet", res.nth(0).inner_text())  # Cook (one pick each: shorter price first)
+        self.assertIn("Scored", res.nth(1).inner_text())  # Achane
+        self.assertIn("Not Started", res.nth(2).inner_text())
+        # The owner's hand result goes to the server and beats the feed.
+        page.locator(".ct-marks [data-r=hit]").nth(2).click()
+        page.wait_for_function("() => true")
+        self.assertEqual(posts[-1], {"action": "mark", "g": "2026_11_CIN_WAS", "k": "CIN|Ja'Marr Chase", "result": "hit"})
+        page.close()
+
+    def test_live_final_no_td_is_a_miss_and_missing_from_the_box_score_is_money_back(self):
+        live = {"fetched": 1, "games": {"2026_11_MIA_BUF": {"state": "post", "final": True, "detail": "Final", "teams": {
+            "MIA": {"tds": {}, "played": ["De'Von Achane"]}, "BUF": {"tds": {"J. Cook": 1}, "played": ["J. Cook"]}}}}}
+        page, _ = open_page({"contest": {**CONTEST, "lock_at": EARLIER}, "locked": True, "live": live, "marks": {"2026_11_CIN_WAS": {"CIN|Ja'Marr Chase": "hit"}}}, data={**DATA, "player_td_results": {}, "player_snaps": {}})
+        got = page.evaluate("""() => {
+          const c = """ + json.dumps({**CONTEST, "week": 11}) + """;
+          const p = (g, k) => c.games[g].players.find((x) => x.k === k);
+          const G = window.GMGContest.gradePick;
+          return [G(c, c.games[0], p(0, "MIA|De'Von Achane")), G(c, c.games[0], p(0, "BUF|James Cook")), G(c, c.games[1], p(1, "CIN|Ja'Marr Chase")), G(c, c.games[1], p(1, "WAS|Terry McLaurin"))];
+        }""")
+        # Final with no TD = miss; "J. Cook" on his team = James Cook; the owner's mark wins; not started = pending.
+        self.assertEqual(got, ["miss", "hit", "hit", "pending"])
+        page.close()
+
+    def test_nflverse_never_replaces_espn_the_owner_gets_the_differences(self):
+        # ESPN's final: McLaurin scored, Chase not in the box score (money back). The morning's
+        # nflverse: no TD for McLaurin (he played), Chase didn't play. Achane / Cook agree (game 1).
+        entries = [{"name": "A", "updated": 1, "picks": {"2026_11_MIA_BUF": "MIA|De'Von Achane", "2026_11_CIN_WAS": "WAS|Terry McLaurin"}},
+                   {"name": "B", "updated": 2, "picks": {"2026_11_MIA_BUF": "BUF|James Cook", "2026_11_CIN_WAS": "CIN|Ja'Marr Chase"}}]
+        live = {"fetched": 1, "games": {
+            "2026_11_MIA_BUF": {"state": "post", "final": True, "detail": "Final", "teams": {"MIA": {"tds": {"De'Von Achane": 1}, "played": ["De'Von Achane"]}, "BUF": {"tds": {}, "played": ["James Cook"]}}},
+            "2026_11_CIN_WAS": {"state": "post", "final": True, "detail": "Final", "teams": {"WAS": {"tds": {"Terry McLaurin": 1}, "played": ["Terry McLaurin"]}, "CIN": {"tds": {}, "played": []}}}}}
+        api = {"contest": {**CONTEST, "lock_at": EARLIER}, "locked": True, "entries": entries, "live": live, "marks": {}}
+        page, posts = open_page(api, owner=True)
+        page.locator("[data-tab=board]").click()
+        self.assertIn("$54", page.locator(".ct-lbrow").nth(0).inner_text())  # A: $20 + $13 + $21 (ESPN stands)
+        rows = page.locator(".ct-diff-row")
+        self.assertEqual(rows.count(), 1)  # McLaurin; Chase agrees (didn't play both ways)
+        self.assertIn("Terry McLaurin", rows.nth(0).inner_text())
+        self.assertIn("Scored", rows.nth(0).locator(".ct-res").nth(0).inner_text())
+        self.assertIn("No TD", rows.nth(0).locator(".ct-res").nth(1).inner_text())
+        page.locator(".ct-diff-row button", has_text="Use nflverse").click()
+        page.wait_for_function("() => true")
+        self.assertEqual(posts[-1], {"action": "mark", "g": "2026_11_CIN_WAS", "k": "WAS|Terry McLaurin", "result": "miss"})
+        page.close()
+        # A member: the same Tracking tab, no differences list, no buttons.
+        member, _ = open_page(api)
+        self.assertEqual(member.locator(".ct-diff").count(), 0)
+        member.locator("[data-tab=track]").click()
+        self.assertEqual(member.locator(".ct-track .ct-res").count(), 4)
+        self.assertEqual(member.locator(".ct-marks").count(), 0)
+        member.close()
 
     def test_ties_go_to_fewer_correct_picks_then_the_longest_hit(self):
         page, _ = open_page({"contest": {**CONTEST, "lock_at": LATER}})

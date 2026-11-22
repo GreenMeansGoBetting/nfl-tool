@@ -31,8 +31,24 @@ price, a miss loses $10, a player with no snaps that week gets the $10 back.
 - **Locks Sunday 1:00 PM ET** (the Sunday game's date): the server refuses saves after it. One
   entry per account (replaced on save); leaderboard name + Discord/email contact (contact only ever
   sent to the owner). Before the lock members see who entered, not their picks.
-- Graded on the page from data.json (`player_td_results` any_td, `player_snaps` for "didn't play"),
-  so results come the morning after each game. Rank: bankroll, then FEWER correct picks, then the
+- **Graded live** (2026-11-22, the owner: "more fun if we could do a semi live update"). First
+  that applies (`gradeInfo`): the owner's hand result; ESPN's final box score; data.json the morning
+  after (`player_td_results` any_td, `player_snaps` for "didn't play") only for a game ESPN never
+  finished; then ESPN's in-game box score. **nflverse never replaces ESPN** (the owner: "instead of
+  an auto replace ... an alert that says if there's differences"): every picked player whose
+  data.json result differs from ESPN's final, with no hand result, is listed to the owner only
+  (`diffs` / `diffBox`, under the owner bar on every tab) with Use nflverse / Keep ESPN, both a
+  hand result. Members see the Tracking tab; only the owner gets the buttons. After the lock a GET of
+  `/api/contest` asks ESPN (scoreboard + each started game's summary) at most every 2 minutes, saved
+  in D1 `contest_live` (kind `feed`; made on first use); no timer (GitHub's runs hours late), the page
+  re-asks every 2 minutes. Rushing / receiving / return TDs only (passing TDs don't count). A TD counts
+  at once; a miss only once ESPN calls the game final; a player missing from a final box score gets
+  the $10 back until the morning. Names: same `normName`, else one teammate with that last name and
+  first initial. ESPN WSH / LAR = WAS / LA. A final game is never fetched again.
+- **Tracking tab** (after the lock): every picked player by game, the game clock, how many picked
+  him, the result and where it came from (Live / Official / Set By GMG). The owner's TD / No TD /
+  Out / Auto buttons save `action: "mark"` (kind `marks`), beating the feed and the morning data.
+- Rank: bankroll, then FEWER correct picks, then the
   longest price that hit, then split (the owner's tie rule).
 - The menu pill (top of the NFL menu, sync.js `SPORT_PAGES.nfl`) shows for every member since 2026-11-21 (owner-only before).
 - Tests: `test_ci_contest.py` (API), `test_contest_site.py` (page).
