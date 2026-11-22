@@ -13048,21 +13048,21 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3865,
+    "lead": 0.3859,
     "name": "Luka Doncic",
     "proj": 53.0,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.2348,
+    "lead": 0.2345,
     "name": "Victor Wembanyama",
     "proj": 48.3,
     "team": "SA"
    },
    {
     "id": "4871144",
-    "lead": 0.0531,
+    "lead": 0.053,
     "name": "Alperen Sengun",
     "proj": 38.6,
     "team": "HOU"
@@ -13090,16 +13090,16 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0282,
+    "lead": 0.0281,
     "name": "Darius Acuff Jr.",
     "proj": 35.7,
     "team": "SAC"
    },
    {
     "id": "4431678",
-    "lead": 0.0185,
+    "lead": 0.0193,
     "name": "Tyrese Maxey",
-    "proj": 33.6,
+    "proj": 33.7,
     "team": "PHI"
    },
    {
@@ -13118,9 +13118,9 @@
    },
    {
     "id": "3059318",
-    "lead": 0.0133,
+    "lead": 0.0138,
     "name": "Joel Embiid",
-    "proj": 33.0,
+    "proj": 33.1,
     "team": "PHI"
    },
    {
@@ -13139,14 +13139,14 @@
    },
    {
     "id": "4065733",
-    "lead": 0.01,
+    "lead": 0.0099,
     "name": "Ty Jerome",
     "proj": 32.2,
     "team": "MEM"
    },
    {
     "id": "3992",
-    "lead": 0.0095,
+    "lead": 0.0094,
     "name": "James Harden",
     "proj": 30.9,
     "team": "CLE"
@@ -13160,7 +13160,7 @@
    },
    {
     "id": "3202",
-    "lead": 0.0057,
+    "lead": 0.0056,
     "name": "Kevin Durant",
     "proj": 29.6,
     "team": "HOU"
@@ -13180,18 +13180,18 @@
     "team": "MIL"
    },
    {
-    "id": "1966",
-    "lead": 0.004,
-    "name": "LeBron James",
-    "proj": 28.6,
-    "team": "PHI"
-   },
-   {
     "id": "4395628",
     "lead": 0.0039,
     "name": "Zion Williamson",
     "proj": 29.6,
     "team": "NO"
+   },
+   {
+    "id": "1966",
+    "lead": 0.0039,
+    "name": "LeBron James",
+    "proj": 28.6,
+    "team": "PHI"
    },
    {
     "id": "4395724",
@@ -13208,18 +13208,18 @@
     "team": "SAC"
    },
    {
-    "id": "5144091",
-    "lead": 0.0031,
-    "name": "Jeremiah Fears",
-    "proj": 29.2,
-    "team": "NO"
-   },
-   {
     "id": "4396907",
     "lead": 0.0031,
     "name": "Darius Garland",
     "proj": 28.9,
     "team": "LAC"
+   },
+   {
+    "id": "5144091",
+    "lead": 0.003,
+    "name": "Jeremiah Fears",
+    "proj": 29.2,
+    "team": "NO"
    },
    {
     "id": "4845367",
@@ -13237,9 +13237,9 @@
    },
    {
     "id": "6606",
-    "lead": 0.0022,
+    "lead": 0.0026,
     "name": "Damian Lillard",
-    "proj": 27.8,
+    "proj": 27.9,
     "team": "POR"
    },
    {

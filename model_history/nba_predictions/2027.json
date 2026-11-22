@@ -5479,7 +5479,7 @@ null
 "away": "DET",
 "book": {
 "ml": [
--138,
+-135,
 115
 ],
 "spread": [
@@ -25882,8 +25882,8 @@ null
 ],
 "total": 219.5,
 "total_odds": [
-102,
--104
+-100,
+-102
 ]
 },
 "date": "2026-11-22",
@@ -26026,8 +26026,8 @@ null
 ],
 "total": 237.5,
 "total_odds": [
--111,
-108
+-106,
+104
 ]
 },
 "date": "2026-11-22",
@@ -26165,13 +26165,13 @@ null
 2.5
 ],
 "spread_odds": [
-102,
+104,
 -106
 ],
 "total": 226.5,
 "total_odds": [
--104,
-102
+-102,
+-100
 ]
 },
 "date": "2026-11-22",
@@ -26309,8 +26309,8 @@ null
 -7.5
 ],
 "spread_odds": [
--108,
-104
+-111,
+106
 ],
 "total": 213.5,
 "total_odds": [
@@ -26458,7 +26458,7 @@ null
 ],
 "total": 209.5,
 "total_odds": [
--111,
+-113,
 108
 ]
 },
@@ -26727,18 +26727,18 @@ null
 "away": "POR",
 "book": {
 "ml": [
-153,
--163
+144,
+-154
 ],
 "spread": [
-null,
-null
+3.5,
+-3.5
 ],
 "spread_odds": [
-null,
-null
+-120,
+-111
 ],
-"total": null,
+"total": 229.5,
 "total_odds": [
 null,
 null
@@ -26750,8 +26750,14 @@ null
 0.5289,
 0.4711
 ],
-"spread": null,
-"total": null
+"spread": [
+0.6422,
+0.3578
+],
+"total": [
+0.4916,
+0.5084
+]
 },
 "fair_spread": 0.9,
 "home": "PHI",
@@ -27418,7 +27424,7 @@ null
 "book": {
 "ml": [
 -156,
-133
+138
 ],
 "spread": [
 null,
@@ -27563,13 +27569,13 @@ null
 -12.5
 ],
 "spread_odds": [
-null,
-null
+-122,
+-116
 ],
 "total": 226.5,
 "total_odds": [
-null,
-null
+-120,
+-133
 ]
 },
 "date": "2026-11-23",
@@ -27699,7 +27705,7 @@ null
 "away": "UTAH",
 "book": {
 "ml": [
-567,
+525,
 -700
 ],
 "spread": [
@@ -27838,7 +27844,7 @@ null
 "book": {
 "ml": [
 -733,
-700
+669
 ],
 "spread": [
 null,
