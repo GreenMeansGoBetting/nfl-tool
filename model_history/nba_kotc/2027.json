@@ -13048,28 +13048,28 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3859,
+    "lead": 0.3865,
     "name": "Luka Doncic",
     "proj": 53.0,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.2344,
+    "lead": 0.2348,
     "name": "Victor Wembanyama",
     "proj": 48.3,
     "team": "SA"
    },
    {
     "id": "4871144",
-    "lead": 0.0544,
+    "lead": 0.0531,
     "name": "Alperen Sengun",
-    "proj": 38.7,
+    "proj": 38.6,
     "team": "HOU"
    },
    {
     "id": "4433134",
-    "lead": 0.0498,
+    "lead": 0.0499,
     "name": "Scottie Barnes",
     "proj": 38.1,
     "team": "TOR"
@@ -13090,21 +13090,21 @@
    },
    {
     "id": "5142620",
-    "lead": 0.028,
+    "lead": 0.0282,
     "name": "Darius Acuff Jr.",
     "proj": 35.7,
     "team": "SAC"
    },
    {
     "id": "4431678",
-    "lead": 0.0184,
+    "lead": 0.0185,
     "name": "Tyrese Maxey",
     "proj": 33.6,
     "team": "PHI"
    },
    {
     "id": "3136193",
-    "lead": 0.016,
+    "lead": 0.0161,
     "name": "Devin Booker",
     "proj": 33.5,
     "team": "PHX"
@@ -13160,9 +13160,9 @@
    },
    {
     "id": "3202",
-    "lead": 0.0059,
+    "lead": 0.0057,
     "name": "Kevin Durant",
-    "proj": 29.7,
+    "proj": 29.6,
     "team": "HOU"
    },
    {
@@ -13208,18 +13208,25 @@
     "team": "SAC"
    },
    {
-    "id": "4396907",
-    "lead": 0.0033,
-    "name": "Darius Garland",
-    "proj": 29.0,
-    "team": "LAC"
-   },
-   {
     "id": "5144091",
     "lead": 0.0031,
     "name": "Jeremiah Fears",
     "proj": 29.2,
     "team": "NO"
+   },
+   {
+    "id": "4396907",
+    "lead": 0.0031,
+    "name": "Darius Garland",
+    "proj": 28.9,
+    "team": "LAC"
+   },
+   {
+    "id": "4845367",
+    "lead": 0.0028,
+    "name": "Stephon Castle",
+    "proj": 28.4,
+    "team": "SA"
    },
    {
     "id": "4431671",
@@ -13229,15 +13236,8 @@
     "team": "MIN"
    },
    {
-    "id": "4845367",
-    "lead": 0.0027,
-    "name": "Stephon Castle",
-    "proj": 28.4,
-    "team": "SA"
-   },
-   {
     "id": "6606",
-    "lead": 0.0021,
+    "lead": 0.0022,
     "name": "Damian Lillard",
     "proj": 27.8,
     "team": "POR"
@@ -13358,7 +13358,7 @@
     "id": "2991230",
     "lead": 0.0003,
     "name": "Fred VanVleet",
-    "proj": 24.0,
+    "proj": 23.9,
     "team": "HOU"
    },
    {
