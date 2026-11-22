@@ -21038,16 +21038,9 @@
    ]
   ],
   "players": {
-   "3032977": [
-    "Giannis Antetokounmpo",
-    0.127,
-    475,
-    false,
-    "bet365"
-   ],
    "3059319": [
     "Andrew Wiggins",
-    0.083,
+    0.091,
     null,
     false,
     null
@@ -21061,7 +21054,7 @@
    ],
    "4066261": [
     "Bam Adebayo",
-    0.11,
+    0.125,
     525,
     false,
     "bet365"
@@ -21075,10 +21068,17 @@
    ],
    "4278053": [
     "Davion Mitchell",
-    0.099,
+    0.112,
     1000,
-    false,
+    true,
     "bet365"
+   ],
+   "4601025": [
+    "Pelle Larsson",
+    0.082,
+    1400,
+    true,
+    "fanduel"
    ],
    "4683778": [
     "Jared McCain",
@@ -21103,7 +21103,7 @@
    ],
    "6475": [
     "Klay Thompson",
-    0.084,
+    0.092,
     950,
     false,
     "fanduel"
