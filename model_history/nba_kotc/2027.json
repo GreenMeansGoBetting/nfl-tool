@@ -12623,42 +12623,42 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2108,
+    "lead": 0.2112,
     "name": "Giannis Antetokounmpo",
     "proj": 46.9,
     "team": "MIA"
    },
    {
     "id": "4278073",
-    "lead": 0.1626,
+    "lead": 0.163,
     "name": "Shai Gilgeous-Alexander",
     "proj": 45.5,
     "team": "OKC"
    },
    {
     "id": "3112335",
-    "lead": 0.1617,
+    "lead": 0.1597,
     "name": "Nikola Jokic",
-    "proj": 45.2,
+    "proj": 45.1,
     "team": "DEN"
    },
    {
     "id": "4566434",
-    "lead": 0.1136,
+    "lead": 0.1139,
     "name": "Franz Wagner",
     "proj": 43.0,
     "team": "ORL"
    },
    {
     "id": "6583",
-    "lead": 0.0781,
+    "lead": 0.0784,
     "name": "Anthony Davis",
     "proj": 40.4,
     "team": "WSH"
    },
    {
     "id": "4432166",
-    "lead": 0.057,
+    "lead": 0.0572,
     "name": "Cade Cunningham",
     "proj": 38.7,
     "team": "DET"
@@ -12672,14 +12672,14 @@
    },
    {
     "id": "3934672",
-    "lead": 0.043,
+    "lead": 0.0431,
     "name": "Jalen Brunson",
     "proj": 36.6,
     "team": "NY"
    },
    {
     "id": "4701230",
-    "lead": 0.0327,
+    "lead": 0.0328,
     "name": "Jalen Johnson",
     "proj": 36.4,
     "team": "ATL"
@@ -12728,14 +12728,14 @@
    },
    {
     "id": "4251",
-    "lead": 0.0039,
+    "lead": 0.004,
     "name": "Paul George",
     "proj": 28.6,
     "team": "BOS"
    },
    {
     "id": "4278053",
-    "lead": 0.0033,
+    "lead": 0.0034,
     "name": "Davion Mitchell",
     "proj": 28.8,
     "team": "MIA"
@@ -12784,7 +12784,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0012,
+    "lead": 0.0013,
     "name": "Trae Young",
     "proj": 25.6,
     "team": "WSH"
@@ -12800,7 +12800,7 @@
     "id": "2595516",
     "lead": 0.0009,
     "name": "Norman Powell",
-    "proj": 25.8,
+    "proj": 25.7,
     "team": "CHI"
    },
    {
