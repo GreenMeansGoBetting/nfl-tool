@@ -21396,7 +21396,7 @@
   "players": {
    "3062679": [
     "Josh Hart",
-    0.061,
+    0.063,
     1025,
     false,
     "fliff"
@@ -21410,14 +21410,14 @@
    ],
    "3136195": [
     "Karl-Anthony Towns",
-    0.096,
+    0.099,
     500,
     false,
     "hard_rock"
    ],
    "3147657": [
     "Mikal Bridges",
-    0.079,
+    0.081,
     850,
     false,
     "fanduel"
@@ -21429,19 +21429,19 @@
     false,
     "fanduel"
    ],
-   "3934672": [
-    "Jalen Brunson",
-    0.117,
-    470,
+   "3914044": [
+    "Landry Shamet",
+    0.087,
+    800,
     false,
     "fanduel"
    ],
-   "3934719": [
-    "OG Anunoby",
-    0.099,
-    null,
+   "3934672": [
+    "Jalen Brunson",
+    0.122,
+    470,
     false,
-    null
+    "fanduel"
    ],
    "4017837": [
     "Ivica Zubac",
