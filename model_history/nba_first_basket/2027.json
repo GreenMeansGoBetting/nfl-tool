@@ -3827,7 +3827,7 @@
    ],
    "3138160": [
     "Caleb Martin",
-    0.068,
+    0.065,
     null,
     false,
     null
@@ -3848,7 +3848,14 @@
    ],
    "4278049": [
     "Daniel Gafford",
-    0.085,
+    0.08,
+    null,
+    false,
+    null
+   ],
+   "4278078": [
+    "P.J. Washington",
+    0.089,
     null,
     false,
     null
@@ -3860,23 +3867,16 @@
     false,
     null
    ],
-   "4432582": [
-    "Max Christie",
-    0.071,
-    null,
-    false,
-    null
-   ],
    "5041939": [
     "Cooper Flagg",
-    0.114,
+    0.108,
     null,
     false,
     null
    ],
    "6442": [
     "Kyrie Irving",
-    0.101,
+    0.096,
     null,
     false,
     null
@@ -21307,14 +21307,21 @@
   "players": {
    "3138160": [
     "Caleb Martin",
-    0.07,
+    0.068,
     1500,
-    true,
+    false,
     "hard_rock"
    ],
    "4278049": [
     "Daniel Gafford",
-    0.088,
+    0.083,
+    800,
+    false,
+    "hard_rock"
+   ],
+   "4278078": [
+    "P.J. Washington",
+    0.092,
     800,
     false,
     "hard_rock"
@@ -21325,13 +21332,6 @@
     800,
     false,
     "hard_rock"
-   ],
-   "4432582": [
-    "Max Christie",
-    0.074,
-    null,
-    false,
-    null
    ],
    "4432811": [
     "Josh Green",
@@ -21356,7 +21356,7 @@
    ],
    "5041939": [
     "Cooper Flagg",
-    0.118,
+    0.112,
     650,
     false,
     "fanduel"
@@ -21370,9 +21370,9 @@
    ],
    "6442": [
     "Kyrie Irving",
-    0.104,
+    0.1,
     1000,
-    true,
+    false,
     "fanduel"
    ]
   },
@@ -21574,7 +21574,7 @@
   "players": {
    "4065733": [
     "Ty Jerome",
-    0.123,
+    0.116,
     null,
     false,
     null
@@ -21589,13 +21589,6 @@
    "4396971": [
     "Naz Reid",
     0.112,
-    null,
-    false,
-    null
-   ],
-   "4433083": [
-    "Cam Spencer",
-    0.093,
     null,
     false,
     null
@@ -21616,7 +21609,7 @@
    ],
    "4600663": [
     "Zach Edey",
-    0.11,
+    0.101,
     null,
     false,
     null
@@ -21630,14 +21623,21 @@
    ],
    "4903027": [
     "Cedric Coward",
-    0.101,
+    0.095,
+    null,
+    false,
+    null
+   ],
+   "5041935": [
+    "Cameron Boozer",
+    0.121,
     null,
     false,
     null
    ],
    "5112087": [
     "Jaylen Wells",
-    0.099,
+    0.092,
     null,
     false,
     null
@@ -22120,13 +22120,6 @@
     false,
     null
    ],
-   "3442": [
-    "DeAndre Jordan",
-    0.069,
-    null,
-    false,
-    null
-   ],
    "4066383": [
     "Miles Bridges",
     0.102,
@@ -22136,14 +22129,21 @@
    ],
    "4277813": [
     "Herbert Jones",
-    0.092,
+    0.08,
     null,
     false,
     null
    ],
-   "4397136": [
-    "Saddiq Bey",
-    0.094,
+   "4395628": [
+    "Zion Williamson",
+    0.1,
+    null,
+    false,
+    null
+   ],
+   "4397688": [
+    "Trey Murphy III",
+    0.103,
     null,
     false,
     null
@@ -22164,14 +22164,14 @@
    ],
    "5061589": [
     "Yves Missi",
-    0.091,
+    0.079,
     null,
     false,
     null
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.112,
+    0.095,
     null,
     false,
     null
