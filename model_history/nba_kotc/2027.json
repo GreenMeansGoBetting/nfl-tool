@@ -12623,7 +12623,7 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.1791,
+    "lead": 0.179,
     "name": "Giannis Antetokounmpo",
     "proj": 47.0,
     "team": "MIA"
@@ -12651,7 +12651,7 @@
    },
    {
     "id": "3136195",
-    "lead": 0.086,
+    "lead": 0.0859,
     "name": "Karl-Anthony Towns",
     "proj": 41.7,
     "team": "NY"
@@ -12707,9 +12707,9 @@
    },
    {
     "id": "6442",
-    "lead": 0.0087,
+    "lead": 0.009,
     "name": "Kyrie Irving",
-    "proj": 31.9,
+    "proj": 32.0,
     "team": "DAL"
    },
    {
