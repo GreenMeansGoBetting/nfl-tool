@@ -13069,7 +13069,7 @@
    },
    {
     "id": "4871144",
-    "lead": 0.0487,
+    "lead": 0.0488,
     "name": "Alperen Sengun",
     "proj": 38.5,
     "team": "HOU"
@@ -13083,7 +13083,7 @@
    },
    {
     "id": "3908809",
-    "lead": 0.032,
+    "lead": 0.0321,
     "name": "Donovan Mitchell",
     "proj": 36.7,
     "team": "CLE"
@@ -13166,18 +13166,18 @@
     "team": "MIL"
    },
    {
-    "id": "4871145",
-    "lead": 0.0044,
-    "name": "Josh Giddey",
-    "proj": 29.0,
-    "team": "CHI"
-   },
-   {
     "id": "3202",
     "lead": 0.0043,
     "name": "Kevin Durant",
     "proj": 29.6,
     "team": "HOU"
+   },
+   {
+    "id": "4871145",
+    "lead": 0.0042,
+    "name": "Josh Giddey",
+    "proj": 28.9,
+    "team": "CHI"
    },
    {
     "id": "3064514",
@@ -13404,13 +13404,6 @@
     "team": "OKC"
    },
    {
-    "id": "4432639",
-    "lead": 0.0002,
-    "name": "Jabari Smith Jr.",
-    "proj": 22.8,
-    "team": "HOU"
-   },
-   {
     "id": "4433247",
     "lead": 0.0002,
     "name": "Jonathan Kuminga",
@@ -13437,6 +13430,13 @@
     "name": "Saddiq Bey",
     "proj": 22.7,
     "team": "NO"
+   },
+   {
+    "id": "4432639",
+    "lead": 0.0001,
+    "name": "Jabari Smith Jr.",
+    "proj": 22.7,
+    "team": "HOU"
    },
    {
     "id": "3995",
