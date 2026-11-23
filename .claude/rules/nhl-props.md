@@ -45,7 +45,7 @@ An edge of `UNSURE_EDGE` (25 points) or more is filed **"unsure"** by `shots_pla
   `test_a_play_none_of_the_members_books_has_is_left_out`.
 - **Every book's price** (`smartstake.fetch_nhl_book_odds`; `SMARTSTAKE_API_KEY` on the NHL step of
   deploy.yml AND nhl-refresh.yml): `book_odds["AWAY_HOME"].props.{sog,goals,saves,first_goal}[id]`,
-  matched by `player_finder` on either team. US books, odds lock (data-pipeline.md).
+  matched by `player_finder` on either team. US books, odds lock (nfl-odds.md).
 - **Every book's ladder** (the owner, 2026-11-02: "use smartstake odds and not just novig"): ONE
   `alternate=true` call for every market (`add_ladder(..., league="nhl")`) into `sog_alt`,
   `goals_alt`, `points_alt`, `saves_alt` (every line, main ones too). The open rows' ladders

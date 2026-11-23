@@ -29,12 +29,11 @@ message, so every line costs usage); detail belongs in a rules file.
    push to `main`**. GitHub Actions rebuilds and deploys automatically. No branches or pull requests.
 3. Confirm it's live with ONE look at `https://nfl.gmgsports.org/version.json` (public) about 7
    minutes after the push (3 for pages / login code only): it shows the pushed `sha`. The deploy rebuilds and tests only the sport a push changed
-   (anything shared: everything; members-and-hosting.md) and
-   opens every page and Summary card (`check_site.py --gate`) before publishing, and puts the last
+   (anything shared: everything; deploy.md) and opens every page and Summary card (`check_site.py --gate`) before publishing, and puts the last
    version back if the live site is down after; if the sha never changes, the run failed: say so and look at why.
 4. Tell the user to hard refresh (Ctrl+Shift+R).
 
-- **The site must never be left down or half-done** (members pay). Before starting a task that ends in a push, check plan usage (`mcp__ccd_session_mgmt__get_usage`); with under about 25% of the 5-hour window left, don't start it: say what is left and when it resets. One push = one finished, tested change that works on its own: never a "part 1", never a change made outside git. `python tools/ci_steps.py live-check --look` says whether the site is answering. Detail: members-and-hosting.md, "The site must never be left down".
+- **The site must never be left down or half-done** (members pay). Before starting a task that ends in a push, check plan usage (`mcp__ccd_session_mgmt__get_usage`); with under about 25% of the 5-hour window left, don't start it: say what is left and when it resets. One push = one finished, tested change that works on its own: never a "part 1", never a change made outside git. `python tools/ci_steps.py live-check --look` says whether the site is answering. Detail: deploy.md, "The site must never be left down".
 - Commit messages end with the Co-Authored-By line the environment specifies.
 - **Never view, print, or ask the user to paste API keys** (SmartStake, Stripe, Discord, Cloudflare,
   any future key): they are GitHub Actions secrets, added by the user in GitHub Settings → Secrets.
@@ -67,12 +66,12 @@ message, so every line costs usage); detail belongs in a rules file.
 - NFL build: `nfl_tool/build_stats.py` -> `site/data.json` (untracked, built in CI); `gmg_model.py`
   (GMG score model, picks, locked record); `line_grades.py` (OL / DL grades); `best_plays_record.py`.
   Odds: `smartstake.py` shared + `nfl_odds.py` (every US book -> `book_odds`, shown by `site/book-odds.js`),
-  `novig_event_markets.graphql` (sent verbatim). See data-pipeline.md.
+  `novig_event_markets.graphql` (sent verbatim). See nfl-odds.md.
 - **NBA** (`nfl_tool/nba/`, `site/nba/`) and **NHL** (`nfl_tool/nhl/`, `site/nhl/`): file lists
   are in nba.md / nhl.md, "Files".
 - `nfl_tool/functions/_middleware.js`: member login gate (Discord + email/Stripe), profiles, admin.
 - `.github/workflows/deploy.yml`: builds and deploys on a 6-hour cron, "Run workflow" and every push
-  to main; every run tests, builds and browser-checks all three sports (members-and-hosting.md).
+  to main; every run tests, builds and browser-checks all three sports (deploy.md).
   `nhl-refresh.yml`: hockey every half hour (nhl.md). `site-check.yml`: daily live check. `nba-bbref-check.yml`: weekly NBA shot-data alarm (nba.md).
 - `model_history/` (committed by the deploy bot): every model's locked / graded record
   (`gmg_model.json`, `nfl_koe/`, `nfl_best_plays/`, `nhl_*/`, `nba_*/`).
@@ -81,7 +80,7 @@ message, so every line costs usage); detail belongs in a rules file.
 - NFL pages (`nfl_tool/site/`): `game-overview.html/.js` + `game-summary.js` Game Previews;
   `index.html` + `app.js` TD Data; `opening-drives.html/.js` Opening Drive Tool (td-data.md); `player-props.html/.js` + `props-summary.js` Player Props;
   `best-plays.html/.js` NFL Best Plays; `player-card.js` player card popup; `promo-tools.html/.js`
-  King of the Endzone; `contest.html/.js` $100 CONTEST (plays-and-promos.md); `support.html`.
+  King of the Endzone; `contest.html/.js` $100 CONTEST (promos.md); `support.html`.
 - Shared: `my-plays.html/.js` My Plays (every sport's saved plays, Photo Export, `parlay-wheel.js`;
   `plays-grading.js`, `picks.js`); `common.js` (tiers, matchup calls, saved plays, modals, card
   fit / Save image); `sync.js` (profiles, top menu `SPORT_PAGES` / `PROPS` / `PROMOS` / `navMenu`,
@@ -131,10 +130,11 @@ message, so every line costs usage); detail belongs in a rules file.
 
 ## Where the detail lives
 
-Area rules in `.claude/rules/` (each loads when you open a file it lists): `game-previews.md`
-(Summary card, GMG model, grades / tags, trenches), `td-data.md`, `player-props.md` (Props Summary,
-Zone Targets, player card), `plays-and-promos.md` (My Plays, Photo Export, Pick Tracker, King of the
-Endzone), `members-and-hosting.md` (login, Stripe, Cloudflare, deploy), `data-pipeline.md` (sources,
-SmartStake / Novig odds, odds lock, injuries, usage), `styles.md` (site-wide look, phone, card fit),
-`nba.md`, `nhl.md` (the NHL's own feed; never MoneyPuck), each plus one file per tool (`nba-*.md`, `nhl-*.md`;
-a new tool's rules get their own file). Clean-up plan: `docs/foundation-plan.md` (one item per session). Why rules exist: `docs/history.md` (search it; not loaded automatically).
+Area rules in `.claude/rules/` (each loads when you open a file it lists; a new tool's rules get their own
+file): `game-previews.md` (Summary card, GMG model, grades / tags, trenches), `td-data.md`, `player-props.md`
+(Props Summary, Zone Targets, player card), `plays-and-promos.md` (My Plays, Photo Export, Pick Tracker),
+`promos.md` (King of the Endzone, $100 CONTEST), `members.md` (login, Stripe, Buildr), `member-profiles.md`
+(`/api/state`, saved data), `hosting.md` (Cloudflare, sport addresses), `deploy.md` (never down, each run),
+`data-pipeline.md` (sources, injuries, usage), `nfl-odds.md` (SmartStake / Novig, odds lock), `styles.md`
+(site-wide look, phone, card fit), `nba.md` + `nba-*.md`, `nhl.md` + `nhl-*.md` (the NHL's own feed; never MoneyPuck).
+Clean-up plan: `docs/foundation-plan.md` (one item per session). Why rules exist: `docs/history.md` (search it; not loaded automatically).

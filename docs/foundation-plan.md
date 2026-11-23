@@ -39,6 +39,9 @@ Ground rules:
   now a 9 KB core plus that tool's file (NHL: 57 KB to a 22 KB core plus one tool). About 250 lines
   of code nothing called were removed (the old TD Data "Matchup Snapshot" finder, among others).
   Screenshots and mockups live in `scratch/`, which git ignores.
+  Same day, the site-wide notes: `members-and-hosting.md` became `members.md`, `member-profiles.md`,
+  `hosting.md` and `deploy.md`; King of the Endzone and the $100 CONTEST moved to `promos.md`; odds
+  moved to `nfl-odds.md`. Editing sync.js now loads about 23 KB of notes (was 54), common.js 29 (was 45).
 
 - **Design pushes publish fast (item 5, mostly done by 2026-11).** A push that touches only pages,
   the login code, tools, tests or notes skips the data rebuild and is live in about 5 minutes; the

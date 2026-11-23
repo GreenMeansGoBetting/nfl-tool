@@ -35,7 +35,7 @@ Previews.
 - **Line Stacks (retired 2026-10-21, it lost):** gone are the page, `stacks.json`, the build's board
   and record (`game_ice` / `ice`). Kept: `model_history/nhl_stacks/`, `stacks_model.py` +
   `tools/backtest/nhl_stacks.py` + `tests/test_nhl_stacks.py`, the SGP price log endpoint and D1 rows
-  (members-and-hosting.md); My Plays still grades saved stacks.
+  (member-profiles.md); My Plays still grades saved stacks.
 
 ## Vs Position (`vs-position.html` + `vs-position.js`, 2026-11-17)
 

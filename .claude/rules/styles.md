@@ -160,7 +160,7 @@ automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for eve
   captures the page's own list and grades it (player-props.md); its popup is a tile per market
   (Receiving / Rushing / Passing with Overs / Unders, Anytime TD, First TD) plus All Plays.
 - **A root file a sport page loads (`../ytd.js`) must be in the login gate's `SHARED_FILES`**
-  (members-and-hosting.md): ytd.js wasn't, and on 2026-10-22 the NHL prop pages drew no plays
+  (hosting.md): ytd.js wasn't, and on 2026-10-22 the NHL prop pages drew no plays
   for about 45 minutes. `tests/test_sport_hosts.py`.
 
 ## One stylesheet per sport (2026-10-13)

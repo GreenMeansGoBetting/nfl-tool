@@ -50,7 +50,7 @@ your team's starter counts if yours doesn't start; bet +100 or longer). Has **Va
   - **Payouts typed in by the owner:** a box shown only with `html.is-owner` (and localhost): day,
     pool ($500,000 default), paste DraftKings' text ("🥅 Name - $2,748 in Bonus Bets"). Names match
     starters (accents dropped, else a unique last name); an unmatched name blocks the save. D1
-    `crease_payouts` via `/api/crease-payouts` (members-and-hosting.md).
+    `crease_payouts` via `/api/crease-payouts` (member-profiles.md).
 - **Save image** is the priority: the table with a GMG title bar and key at 2x, whole slate.
 
 ## Icebreaker (Promo Tools, `promo-tools.html#icebreaker`)
