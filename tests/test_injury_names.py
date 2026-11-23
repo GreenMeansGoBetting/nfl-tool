@@ -1,4 +1,4 @@
-"""Injured starters must reach the Summary card (build_stats.compute_injury_report).
+"""Injured starters must reach the Summary card (nfl_players.compute_injury_report).
 
 The injury report and the snap counts spell names differently ("Pat
 Surtain II" vs "Patrick Surtain II"). A miss left snap_share empty, which the
@@ -10,7 +10,7 @@ import pandas as pd
 
 import helpers  # noqa: F401 -- first: puts nfl_tool/ on the import path
 
-import build_stats
+import nfl_players
 
 SHARES = {
     "DEN": {"Patrick Surtain II": 0.86, "Riley Moss": 0.9},
@@ -26,7 +26,7 @@ def report(rows):
         {"team": t, "week": 6, "full_name": n, "position": "CB", "report_status": "Out", "practice_status": None}
         for t, n in rows
     ])
-    out = build_stats.compute_injury_report(df, list(SHARES), SHARES)
+    out = nfl_players.compute_injury_report(df, list(SHARES), SHARES)
     return {(t, p["full_name"]): p["snap_share"] for t, weeks in out.items() for p in weeks.get("6", [])}
 
 

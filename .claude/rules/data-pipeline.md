@@ -7,7 +7,9 @@ paths:
 
 Stories and example players behind these rules: `docs/history.md`, "Data pipeline".
 
-`build_stats.py` reads nflverse play-by-play, rosters, injuries, snap counts, FTN charting and
+`build_stats.py` runs the build in order; the work lives in `nfl_*.py` by job (2026-11-23, list in its
+opening note: `nfl_sources` downloads, `nfl_lines` odds, `nfl_td`, `nfl_team_stats`, `nfl_players`,
+`nfl_props`; each imports only files above it). It reads nflverse play-by-play, rosters, injuries, snap counts, FTN charting and
 schedules, plus odds from SmartStake (every US book) and Novig, and ESPN FPI, and writes
 `nfl_tool/site/data.json` (untracked; built in CI). `gmg_model.py` and `line_grades.py` are
 imported by it (rules in game-previews.md).

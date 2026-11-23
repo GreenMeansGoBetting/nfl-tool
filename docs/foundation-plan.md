@@ -50,9 +50,10 @@ Ground rules:
 
 ## 4. Smaller files, one source of truth (next)
 
-- `nfl_tool/build_stats.py` is 4,700 lines (2026-11-23; `nhl/build_nhl.py` 4,000): split by feature (odds, injuries, TD data, props,
-  team stats, schedule) into modules, keeping one entry script. Tests from item 3 come first so
-  the split can be proven to change nothing (compare the built `data.json` before and after).
+- `nfl_tool/build_stats.py` (done 2026-11-23): 4,700 lines became a 360-line entry script (the order of the
+  build) plus `nfl_common`, `nfl_sources`, `nfl_lines`, `nfl_td`, `nfl_team_stats`, `nfl_players`,
+  `nfl_props` (moved verbatim; an offline build from saved data wrote identical files before and after).
+  Next: `nhl/build_nhl.py` (4,000 lines), the same way.
 - `nfl_tool/site/style.css` (done 2026-11-23): 4,400 lines became a shared style.css (~2,700) plus one
   file per NFL page group (`game-previews.css`, `td-data.css`, `player-props.css`, `my-plays.css`,
   `promos.css`, `support.css`, `activity.css`), proven by every element's computed style (styles.md).

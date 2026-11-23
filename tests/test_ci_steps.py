@@ -121,6 +121,7 @@ class TestLane(unittest.TestCase):
         self.assertEqual(ci_steps.test_plan("push", ["nfl_tool/site/nhl/nhl.css", "nfl_tool/nhl/goals_model.py"])[0], "nhl")
         self.assertEqual(ci_steps.test_plan("push", ["nfl_tool/nhl/build_nhl.py", "nfl_tool/nba/build_nba.py"])[0], "nba nhl")
         self.assertEqual(ci_steps.test_plan("push", ["nfl_tool/gmg_model.py"])[0], "nfl")
+        self.assertEqual(ci_steps.test_plan("push", ["nfl_tool/nfl_props.py"])[0], "nfl")
 
     def test_shared_files_and_non_pushes_run_every_test(self):
         for path in ("nfl_tool/site/sync.js", "nfl_tool/site/style.css", "nfl_tool/site/common.js", "nfl_tool/site/app.js",
@@ -168,7 +169,7 @@ class FastLane(unittest.TestCase):
         """Pages of a scrapbook (the owner, 2026-10-22): NHL build code
         rebuilds NHL; football and basketball publish with their live data."""
         for path, sports in (("nfl_tool/nhl/build_nhl.py", ["nhl"]), ("nfl_tool/nhl/goals_model.py", ["nhl"]), ("nfl_tool/nba/possessions.py", ["nba"]),
-                             ("nfl_tool/build_stats.py", ["nfl"]), ("nfl_tool/gmg_model.py", ["nfl"]), ("nfl_tool/line_grades.py", ["nfl"])):
+                             ("nfl_tool/build_stats.py", ["nfl"]), ("nfl_tool/nfl_td.py", ["nfl"]), ("nfl_tool/nfl_lines.py", ["nfl"]), ("nfl_tool/gmg_model.py", ["nfl"]), ("nfl_tool/line_grades.py", ["nfl"])):
             self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/site/app.js", path])[0], sports, path)
         self.assertEqual(ci_steps.build_plan("push", ["nfl_tool/nhl/build_nhl.py", "nfl_tool/build_stats.py"])[0], ["nfl", "nhl"])
         self.assertEqual(ci_steps.lane_decision("push", ["nfl_tool/nhl/build_nhl.py"])[0], "partial")

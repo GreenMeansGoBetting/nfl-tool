@@ -108,7 +108,7 @@ Pass catchers whose targets land where the defense is soft.
 - **Overall read** (`renderZoneMatchupRead`) under the lead-zone tiles: an overall passing matchup
   (depth grades weighted by the offense's throw share), plus the Best spot and Toughest spot
   among groups with at least 10% of throws.
-- **Game script:** build_stats flags each throw `gt` when win probability is under 10% or over
+- **Game script:** the build (`nfl_props.py`) flags each throw `gt` when win probability is under 10% or over
   90% (`GARBAGE_WP`), and records `s` for play success. Garbage-time throws count **half** in
   these grades, and the grades use only per-throw efficiency, never volume, which game script
   inflates.

@@ -1,4 +1,4 @@
-"""Odds lock at kickoff (build_stats.lock_started_game_odds).
+"""Odds lock at kickoff (nfl_lines.lock_started_game_odds).
 
 Books keep quoting in-game lines, and the build once published them as the
 pregame number (SF +3.5 / 46.5 became "SF -4.5, Under 56.5" mid-game). Once a
@@ -10,7 +10,7 @@ from unittest import mock
 
 import helpers  # noqa: F401 -- first: puts nfl_tool/ on the import path
 
-import build_stats
+import nfl_lines
 
 GID = "2026_05_AAA_HHH"
 LATER = "2026_05_CCC_DDD"
@@ -55,8 +55,8 @@ def previous_build(generated_at, locked=()):
 
 
 def lock(blob, previous, model_history=None):
-    with mock.patch.object(build_stats, "eastern_now", return_value=IN_GAME):
-        return build_stats.lock_started_game_odds(blob, previous, model_history or {})
+    with mock.patch.object(nfl_lines, "eastern_now", return_value=IN_GAME):
+        return nfl_lines.lock_started_game_odds(blob, previous, model_history or {})
 
 
 def tags(rows):

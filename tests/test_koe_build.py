@@ -16,11 +16,7 @@ import pandas as pd
 
 from helpers import ROOT  # first: puts tools/ on the import path
 
-import importlib.util
-
-spec = importlib.util.spec_from_file_location("build_stats", ROOT / "nfl_tool" / "build_stats.py")
-bs = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(bs)
+import nfl_td
 
 NAMES = {"00-1": "Bijan Robinson", "00-2": "Drake London", "00-3": "Alvin Kamara"}
 
@@ -37,7 +33,7 @@ def play(**kw):
 
 class Results(unittest.TestCase):
     def results(self, plays):
-        return bs.koe_game_results(pd.DataFrame(plays), lookup)
+        return nfl_td.koe_game_results(pd.DataFrame(plays), lookup)
 
     def test_the_longest_offensive_td_with_full_names(self):
         got = self.results([play(yards_gained=59), play(td_player_id="00-2", td_player_name="D.London", yards_gained=31), play(yards_gained=4)])
@@ -62,33 +58,33 @@ class Results(unittest.TestCase):
 
 class Boards(unittest.TestCase):
     def setUp(self):
-        self.real = bs.compute_koe
-        bs.compute_koe = lambda pbp, pos: {"through": int(pbp["week"].max()) if len(pbp) else 0}
+        self.real = nfl_td.compute_koe
+        nfl_td.compute_koe = lambda pbp, pos: {"through": int(pbp["week"].max()) if len(pbp) else 0}
         self.pbp = pd.DataFrame({"week": [1, 2, 3, 4]})
 
     def tearDown(self):
-        bs.compute_koe = self.real
+        nfl_td.compute_koe = self.real
 
     def schedule(self, open_weeks=()):
         return [{"week": w, "status": "scheduled" if w in open_weeks else "final"} for w in (1, 2, 3, 4, 5)]
 
     def test_each_week_from_the_games_before_it_and_no_week_1(self):
-        boards = bs.koe_week_boards(self.pbp, None, self.schedule(open_weeks=(5,)), None, 2026)
+        boards = nfl_td.koe_week_boards(self.pbp, None, self.schedule(open_weeks=(5,)), None, 2026)
         self.assertEqual(sorted(boards, key=int), ["2", "3", "4", "5"])
         self.assertEqual(boards["4"], {"through": 3})
 
     def test_saved_once_final_and_read_back(self):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
-            bs.koe_week_boards(self.pbp, None, self.schedule(open_weeks=(4, 5)), folder, 2026)
+            nfl_td.koe_week_boards(self.pbp, None, self.schedule(open_weeks=(4, 5)), folder, 2026)
             saved = sorted(p.name for p in (folder / "2026").glob("*.json"))
             self.assertEqual(saved, ["week-02.json", "week-03.json", "week-04.json"])  # week 4's board needs weeks 1-3 final
             (folder / "2026" / "week-02.json").write_text(json.dumps({"kept": True}))
-            boards = bs.koe_week_boards(self.pbp, None, self.schedule(open_weeks=(4, 5)), folder, 2026)
+            boards = nfl_td.koe_week_boards(self.pbp, None, self.schedule(open_weeks=(4, 5)), folder, 2026)
             self.assertEqual(boards["2"], {"kept": True})  # read back, not rebuilt
 
     def test_nothing_before_the_first_final_game(self):
-        self.assertEqual(bs.koe_week_boards(self.pbp, None, [{"week": 1, "status": "scheduled"}], None, 2026), {})
+        self.assertEqual(nfl_td.koe_week_boards(self.pbp, None, [{"week": 1, "status": "scheduled"}], None, 2026), {})
 
 
 if __name__ == "__main__":

@@ -88,7 +88,7 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
   `ci_steps.py build_plan`: each changed file names the sports whose DATA it can change
   (`sports_for`): pages, notes, tests, `model_history/`, the login code (`nfl_tool/functions/`)
   and `tools/` change none; `nfl_tool/nba/` = NBA, `nfl_tool/nhl/` = NHL, `build_stats.py`,
-  `gmg_model.py`, `line_grades.py`, `nfl_odds.py` = NFL; `smartstake.py` (the shared SmartStake plumbing only since 2026-11-21: each sport's odds code is in its own file, nfl-odds.md), the Novig query, requirements, the
+  `nfl_*.py` (its job files and `nfl_odds.py`; an entry ending in `/` or `_` matches by start), `gmg_model.py`, `line_grades.py` = NFL; `smartstake.py` (the shared SmartStake plumbing only since 2026-11-21: each sport's odds code is in its own file, nfl-odds.md), the Novig query, requirements, the
   workflows and anything unknown = every sport. The lane step outputs `build` and `live`; the
   sports in `live` are downloaded (`fetch_live_data.py --only $LIVE --need $LIVE`), and if that
   fails every sport is built. `lane` in version.json: `pages` / `partial` / `full`. A test checks

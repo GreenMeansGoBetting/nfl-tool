@@ -88,7 +88,7 @@ DraftKings' weekly promo paying on the game's LONGEST TD, D/ST included.
   naming the games and week.
 - D/ST table: return TDs (INT / FUM / KR / PR with yards), takeaways/g, opponent giveaways/g, D/ST
   TDs the opponent has allowed. No Upside score for D/ST yet.
-- Data: `build_stats.py compute_koe` -> `DATA.koe` (players per team, team big plays allowed,
+- Data: `nfl_td.py compute_koe` -> `DATA.koe` (players per team, team big plays allowed,
   `dst_tds` / `dst_tds_allowed`; return TD length = `return_yards`, else `fumble_recovery_1_yards`).
 - **Week toggle** (2026-10-14, the owner: "doesn't have a week toggle so going back is not
   possible"): arrows beside "Week N" in the Teams panel. A past week shows its board **as it

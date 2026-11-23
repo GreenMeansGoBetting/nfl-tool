@@ -130,7 +130,7 @@ want the entire set of info they can get on the site." Do not add stat lines bac
   started its entry is kept as the last build before kickoff left it (`frozen`) and graded against
   the line stored in it. A game that started with no earlier entry is never projected after the
   fact (it shows "--").
-- **Where the record lives:** `previous_gmg_model` (build_stats.py) merges the live data.json's
+- **Where the record lives:** `previous_gmg_model` (nfl_lines.py) merges the live data.json's
   `gmg_model` with `model_history/gmg_model.json`, which deploy.yml commits (as
   github-actions[bot], needs `contents: write`) whenever a game locks or goes final.
 - **Where it shows:** the green GMG model tile on the card (click it) and the "GMG Model record"

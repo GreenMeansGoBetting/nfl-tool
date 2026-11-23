@@ -1,4 +1,4 @@
-"""Novig TD odds (build_stats.extract_novig_props), read from a saved game.
+"""Novig TD odds (nfl_lines.extract_novig_props), read from a saved game.
 
 Most Novig First TD markets are one-sided (a Yes price, nobody selling No).
 They used to be dropped, leaving 2-5 First TD prices a game. Every believable
@@ -9,7 +9,7 @@ import unittest
 
 from helpers import novig_event  # first: puts nfl_tool/ on the import path
 
-import build_stats
+import nfl_lines
 
 TEAMS = ["HOU", "JAX"]
 MARKETS = novig_event()["event"]["markets"]
@@ -17,7 +17,7 @@ MARKETS = novig_event()["event"]["markets"]
 
 def read(markets, unavailable=()):
     """(anytime rows, first TD rows) for the one game, both teams together."""
-    _, anytime, first = build_stats.extract_novig_props({("HOU", "JAX"): markets}, TEAMS, {}, set(unavailable))
+    _, anytime, first = nfl_lines.extract_novig_props({("HOU", "JAX"): markets}, TEAMS, {}, set(unavailable))
     return anytime["HOU"] + anytime["JAX"], first["HOU"] + first["JAX"]
 
 
@@ -96,7 +96,7 @@ class SavedGame(unittest.TestCase):
             self.assertTrue(0 < row["implied_prob"] < 1, row)
 
     def test_players_land_on_their_own_team(self):
-        _, anytime, first = build_stats.extract_novig_props({("HOU", "JAX"): copy.deepcopy(MARKETS)}, TEAMS, {}, set())
+        _, anytime, first = nfl_lines.extract_novig_props({("HOU", "JAX"): copy.deepcopy(MARKETS)}, TEAMS, {}, set())
         self.assertIn("Nico Collins", by_name(first["HOU"]))
         self.assertIn("Trevor Lawrence", by_name(first["JAX"]))
         self.assertIn("Nico Collins", by_name(anytime["HOU"]))
@@ -173,7 +173,7 @@ class Prices(unittest.TestCase):
     def test_price_to_american_odds(self):
         cases = {0.5: -100, 0.25: 300, 0.75: -300, 0.535: -115, 0.014: 7043, None: None, 0: None, 1: None, 1.2: None}
         for price, odds in cases.items():
-            self.assertEqual(build_stats.novig_price_to_american(price), odds, price)
+            self.assertEqual(nfl_lines.novig_price_to_american(price), odds, price)
 
 
 if __name__ == "__main__":

@@ -183,7 +183,7 @@ SPORT_BUILD = {
     "nfl_tool/nba/": ("nba",),
     "nfl_tool/nhl/": ("nhl",),
     "nfl_tool/build_stats.py": ("nfl",),
-    "nfl_tool/nfl_odds.py": ("nfl",),
+    "nfl_tool/nfl_": ("nfl",),  # nfl_odds.py and the build's own files (nfl_lines.py, nfl_td.py ...)
     "nfl_tool/gmg_model.py": ("nfl",),
     "nfl_tool/line_grades.py": ("nfl",),
     "nfl_tool/best_plays_record.py": ("nfl",),
@@ -223,7 +223,7 @@ def sports_for(path, gitignore=None):
     if path == ".gitignore" and gitignore is not None:
         return gitignore
     for prefix, sports in SPORT_BUILD.items():
-        if path == prefix or (prefix.endswith("/") and path.startswith(prefix)):
+        if path == prefix or (prefix.endswith(("/", "_")) and path.startswith(prefix)):  # a folder, or a file-name start like nfl_
             return sports
     return SPORTS
 
@@ -263,7 +263,7 @@ def build_plan(event, changed, gitignore=None):
 TEST_SPORT = (
     ("nfl_tool/nba/", "nba"), ("nfl_tool/site/nba/", "nba"), ("tests/test_nba_", "nba"), ("model_history/nba_", "nba"),
     ("nfl_tool/nhl/", "nhl"), ("nfl_tool/site/nhl/", "nhl"), ("tests/test_nhl_", "nhl"), ("model_history/nhl_", "nhl"),
-    ("nfl_tool/build_stats.py", "nfl"), ("nfl_tool/nfl_odds.py", "nfl"), ("nfl_tool/gmg_model.py", "nfl"), ("nfl_tool/line_grades.py", "nfl"),
+    ("nfl_tool/build_stats.py", "nfl"), ("nfl_tool/nfl_", "nfl"), ("nfl_tool/gmg_model.py", "nfl"), ("nfl_tool/line_grades.py", "nfl"),
     ("nfl_tool/best_plays_record.py", "nfl"), ("model_history/nfl_", "nfl"), ("model_history/gmg_model", "nfl"),
 )
 TEST_NONE = ("docs/", ".claude/", "CLAUDE.md", "README.md")

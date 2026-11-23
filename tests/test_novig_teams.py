@@ -1,4 +1,4 @@
-"""Novig team codes (build_stats._novig_team).
+"""Novig team codes (nfl_lines._novig_team).
 
 Nov 2026: Novig's `symbol` for the Chargers became "LA" (our Rams code). The
 build keyed LAC @ BAL as LA @ BAL, didn't recognize it, and dropped every
@@ -10,7 +10,7 @@ from unittest import mock
 
 from helpers import novig_event  # noqa: F401  (puts nfl_tool/ on the import path)
 
-import build_stats
+import nfl_lines
 
 LAC = {"id": "lac-id", "name": "Los Angeles Chargers", "symbol": "LA", "short_name": "LAC"}
 BAL = {"id": "bal-id", "name": "Baltimore Ravens", "symbol": "BAL", "short_name": "BAL"}
@@ -27,11 +27,11 @@ def fake_feed(away, home, markets):
 
 class NovigTeamCodes(unittest.TestCase):
     def setUp(self):
-        build_stats._NOVIG_TEAM_IDS.clear()
+        nfl_lines._NOVIG_TEAM_IDS.clear()
 
     def fetch(self, away, home, wanted, markets=()):
-        with mock.patch.object(build_stats, "_novig_request", fake_feed(away, home, list(markets))):
-            return build_stats.fetch_novig_week(wanted, "2025-11-16T00:00:00+00:00", "2025-11-18T00:00:00+00:00")
+        with mock.patch.object(nfl_lines, "_novig_request", fake_feed(away, home, list(markets))):
+            return nfl_lines.fetch_novig_week(wanted, "2025-11-16T00:00:00+00:00", "2025-11-18T00:00:00+00:00")
 
     def test_chargers_labeled_la_still_match_their_game(self):
         games, debug = self.fetch(LAC, BAL, [{"away": "LAC", "home": "BAL"}])
@@ -49,8 +49,8 @@ class NovigTeamCodes(unittest.TestCase):
         ]}
         games, _ = self.fetch(LAC, BAL, [{"away": "LAC", "home": "BAL"}], [spread])
         player_market = {"player": {"player_competitors": [{"competitor": {"id": "x", "name": "Los Angeles Chargers", "symbol": "LA"}}]}}
-        self.assertEqual(build_stats._novig_player_team(player_market), "LAC")
-        lines = build_stats.extract_novig_game_lines(games)["LAC_BAL"]
+        self.assertEqual(nfl_lines._novig_player_team(player_market), "LAC")
+        lines = nfl_lines.extract_novig_game_lines(games)["LAC_BAL"]
         self.assertEqual(lines["away_team_spread"], 4.5)
         self.assertEqual(lines["home_team_spread"], -4.5)
 

@@ -2,7 +2,7 @@
 paths:
   - "nfl_tool/smartstake.py"
   - "nfl_tool/nfl_odds.py"
-  - "nfl_tool/build_stats.py"
+  - "nfl_tool/nfl_lines.py"
   - "nfl_tool/novig_event_markets.graphql"
   - "nfl_tool/site/book-odds.js"
   - "tools/smartstake_probe.py"

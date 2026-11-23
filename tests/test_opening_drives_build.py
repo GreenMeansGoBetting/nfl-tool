@@ -13,11 +13,7 @@ import pandas as pd
 
 from helpers import ROOT  # first: puts tools/ on the import path
 
-import importlib.util
-
-spec = importlib.util.spec_from_file_location("build_stats", ROOT / "nfl_tool" / "build_stats.py")
-bs = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(bs)
+import nfl_team_stats
 
 PLAY_ID = iter(range(1, 1000))
 
@@ -40,7 +36,7 @@ def game():
 
 class OpeningDrives(unittest.TestCase):
     def setUp(self):
-        self.teams = bs.compute_opening_drives(game())["teams"]
+        self.teams = nfl_team_stats.compute_opening_drives(game())["teams"]
 
     def test_the_first_offensive_drive_and_its_detail(self):
         atl = self.teams["ATL"][0]
@@ -58,10 +54,10 @@ class OpeningDrives(unittest.TestCase):
         self.assertEqual(self.teams["NO"][0]["game"], [0, 1, 0, 1])
 
     def test_outcome_names(self):
-        self.assertEqual(bs._drive_outcome("Touchdown", None), "td")
-        self.assertEqual(bs._drive_outcome("Opp touchdown", "FUMBLE"), "other")
-        self.assertEqual(bs._drive_outcome("Safety", "SAFETY"), "other")
-        self.assertEqual(bs._drive_outcome("Opp touchdown", "BLOCKED_PUNT"), "punt")
+        self.assertEqual(nfl_team_stats._drive_outcome("Touchdown", None), "td")
+        self.assertEqual(nfl_team_stats._drive_outcome("Opp touchdown", "FUMBLE"), "other")
+        self.assertEqual(nfl_team_stats._drive_outcome("Safety", "SAFETY"), "other")
+        self.assertEqual(nfl_team_stats._drive_outcome("Opp touchdown", "BLOCKED_PUNT"), "punt")
 
 
 if __name__ == "__main__":

@@ -17,7 +17,11 @@ warnings.filterwarnings("ignore")
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "nfl_tool"))
 import pandas as pd
-import build_stats as b
+import nfl_common
+import nfl_players
+import nfl_sources
+import nfl_td
+import nfl_team_stats
 import gmg_model as m
 from line_grades import compute_line_grades, load_ngs
 
@@ -26,43 +30,43 @@ OUT = ROOT / "data" / "backtest"
 OUT.mkdir(parents=True, exist_ok=True)
 
 def stats_as_of(pbp, ftn, teams):
-    team_games = b.compute_team_game_td_counts(pbp)
-    team_games_allowed = b.compute_team_game_td_allowed(pbp)
-    games_played = b.compute_games_played(pbp)
+    team_games = nfl_td.compute_team_game_td_counts(pbp)
+    team_games_allowed = nfl_td.compute_team_game_td_allowed(pbp)
+    games_played = nfl_td.compute_games_played(pbp)
     pos_lookup = stats_as_of.pos
-    first_td_by_game = b.compute_first_td_per_game(pbp, pos_lookup)
-    scoring_df = b.scoring_plays_with_position(pbp, pos_lookup)
-    red_zone = b.compute_red_zone(pbp)
-    red_zone_trips = b.compute_red_zone_trips(pbp)
-    length_buckets = b.compute_length_buckets(pbp)
-    explosive = b.compute_explosive_plays(pbp)
-    epa = b.compute_epa_per_play(pbp)
-    general = b.compute_general_stats(pbp)
-    recent_games = b.compute_recent_games(pbp)
-    possessions_to_score = b.compute_possessions_to_score(pbp, first_td_by_game)
-    trailing_possessions = b.compute_trailing_possessions(pbp, first_td_by_game)
-    a1, a2, a3, a4 = b.compute_pre_first_td_red_zone(pbp, first_td_by_game)
-    fp, fpa = b.compute_first_td_position_breakdown(first_td_by_game, teams)
-    ts = b.build_team_stats(team_games, team_games_allowed, games_played, first_td_by_game, scoring_df, red_zone, red_zone_trips,
+    first_td_by_game = nfl_td.compute_first_td_per_game(pbp, pos_lookup)
+    scoring_df = nfl_td.scoring_plays_with_position(pbp, pos_lookup)
+    red_zone = nfl_team_stats.compute_red_zone(pbp)
+    red_zone_trips = nfl_team_stats.compute_red_zone_trips(pbp)
+    length_buckets = nfl_team_stats.compute_length_buckets(pbp)
+    explosive = nfl_team_stats.compute_explosive_plays(pbp)
+    epa = nfl_team_stats.compute_epa_per_play(pbp)
+    general = nfl_team_stats.compute_general_stats(pbp)
+    recent_games = nfl_team_stats.compute_recent_games(pbp)
+    possessions_to_score = nfl_td.compute_possessions_to_score(pbp, first_td_by_game)
+    trailing_possessions = nfl_td.compute_trailing_possessions(pbp, first_td_by_game)
+    a1, a2, a3, a4 = nfl_td.compute_pre_first_td_red_zone(pbp, first_td_by_game)
+    fp, fpa = nfl_td.compute_first_td_position_breakdown(first_td_by_game, teams)
+    ts = nfl_team_stats.build_team_stats(team_games, team_games_allowed, games_played, first_td_by_game, scoring_df, red_zone, red_zone_trips,
                             length_buckets, explosive, epa, general, recent_games, possessions_to_score, trailing_possessions,
                             a1, a2, a3, a4, fp, fpa, teams)
-    scheme = b.compute_scheme_splits(pbp, ftn, teams)
+    scheme = nfl_team_stats.compute_scheme_splits(pbp, ftn, teams)
     for t in teams:
         ts[t].update(scheme.get(t, {}))
-    adj = b.compute_opponent_adjusted_stats(pbp, ftn, ts)
+    adj = nfl_team_stats.compute_opponent_adjusted_stats(pbp, ftn, ts)
     return ts, adj
 
 def run(season, first_week=3):
-    pbp_all = b.load_pbp(DATA, season)
-    rosters = b.load_rosters(DATA, season)
-    stats_as_of.pos = b.build_position_lookup(rosters)
-    ftn_all = b.load_ftn_charting(DATA, season)
+    pbp_all = nfl_sources.load_pbp(DATA, season)
+    rosters = nfl_sources.load_rosters(DATA, season)
+    stats_as_of.pos = nfl_sources.build_position_lookup(rosters)
+    ftn_all = nfl_sources.load_ftn_charting(DATA, season)
     try:
-        inj = b.load_injuries(DATA, season)
+        inj = nfl_sources.load_injuries(DATA, season)
     except Exception as e:
         print("no injuries", e); inj = None
     ngs_pass_all, ngs_rush_all = load_ngs(DATA, season)
-    schedule = b.compute_schedule(DATA, season)
+    schedule = nfl_sources.compute_schedule(DATA, season)
     teams = sorted(set(g["away"] for g in schedule) | set(g["home"] for g in schedule))
     rows = []
     weeks = sorted({g["week"] for g in schedule if g["home_score"] is not None})
@@ -80,7 +84,7 @@ def run(season, first_week=3):
             lines = compute_line_grades(pbp, ftn, ngp, ngr, stats_as_of.pos, teams)
         except Exception as e:
             print("line grades failed", season, wk, e); lines = {}
-        logs = b.compute_player_game_logs(pbp, stats_as_of.pos)
+        logs = nfl_players.compute_player_game_logs(pbp, stats_as_of.pos)
         blob = {"team_stats": ts, "team_stats_adj": adj, "teams": teams, "line_grades": lines, "player_game_logs": logs}
         g = m._Grades(blob)
         played = lambda t: g.raw[t].get("games_played") or 0
@@ -90,7 +94,7 @@ def run(season, first_week=3):
             w = inj[inj["week"] == wk]
             for r in w.itertuples(index=False):
                 if isinstance(r.report_status, str) and r.report_status.lower() == "out":
-                    outs.setdefault(b.normalize_team(r.team), set()).add(m._norm_name(r.full_name))
+                    outs.setdefault(nfl_common.normalize_team(r.team), set()).add(m._norm_name(r.full_name))
         def side(off, dfn):
             f = {}
             f["scoring"] = (g.stats[off]["points_for_per_g"] - g.league) * trust(off) + (g.stats[dfn]["points_against_per_g"] - g.league) * trust(dfn)
