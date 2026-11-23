@@ -898,7 +898,8 @@
    "first_price": -106,
    "first_book": "fanduel",
    "first_seen": "2026-11-22T07:12Z",
-   "last_seen": "2026-11-22T16:05Z"
+   "last_seen": "2026-11-22T16:05Z",
+   "won": 0
   },
   "ARI_KC|receiving_receptions|ARI|elijahhiggins": {
    "game": "ARI_KC",
@@ -947,7 +948,8 @@
    "first_price": -102,
    "first_book": "4cx",
    "first_seen": "2026-11-19T07:44Z",
-   "last_seen": "2026-11-22T16:05Z"
+   "last_seen": "2026-11-22T16:05Z",
+   "won": 0
   },
   "ARI_KC|receiving_receptions|ARI|treymcbride": {
    "game": "ARI_KC",
@@ -1071,7 +1073,8 @@
    "first_price": 100,
    "first_book": "caesars",
    "first_seen": "2026-11-20T15:51Z",
-   "last_seen": "2026-11-22T16:05Z"
+   "last_seen": "2026-11-22T16:05Z",
+   "won": 0
   },
   "ARI_KC|receiving_yards|ARI|elijahhiggins": {
    "game": "ARI_KC",
@@ -1120,7 +1123,8 @@
    "first_price": -111,
    "first_book": "prophetx",
    "first_seen": "2026-11-19T20:57Z",
-   "last_seen": "2026-11-22T16:05Z"
+   "last_seen": "2026-11-22T16:05Z",
+   "won": 0
   },
   "ARI_KC|receiving_yards|ARI|treymcbride": {
    "game": "ARI_KC",
@@ -7262,7 +7266,31 @@
    "first_price": 252,
    "first_book": "kalshi",
    "first_seen": "2026-11-21T16:03Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
+  },
+  "CIN_WAS|anytime_td|WAS|rachaadwhite": {
+   "game": "CIN_WAS",
+   "game_id": "2026_11_CIN_WAS",
+   "week": 11,
+   "date": "2026-11-23",
+   "team": "WAS",
+   "opp": "CIN",
+   "name": "Rachaad White",
+   "position": "RB",
+   "group": "any",
+   "market": "anytime_td",
+   "bet": "Anytime TD",
+   "side": "yes",
+   "line": 0.5,
+   "price": 213,
+   "book": "novig",
+   "edge": 0.04158191821000451,
+   "chance": 0.3610707361013783,
+   "rating": "Lean",
+   "first_price": 213,
+   "first_book": "novig",
+   "first_seen": "2026-11-23T16:15Z",
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|anytime_td|WAS|stefondiggs": {
    "game": "CIN_WAS",
@@ -7278,15 +7306,15 @@
    "bet": "Anytime TD",
    "side": "yes",
    "line": 0.5,
-   "price": 194,
-   "book": "novig",
-   "edge": 0.04790911746332199,
-   "chance": 0.3880451718850907,
+   "price": 192,
+   "book": "4cx",
+   "edge": 0.04595159722106806,
+   "chance": 0.3884173506457256,
    "rating": "Lean",
    "first_price": 190,
    "first_book": "fanatics",
    "first_seen": "2026-11-20T20:45Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|first_td|WAS|stefondiggs": {
    "game": "CIN_WAS",
@@ -7304,13 +7332,13 @@
    "line": null,
    "price": 1718,
    "book": null,
-   "edge": 0.03412074303305573,
-   "chance": 0.08912624358311073,
+   "edge": 0.03452784274081439,
+   "chance": 0.0895333432908694,
    "rating": "Strong",
    "first_price": 1438,
    "first_book": null,
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|passing_attempts|WAS|jaydendaniels": {
    "game": "CIN_WAS",
@@ -7327,14 +7355,14 @@
    "side": "over",
    "line": 31.5,
    "price": 100,
-   "book": "prophetx",
-   "edge": 0.1300902325554254,
-   "chance": 0.6300902325554254,
+   "book": "caesars",
+   "edge": 0.1387434686835426,
+   "chance": 0.6387434686835426,
    "rating": "Check",
    "first_price": -106,
    "first_book": "fanduel",
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|passing_completions|WAS|jaydendaniels": {
    "game": "CIN_WAS",
@@ -7352,13 +7380,13 @@
    "line": 20.5,
    "price": -115,
    "book": "fliff",
-   "edge": 0.05014899885336144,
-   "chance": 0.585032719783594,
+   "edge": 0.04519366394814062,
+   "chance": 0.5800773848783731,
    "rating": "Lean",
    "first_price": -129,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|passing_touchdowns|CIN|joeburrow": {
    "game": "CIN_WAS",
@@ -7376,13 +7404,13 @@
    "line": 2.5,
    "price": -127,
    "book": "pinnacle",
-   "edge": 0.0721636618689272,
-   "chance": 0.6316350275076937,
-   "rating": "Strong",
+   "edge": 0.06737650140684381,
+   "chance": 0.6268478670456104,
+   "rating": "Lean",
    "first_price": -103,
    "first_book": "draftkings",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|passing_yards|WAS|jaydendaniels": {
    "game": "CIN_WAS",
@@ -7395,42 +7423,18 @@
    "position": "QB",
    "group": "pass",
    "market": "passing_yards",
-   "bet": "Over 223.5 Pass Yds",
+   "bet": "Over 219.5 Pass Yds",
    "side": "over",
-   "line": 223.5,
-   "price": -112,
-   "book": "4cx",
-   "edge": 0.04130917500237441,
-   "chance": 0.5696110617948272,
+   "line": 219.5,
+   "price": -113,
+   "book": "fanduel",
+   "edge": 0.0518641560246742,
+   "chance": 0.5823805879495568,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "pinnacle",
    "first_seen": "2026-11-22T19:59Z",
-   "last_seen": "2026-11-23T15:45Z"
-  },
-  "CIN_WAS|receiving_receptions|CIN|chasebrown": {
-   "game": "CIN_WAS",
-   "game_id": "2026_11_CIN_WAS",
-   "week": 11,
-   "date": "2026-11-23",
-   "team": "CIN",
-   "opp": "WAS",
-   "name": "Chase Brown",
-   "position": "RB",
-   "group": "rec",
-   "market": "receiving_receptions",
-   "bet": "Over 4.5 Receptions",
-   "side": "over",
-   "line": 4.5,
-   "price": 115,
-   "book": "prophetx",
-   "edge": 0.0455323143137813,
-   "chance": 0.5106485933835487,
-   "rating": "Lean",
-   "first_price": 117,
-   "first_book": "prophetx",
-   "first_seen": "2026-11-22T07:12Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|receiving_receptions|CIN|drewsample": {
    "game": "CIN_WAS",
@@ -7446,15 +7450,15 @@
    "bet": "Over 1.5 Receptions",
    "side": "over",
    "line": 1.5,
-   "price": 172,
+   "price": 180,
    "book": "4cx",
-   "edge": 0.05468834011904522,
-   "chance": 0.42233539894257466,
+   "edge": 0.04835128036253816,
+   "chance": 0.4054941375053953,
    "rating": "Lean",
    "first_price": 169,
    "first_book": "prophetx",
    "first_seen": "2026-11-21T16:03Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|receiving_receptions|WAS|antoniowilliams": {
    "game": "CIN_WAS",
@@ -7472,13 +7476,37 @@
    "line": 3.5,
    "price": -113,
    "book": "4cx",
-   "edge": 0.058994403081772506,
-   "chance": 0.5895108350066551,
+   "edge": 0.06762631924736673,
+   "chance": 0.5981427511722494,
    "rating": "Lean",
    "first_price": -113,
    "first_book": "4cx",
    "first_seen": "2026-11-23T08:03Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
+  },
+  "CIN_WAS|receiving_receptions|WAS|vanjefferson": {
+   "game": "CIN_WAS",
+   "game_id": "2026_11_CIN_WAS",
+   "week": 11,
+   "date": "2026-11-23",
+   "team": "WAS",
+   "opp": "CIN",
+   "name": "Van Jefferson",
+   "position": "WR",
+   "group": "rec",
+   "market": "receiving_receptions",
+   "bet": "Over 0.5 Receptions",
+   "side": "over",
+   "line": 0.5,
+   "price": -204,
+   "book": "prophetx",
+   "edge": 0.0808632838870782,
+   "chance": 0.7519159154660255,
+   "rating": "Strong",
+   "first_price": -204,
+   "first_book": "prophetx",
+   "first_seen": "2026-11-23T16:15Z",
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CIN_WAS|receiving_yards|CIN|drewsample": {
    "game": "CIN_WAS",
@@ -7491,42 +7519,42 @@
    "position": "TE",
    "group": "rec",
    "market": "receiving_yards",
-   "bet": "Over 6.5 Rec Yds",
+   "bet": "Over 5.5 Rec Yds",
    "side": "over",
-   "line": 6.5,
-   "price": -106,
-   "book": "4cx",
-   "edge": 0.047079226206004354,
-   "chance": 0.5616423330021209,
+   "line": 5.5,
+   "price": -113,
+   "book": "prophetx",
+   "edge": 0.04062279123889545,
+   "chance": 0.5711392231637781,
    "rating": "Lean",
    "first_price": 100,
    "first_book": "4cx",
    "first_seen": "2026-11-22T07:12Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "last_seen": "2026-11-23T16:15Z"
   },
-  "CIN_WAS|rushing_longestRush|CIN|joeburrow": {
+  "CIN_WAS|receiving_yards|WAS|vanjefferson": {
    "game": "CIN_WAS",
    "game_id": "2026_11_CIN_WAS",
    "week": 11,
    "date": "2026-11-23",
-   "team": "CIN",
-   "opp": "WAS",
-   "name": "Joe Burrow",
-   "position": "QB",
-   "group": "rush",
-   "market": "rushing_longestRush",
-   "bet": "Under 8.5 Long Rush",
-   "side": "under",
-   "line": 8.5,
-   "price": -123,
-   "book": "draftkings",
-   "edge": 0.050072216726464,
-   "chance": 0.6016417234529214,
-   "rating": "Lean",
-   "first_price": -123,
-   "first_book": "draftkings",
-   "first_seen": "2026-11-21T07:32Z",
-   "last_seen": "2026-11-23T15:45Z"
+   "team": "WAS",
+   "opp": "CIN",
+   "name": "Van Jefferson",
+   "position": "WR",
+   "group": "rec",
+   "market": "receiving_yards",
+   "bet": "Over 7.5 Rec Yds",
+   "side": "over",
+   "line": 7.5,
+   "price": -112,
+   "book": "prophetx",
+   "edge": 0.09515730314985582,
+   "chance": 0.6234591899423086,
+   "rating": "Strong",
+   "first_price": -112,
+   "first_book": "prophetx",
+   "first_seen": "2026-11-23T16:15Z",
+   "last_seen": "2026-11-23T16:15Z"
   },
   "CLE_NO|anytime_td|CLE|isaiahbond": {
    "game": "CLE_NO",
@@ -20221,7 +20249,8 @@
    "first_price": 1500,
    "first_book": "fanatics",
    "first_seen": "2026-11-17T08:13Z",
-   "last_seen": "2026-11-22T19:59Z"
+   "last_seen": "2026-11-22T19:59Z",
+   "won": 0
   },
   "LV_DEN|first_td|DEN|jkdobbins": {
    "game": "LV_DEN",
@@ -20295,7 +20324,8 @@
    "first_price": 7043,
    "first_book": null,
    "first_seen": "2026-11-18T07:48Z",
-   "last_seen": "2026-11-22T19:59Z"
+   "last_seen": "2026-11-22T19:59Z",
+   "won": 0
   },
   "LV_DEN|passing+rushing_yards|DEN|bonix": {
    "game": "LV_DEN",
