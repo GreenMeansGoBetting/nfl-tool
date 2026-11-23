@@ -23100,12 +23100,12 @@
  "401910044": {
   "away": "UTAH",
   "date": "2026-11-23",
-  "first_home": 0.556,
+  "first_home": 0.565,
   "home": "LAL",
   "jumpers": [
    [
-    "4397077",
-    "Jaxson Hayes"
+    "4277919",
+    "Mo Bamba"
    ],
    [
     "4433136",
@@ -23115,76 +23115,76 @@
   "players": {
    "3907498": [
     "Matisse Thybulle",
-    0.092,
+    0.093,
     1160,
     true,
     "fliff"
    ],
    "3945274": [
     "Luka Doncic",
-    0.183,
+    0.186,
     320,
     false,
     "thescore"
    ],
-   "4397077": [
-    "Jaxson Hayes",
-    0.068,
-    900,
+   "4277919": [
+    "Mo Bamba",
+    0.083,
+    850,
     false,
-    "bet365"
+    "draftkings"
    ],
    "4432811": [
     "Josh Green",
-    0.067,
+    0.063,
     1600,
-    true,
+    false,
     "fanduel"
    ],
    "4433136": [
     "Walker Kessler",
-    0.091,
+    0.093,
     650,
     false,
     "draftkings"
    ],
    "4433137": [
     "Ziaire Williams",
-    0.085,
+    0.086,
     1000,
     false,
     "fanduel"
    ],
    "4433627": [
     "Keyonte George",
-    0.114,
+    0.105,
     950,
     true,
     "bet365"
    ],
    "4592691": [
     "Jake LaRavia",
-    0.083,
+    0.084,
     null,
     false,
     null
    ],
    "4873138": [
     "Ace Bailey",
-    0.09,
+    0.084,
     1000,
     false,
     "draftkings"
    ],
    "5041955": [
     "Darryn Peterson",
-    0.088,
+    0.082,
     1100,
     false,
     "bet365"
    ]
   },
-  "tip_home": 0.668
+  "tip_home": 0.695
  },
  "401910045": {
   "away": "SA",
