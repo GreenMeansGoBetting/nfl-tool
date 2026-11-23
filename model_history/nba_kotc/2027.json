@@ -13055,7 +13055,7 @@
    },
    {
     "id": "5104157",
-    "lead": 0.2313,
+    "lead": 0.2314,
     "name": "Victor Wembanyama",
     "proj": 48.2,
     "team": "SA"
@@ -13267,7 +13267,7 @@
     "id": "4397002",
     "lead": 0.0016,
     "name": "Ayo Dosunmu",
-    "proj": 26.4,
+    "proj": 26.3,
     "team": "MIN"
    },
    {
@@ -13292,18 +13292,18 @@
     "team": "LAL"
    },
    {
-    "id": "4278104",
-    "lead": 0.0011,
-    "name": "Michael Porter Jr.",
-    "proj": 27.0,
-    "team": "BKN"
-   },
-   {
     "id": "4903027",
     "lead": 0.0011,
     "name": "Cedric Coward",
     "proj": 26.7,
     "team": "MEM"
+   },
+   {
+    "id": "4278104",
+    "lead": 0.001,
+    "name": "Michael Porter Jr.",
+    "proj": 26.9,
+    "team": "BKN"
    },
    {
     "id": "5105565",
