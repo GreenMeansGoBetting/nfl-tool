@@ -30024,8 +30024,8 @@
     "over",
     false,
     9.5,
-    -109,
-    "prophetx"
+    101,
+    "pinnacle"
    ],
    [
     "3149673",
@@ -30048,8 +30048,8 @@
     "under",
     true,
     11.5,
-    -107,
-    "prophetx"
+    -109,
+    "draftkings"
    ],
    [
     "4278355",
@@ -30060,8 +30060,8 @@
     "under",
     false,
     11.5,
-    -120,
-    "draftkings"
+    -115,
+    "betmgm"
    ]
   ],
   "threes": [
@@ -30127,8 +30127,8 @@
     "under",
     true,
     6.5,
-    101,
-    "4cx"
+    104,
+    "prophetx"
    ],
    [
     "4397886",
@@ -30138,9 +30138,9 @@
     -0.1781,
     "under",
     true,
-    7.5,
-    103,
-    "prophetx"
+    8.5,
+    -113,
+    "fanduel"
    ],
    [
     "4709138",
@@ -30164,7 +30164,7 @@
     false,
     7.5,
     -111,
-    "betmgm"
+    "prophetx"
    ]
   ],
   "threes": [
@@ -30189,8 +30189,8 @@
     "over",
     true,
     3.5,
-    148,
-    "pinnacle"
+    151,
+    "prophetx"
    ],
    [
     "4065804",
@@ -30249,8 +30249,8 @@
     "over",
     true,
     0.5,
-    -104,
-    "prophetx"
+    112,
+    "4cx"
    ]
   ]
  }
