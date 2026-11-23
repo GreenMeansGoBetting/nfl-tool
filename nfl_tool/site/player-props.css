@@ -1,0 +1,569 @@
+/* Player Props (player-props.html) and NFL Best Plays (best-plays.html).
+   Loaded after style.css (the shared look) by that page only. Rules keep the
+   order they had in the old single style.css; this file's last phone block
+   (@media (max-width: 760px)) stays last. styles.md, "Stylesheets". */
+.pass-zone-mode-toggle { display: flex; align-items: center; gap: 6px; margin: 6px 0 10px; }
+.backup-qb-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 8px 0 0;
+  cursor: pointer;
+}
+
+/* ---- Player Props ---- */
+.props-rec-table, .props-rush-table, .props-pass-table {
+  table-layout: fixed;
+}
+/* One table per team now (see renderReceivingTeamTable) -- Player sized to
+   fit real names instead of the old fixed 328px (room for "Amon-Ra St.
+   Brown" three times over) that left the same dead space next to every
+   shorter name. */
+.props-rec-table { width: 592px; }
+.props-rec-table th:first-child, .props-rec-table td:first-child { width: 130px; }
+.props-rec-table th:nth-child(2), .props-rec-table td:nth-child(2) { width: 32px; }
+.props-rec-table th:nth-child(3), .props-rec-table td:nth-child(3),
+.props-rec-table th:nth-child(4), .props-rec-table td:nth-child(4) { width: 40px; }
+.props-rec-table th:nth-child(5), .props-rec-table td:nth-child(5) { width: 48px; }
+.props-rec-table th:nth-child(6), .props-rec-table td:nth-child(6),
+.props-rec-table th:nth-child(7), .props-rec-table td:nth-child(7),
+.props-rec-table th:nth-child(8), .props-rec-table td:nth-child(8),
+.props-rec-table th:nth-child(9), .props-rec-table td:nth-child(9) { width: 40px; }
+.props-rec-table th:nth-child(11), .props-rec-table td:nth-child(11) { width: 40px; }
+.props-rec-table th:nth-child(12), .props-rec-table td:nth-child(12),
+.props-rec-table th:nth-child(13), .props-rec-table td:nth-child(13) { width: 34px; }
+.receiving-col-rank-click, .receiving-sort-click { cursor: pointer; }
+.receiving-col-rank-click:hover, .receiving-sort-click:hover { color: var(--accent); }
+.receiving-sort-click.active { color: var(--accent); }
+.props-rush-table { width: 440px; }
+.props-rush-table th:first-child, .props-rush-table td:first-child { width: 150px; }
+.props-rush-table th:nth-child(2), .props-rush-table td:nth-child(2) { width: 34px; }
+.props-rush-table th:nth-child(3), .props-rush-table td:nth-child(3),
+.props-rush-table th:nth-child(4), .props-rush-table td:nth-child(4),
+.props-rush-table th:nth-child(5), .props-rush-table td:nth-child(5) { width: 46px; }
+.props-rush-table th:nth-child(6), .props-rush-table td:nth-child(6),
+.props-rush-table th:nth-child(7), .props-rush-table td:nth-child(7) { width: 44px; }
+.props-rush-table th:nth-child(8), .props-rush-table td:nth-child(8) { width: 30px; }
+.props-pass-table { width: 436px; }
+.props-pass-table th:first-child, .props-pass-table td:first-child { width: 150px; }
+.props-pass-table th:nth-child(2), .props-pass-table td:nth-child(2),
+.props-pass-table th:nth-child(3), .props-pass-table td:nth-child(3),
+.props-pass-table th:nth-child(5), .props-pass-table td:nth-child(5) { width: 40px; }
+.props-pass-table th:nth-child(4), .props-pass-table td:nth-child(4) { width: 50px; }
+.props-pass-table th:nth-child(6), .props-pass-table td:nth-child(6) { width: 48px; }
+.props-pass-table th:nth-child(7), .props-pass-table td:nth-child(7) { width: 38px; }
+.props-pass-table th:nth-child(8), .props-pass-table td:nth-child(8) { width: 30px; }
+.pass-coverage-table { table-layout: fixed; width: 268px; }
+.pass-coverage-table th:first-child, .pass-coverage-table td:first-child { width: 78px; }
+.pass-coverage-table th:nth-child(2), .pass-coverage-table td:nth-child(2),
+.pass-coverage-table th:nth-child(3), .pass-coverage-table td:nth-child(3) { width: 40px; }
+.pass-coverage-table th:nth-child(4), .pass-coverage-table td:nth-child(4) { width: 36px; }
+.pass-coverage-table th:nth-child(5), .pass-coverage-table td:nth-child(5) { width: 44px; }
+.pass-coverage-table th:nth-child(6), .pass-coverage-table td:nth-child(6) { width: 30px; }
+.pass-coverage-table + .player-name-row, .pass-coverage-table + .no-data-note { margin-top: 12px; }
+.scramble-table { table-layout: fixed; width: 244px; }
+.scramble-table th:first-child, .scramble-table td:first-child { width: 78px; }
+.scramble-table th:nth-child(2), .scramble-table td:nth-child(2) { width: 40px; }
+.scramble-table th:nth-child(3), .scramble-table td:nth-child(3) { width: 52px; }
+.scramble-table th:nth-child(4), .scramble-table td:nth-child(4) { width: 44px; }
+.scramble-table th:nth-child(5), .scramble-table td:nth-child(5) { width: 30px; }
+/* Combined QB Rushing table (see renderQbRushingPanel): the pressure-split
+   rows and the designed/scramble rows don't share a column meaning, so
+   instead of two separate tables with a gap between them, this is one
+   table with two inline group-header rows -- a heavier top border marks
+   the second group's start so it still reads as two logical sections
+   inside the one bordered box. */
+.qb-rushing-group-header:not(:first-child) th { border-top: 2px solid var(--grid-line); }
+.qb-rushing-combined-table + .player-name-row { margin-top: 14px; }
+.qb-rushing-combined-table + .stat-column-title { margin-top: 16px; }
+.rz-mix-table { table-layout: fixed; width: 234px; margin-top: 6px; }
+.rz-mix-table th:first-child, .rz-mix-table td:first-child { width: 50px; }
+.rz-mix-table th:nth-child(2), .rz-mix-table td:nth-child(2) { width: 44px; }
+.rz-mix-table th:nth-child(3), .rz-mix-table td:nth-child(3) { width: 40px; }
+.rz-mix-table th:nth-child(4), .rz-mix-table td:nth-child(4) { width: 52px; }
+.rz-mix-table th:nth-child(5), .rz-mix-table td:nth-child(5) { width: 48px; }
+.scramble-rank-click { cursor: pointer; }
+.scramble-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+
+/* .pass-zone-col (the actual flex item -- see .stat-columns) is what
+   controls the on-page width; .pass-zone-block just fills whatever that
+   gives it. Was a flat 222px, making offense and defense each read as a
+   quarter of the page even though they're the whole point of this
+   section -- two per row (one real matchup: this team's offense paired
+   with the exact opponent it's facing) now each get half. */
+.pass-zone-col { flex: 1 1 calc(50% - 10px); min-width: 420px; }
+.pass-zone-block { width: 100%; }
+/* Groups the two grids that make up ONE real matchup (this team's offense
+   + the exact defense it's facing) into a single bordered panel, with real
+   spacing before the next pair. Before this, all 4 grids (2 matchups) sat
+   as flat siblings with nothing but wrapping position marking where one
+   matchup ended and the next began -- they read as "4 things" instead of
+   "2 matchups," which was most of the clutter complaint. */
+.pass-zone-pair, .rush-pair {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--panel);
+}
+.pass-zone-pair + .pass-zone-pair { margin-top: 20px; }
+/* Same "one matchup, one boxed panel" treatment for Rushing -- the table
+   and the per-player rush lanes (renderRushLanesPlayers) used to sit as
+   flat 3rd/4th siblings in one row, which is how the OTHER team's table
+   ended up wedged in next to this team's lanes grid instead of dropping
+   to its own row below. */
+.rush-pair + .rush-pair { margin-top: 20px; }
+.pass-zone-team-side { font-size: 0.68rem; opacity: 0.75; margin-left: auto; white-space: nowrap; }
+.pass-zone-team-click { cursor: pointer; }
+.pass-zone-team-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+.pass-zone-row-label-text { display: block; font-weight: 700; font-size: 1.05rem; }
+.pass-zone-col-label { display: block; font-weight: 700; font-size: 1.1rem; }
+.pass-zone-cell { vertical-align: middle; }
+/* This grid only renders the defense side now (the offense side moved to
+   renderOffensePlayerZoneCards' per-player heat grids), so the cell no
+   longer needs to reserve room for a player list -- everything centers
+   and stacks in reading order: how often this zone gets attacked (the
+   headline share %), what the defense allows there (comp %), and the raw
+   sample it's built on. min-height goes on this inner block, not the
+   <td> itself -- browsers don't reliably respect min-height set directly
+   on a table cell (confirmed directly: it computed correctly but the row
+   still rendered short). */
+.pass-zone-cell-inner {
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+/* Base look for the "all players" modal's per-player grid (a bare
+   .pass-zone-rate span, no wrapper div) -- the more specific rule below
+   overrides this for the main grid's cells instead of replacing it. */
+.pass-zone-rate { display: block; font-weight: 700; font-size: 1.05rem; }
+.pass-zone-cell-inner .pass-zone-rate { font-weight: 800; font-size: 1.5rem; }
+/* Row/column total badges (see passZoneTotalBadge) -- plain colored text,
+   not a filled pill. These used to be full-strength tier-colored pills at
+   1.3rem/800 weight, which made every row and column label shout as loud
+   as (or louder than) the actual per-cell % badges -- 7 loud badges per
+   grid before you even get to the 12 cells. The per-cell badge is meant to
+   be the one bold/colored headline per cell; these are just supporting
+   context ("how popular is this whole depth/side"), so they read that way
+   now -- small, colored by tier, no fill. */
+.pass-zone-total-badge {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.pass-zone-total-badge.tier-good { color: rgb(var(--good-rgb)); }
+.pass-zone-total-badge.tier-mid { color: var(--muted); }
+.pass-zone-total-badge.tier-bad { color: rgb(var(--bad-rgb)); }
+/* Defense cell, below the big share headline: completion % allowed (its
+   own real line now, not a cramped caption) and the raw sample it's built
+   on underneath in muted, smaller text -- "targeted often AND works when
+   they do" as one story read top to bottom instead of a corner badge
+   fighting a tiny caption for space. */
+.pass-zone-cell-comp { display: block; font-size: 1rem; font-weight: 700; }
+.pass-zone-cell-sample { display: block; font-size: 0.75rem; color: var(--muted); }
+.pass-zone-identity {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+}
+.pass-zone-identity-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+.pass-zone-identity-stat span { opacity: 0.75; }
+/* Tiered value gets the same pill treatment a tiered table cell does --
+   it's a league-standing signal, not just a number. */
+.pass-zone-identity-stat strong { padding: 0 5px; border-radius: 4px; }
+/* Rank, summary and plays all sit side by side, filling the whole screen
+   rather than a narrow box that forced toggling between views. The BOX
+   itself never scrolls -- each column scrolls inside its own pane
+   instead, so all three sections stay on screen at once no matter how
+   long the 32-team rank list or the play list gets. */
+/* ID-scoped on purpose: the base .modal-box (max-width 460px) is declared
+   LATER in this file, so a plain .pass-zone-modal-box class rule loses on
+   source order at equal specificity and silently does nothing -- which is
+   exactly why these modals stayed tiny no matter what width was set here.
+   Every other modal in this file uses the same #id .modal-box form. */
+#pass-zone-modal .modal-box {
+  max-width: none;
+  width: 98vw;
+  max-height: 94vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#pass-zone-all-modal .modal-box { max-width: none; width: 98vw; max-height: 94vh; overflow-y: auto; }
+/* Four per row, not the six that fit at the main page's compact 222px --
+   these grids are the whole point of this modal, so they get real room,
+   and centered as a group so an uneven last row doesn't read as
+   lopsided. Scoped to the modal so the 4-across team grids on the page
+   itself keep their tighter sizing. */
+#pass-zone-all-modal .pass-zone-players-grid { gap: 26px; justify-content: center; }
+#pass-zone-all-modal .pass-zone-block {
+  flex: 0 0 calc((100% - 78px) / 4);
+  width: calc((100% - 78px) / 4);
+  min-width: 260px;
+  max-width: 320px;
+}
+#pass-zone-all-modal .pass-zone-grid { width: 100%; font-size: 0.82rem; }
+#pass-zone-all-modal .pass-zone-grid th,
+#pass-zone-all-modal .pass-zone-grid td { padding: 10px 6px; }
+#pass-zone-all-modal .pass-zone-row-label { width: 26px; font-size: 0.72rem; }
+#pass-zone-all-modal .pass-zone-rate { font-size: 1.15rem; }
+/* Photo + name + position banner, sized to sit flush above the grid it
+   belongs to (each grid is already its own bordered block below it). */
+.pass-zone-player-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.pass-zone-player-photo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--table-head);
+  flex: 0 0 auto;
+}
+.pass-zone-player-photo-blank { border: 1px solid var(--border); }
+.pass-zone-player-info { display: flex; flex-direction: column; min-width: 0; }
+.pass-zone-player-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pass-zone-player-pos { font-size: 0.75rem; color: var(--muted); }
+
+/* Main-page offense view: one shrunk-down hotspot grid per pass-catcher
+   (see renderOffensePlayerZoneCards) instead of one full-size team grid --
+   several of these sit side by side where a single grid used to be, so
+   every dimension is cut down from the modal's already-compact version. */
+.pass-zone-players-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+/* Shrunk again once the top-5 cap on renderOffensePlayerZoneCards came off
+   -- a deep receiving corps can mean 8-10+ cards in this row now, and each
+   cell only ever holds a 3-4 character "rec/tgt" (or "--"), so the wider
+   sizing from when this topped out at 5 cards left a lot of dead space per
+   cell for that little content. */
+.pass-zone-player-mini-card { flex: 1 1 140px; min-width: 128px; max-width: 170px; }
+.pass-zone-player-banner-mini { gap: 6px; margin-bottom: 4px; }
+.pass-zone-player-banner-mini .pass-zone-player-photo { width: 26px; height: 26px; }
+.pass-zone-player-banner-mini .pass-zone-player-name { font-size: 0.78rem; }
+.pass-zone-player-banner-mini .pass-zone-player-pos { font-size: 0.64rem; }
+/* QB pass-zone card (Passing tab): its own size, not the receiver row's
+   compact .pass-zone-player-mini-card/.pass-zone-grid-mini -- a single QB
+   card never shares a row with 3-4 siblings, so it gets to be as big as
+   the defense grid instead of shrunk to fit alongside others. */
+.pass-zone-qb-card { flex: 1 1 auto; width: 100%; max-width: 480px; }
+.pass-zone-player-banner-qb { gap: 12px; margin-bottom: 10px; }
+.pass-zone-player-photo-qb { width: 56px; height: 56px; }
+.pass-zone-player-name-qb { font-size: 1.2rem; }
+.pass-zone-player-pos-qb { font-size: 0.95rem; }
+.pass-zone-grid-qb { font-size: 1rem; }
+.pass-zone-row-label-qb { text-align: center; vertical-align: middle; width: 56px; font-size: 0.85rem; font-weight: 700; }
+.pass-zone-modal-layout {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 24px;
+  margin-top: 10px;
+  min-height: 0;
+}
+.pass-zone-modal-col { flex: 1 1 0; min-width: 0; max-height: 78vh; overflow-y: auto; }
+.pass-zone-modal-col-rank { flex: 0 0 auto; }
+/* Plays wrap into their own sub-columns instead of one long vertical
+   stack -- horizontal room is what's actually free here. */
+.pass-zone-modal-col-plays { flex: 2 1 0; }
+.pass-zone-plays-wrap { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px 22px; }
+.pass-zone-plays-wrap .pass-zone-plays-player { flex: 0 0 auto; min-width: 210px; }
+.pass-zone-modal-subhead {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.pass-zone-modal-col .pass-zone-modal-subhead:not(:first-child) { margin-top: 18px; }
+.pass-zone-plays-player { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+.pass-zone-plays-player:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+/* In the wrapped grid every card keeps its own rule -- the first-of-type
+   reset above only reads as intentional in a single vertical stack. */
+.pass-zone-plays-wrap .pass-zone-plays-player { margin-top: 0; padding-top: 8px; border-top: 1px solid var(--border); }
+.rush-lanes-all-players { margin-top: 10px; }
+.rush-lanes-player-block { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.rush-lanes-player-block:first-child { margin-top: 12px; }
+.player-name { font-weight: 600; white-space: nowrap; }
+
+/* Coverage & Pressure panel's per-QB cells -- same click affordance as
+   .stat-rank-click, opens openPassSplitRankModal's per-QB leaderboard
+   instead of common.js's per-team one. */
+.pass-split-rank-click { cursor: pointer; }
+.pass-split-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+
+/* Main Passing table's season-total cells (Att/g, Cmp%, Yds/g, INT/g,
+   EPA/Att, aDOT) -- opens openPlayerStatRankModal's full QB leaderboard. */
+.player-stat-rank-click { cursor: pointer; }
+.player-stat-rank-click:hover { outline: 1px solid var(--accent); outline-offset: -1px; }
+#props-modal .modal-box { max-width: 1000px; width: 90vw; }
+.props-market-select {
+  width: 100%;
+  margin: 8px 0 12px;
+  font-weight: 700;
+}
+.ps-rail-name { display: flex; flex-direction: column; font-size: 0.78rem; font-weight: 700; line-height: 1.15; }
+.ps-rail-mkt { font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+.ps-rail-mkt .muted { font-size: 0.64rem; }
+.ps-rail-btns { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.ps-rail .sc-pp { font-size: 0.68rem; padding: 1px 5px; }
+.ps-picker-col { flex: 1 1 560px; }
+.ps-picker-col tr.ps-picker-lean td { background: rgba(var(--good-rgb), 0.06); }
+.ps-picker-col .pp-row-label { white-space: nowrap; }
+.summary-card .player-click:hover .ps-name, .summary-card .player-click:hover .ps-rail-name { text-decoration: underline; }
+#props-modal h3 .sc-headshot { vertical-align: middle; margin-right: 4px; }
+.ps-pick-player .sc-headshot { vertical-align: middle; }
+.ps-pick-out td { opacity: 0.55; }
+.ps-pick-mkt { padding-left: 22px !important; }
+.ps-src { font-size: 0.66rem; color: var(--muted); white-space: nowrap; }
+.ps-out-btn { float: right; padding: 1px 7px; border-radius: 5px; border: 1px solid var(--border-strong); background: transparent; color: var(--muted); font: inherit; font-size: 0.68rem; font-weight: 700; cursor: pointer; }
+.ps-out-btn:hover { border-color: rgb(var(--bad-rgb)); color: var(--bad-text); }
+.ps-out-on { color: var(--bad-text); border-color: rgb(var(--bad-rgb)); background: rgba(var(--bad-rgb), 0.12); }
+.ps-thin { padding: 0 4px; border-radius: 4px; font-size: 0.6rem; font-weight: 800; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.18); }
+.ps-spot-none { font-size: 0.74rem; color: var(--muted); font-style: italic; text-align: center; margin: auto 0; }
+.ps-tts { display: flex; justify-content: center; gap: 18px; }
+.ps-tt { display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.ps-tf { flex: 1 1 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ps-tf-col { display: flex; flex-direction: column; gap: 8px; }
+.ps-tf-target { background: rgba(var(--good-rgb), 0.05); border-color: rgba(var(--good-rgb), 0.4); }
+.ps-tf-fade { background: rgba(var(--bad-rgb), 0.05); border-color: rgba(var(--bad-rgb), 0.35); }
+.ps-tf-target .sc-section-title { color: var(--good-text); }
+.ps-tf-target .sc-section-title::before { background: rgb(var(--good-rgb)); }
+.ps-tf-fade .sc-section-title { color: var(--bad-text); }
+.ps-tf-fade .sc-section-title::before { background: rgb(var(--bad-rgb)); }
+.ps-pk { display: flex; flex-direction: column; gap: 5px; padding: 8px 10px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
+.ps-pk-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.ps-pk-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: 0.02em; white-space: nowrap; }
+/* Save image (html-to-image) freezes every box at its on-screen size, and
+   text can draw a hair wider in the copy. A shrink-to-fit chip row then
+   wrapped its last chip ("Long Comp") onto the player line below. So the
+   row takes the rest of the header's width instead of hugging its chips,
+   and no chip or name can break inside its own box. */
+.ps-pk-mkts { display: flex; flex: 1 1 0; min-width: 0; flex-wrap: wrap; gap: 4px; }
+.ps-pk-players { display: flex; flex-wrap: wrap; gap: 8px; }
+.ps-pk-player { display: inline-flex; align-items: center; gap: 5px; font-size: 0.84rem; font-weight: 700; }
+.ps-pk-noline { font-size: 0.74rem; color: var(--muted); font-style: italic; }
+.ps-pk-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.ps-rail-name { display: inline; font-size: 0.92rem; font-weight: 800; line-height: 1.1; white-space: nowrap; }
+.ps-rail-mid { text-align: center; line-height: 1.15; }
+.ps-rail-btns { gap: 4px; }
+.ps-rail .sc-pp { font-size: 0.72rem; padding: 2px 6px; }
+.ps-pk-for { align-self: center; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+:root[data-theme="light"] .ps-pk-tags span { color: var(--text) !important; }
+/* Clickable Props Summary tags -> game-by-game popup */
+.ps-pk-tags .ps-tag-click { cursor: pointer; }
+.ps-pk-tags .ps-tag-click:hover { filter: brightness(1.2); text-decoration: underline; text-underline-offset: 2px; }
+.ps-tm-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 4px 0 12px; font-size: 0.86rem; color: var(--muted); }
+.ps-tm-table td { vertical-align: middle; }
+.ps-tm-who { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+.ps-tm-vs { white-space: nowrap; color: var(--muted); font-weight: 700; }
+.ps-tm-player { white-space: nowrap; font-size: 0.82rem; }
+.ps-tm-diff { display: inline-block; padding: 1px 7px; border-radius: 5px; font-weight: 800; border: 1px solid transparent; }
+.ps-tm-good { color: var(--good-text); background: rgba(var(--good-rgb), 0.14); border-color: rgba(var(--good-rgb), 0.45); }
+.ps-tm-bad { color: var(--bad-text); background: rgba(var(--bad-rgb), 0.12); border-color: rgba(var(--bad-rgb), 0.45); }
+.ps-tm-flag { display: inline-block; margin: 1px 4px 1px 0; padding: 0 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; color: var(--muted); background: var(--table-head); border: 1px dashed var(--border-strong); white-space: nowrap; cursor: help; }
+.ps-tm-avg td { font-weight: 800; }
+.ps-tm-next-tag { display: inline-block; padding: 1px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); background: rgba(var(--accent-rgb), 0.12); border: 1px solid rgba(var(--accent-rgb), 0.5); }
+.ps-tm-note { margin: 10px 0 0; font-size: 0.74rem; color: var(--muted); }
+/* Garbage-time note: neutral gray, dashed edge, so it reads as a caution, not a rank */
+.ps-pk-tags .ps-pk-gt { color: var(--muted); background: var(--table-head); border: 1px dashed var(--border-strong); cursor: help; }
+:root[data-theme="light"] .ps-pk-tags .ps-pk-gt { color: var(--muted) !important; }
+
+/* ---- Pass zone grids: summary-card look ---- */
+.pass-zone-block { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 10px 10px 12px; }
+.pass-zone-team-banner { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; margin-bottom: 6px; }
+.pass-zone-team-name { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; }
+.pass-zone-team-side { margin-left: auto; padding: 2px 10px; border-radius: 999px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; opacity: 1; background: var(--panel); border: 1px solid var(--border-strong); color: var(--text); }
+.pass-zone-col-label, .pass-zone-row-label-text { display: block; font-family: var(--font-display); font-size: 0.9rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.pass-zone-cell { transition: transform 0.12s ease; }
+.pass-zone-cell:not(.tier-good):not(.tier-mid):not(.tier-bad) { background: var(--panel); }
+.pass-zone-cell:hover { transform: translateY(-1px); outline: none !important; box-shadow: 0 0 0 2px var(--accent) inset; }
+.pass-zone-cell-inner { min-height: 74px; justify-content: center; }
+.pass-zone-cell-inner .pass-zone-rate { font-family: var(--font-display); font-size: 1.9rem; font-weight: 800; line-height: 1; }
+.pass-zone-cell-comp { font-size: 0.82rem; font-weight: 800; margin-top: 3px; }
+.pass-zone-cell-sample { font-size: 0.68rem; opacity: 0.75; }
+.pz-share { display: flex; flex-direction: column; align-items: center; gap: 3px; margin-top: 4px; }
+.pz-bar { display: block; width: 70%; max-width: 90px; height: 5px; border-radius: 999px; background: var(--border); overflow: hidden; }
+:root[data-theme="light"] .pz-share b { color: hsl(var(--pz-hue), 75%, 34%); }
+.pass-zone-identity { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.pass-zone-identity-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 4px; border-radius: 10px; text-align: center; }
+.pass-zone-identity-stat:not(.tier-good):not(.tier-mid):not(.tier-bad) { background: var(--panel); }
+.pass-zone-identity-stat span { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; opacity: 0.8; }
+.pass-zone-identity-stat strong { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; padding: 0; background: none; }
+
+/* Offense player mini grids: 3 cards per row, uniform rows */
+.pass-zone-players-inline { gap: 10px; }
+.pass-zone-player-mini-card { flex: 0 0 calc((100% - 20px) / 3); min-width: 0; max-width: none; }
+.pass-zone-player-banner-mini .pass-zone-player-photo { width: 30px; height: 30px; }
+.pass-zone-player-banner-mini .pass-zone-player-name { font-size: 0.86rem; }
+
+/* ---- Zone Targets panel (under Pass D Allowed grids) ---- */
+.zt-panel { margin-top: 10px; padding: 10px; border-radius: 12px; background: rgba(var(--good-rgb), 0.05); border: 1px solid rgba(var(--good-rgb), 0.35); display: flex; flex-direction: column; gap: 8px; }
+.zt-title { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--good-text); }
+.zt-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--panel); }
+.zt-who { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+.zt-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 250px; }
+.zt-mkt { padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 800; white-space: nowrap; color: var(--good-text); background: rgba(var(--good-rgb), 0.16); border: 1px solid rgba(var(--good-rgb), 0.5); }
+.zt-yac { padding: 2px 7px; border-radius: 6px; font-size: 0.66rem; font-weight: 800; color: var(--mid-text); background: rgba(var(--mid-rgb), 0.16); border: 1px solid rgba(var(--mid-rgb), 0.5); }
+.zt-zone { padding: 2px 7px; border-radius: 6px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--bad-text); background: rgba(var(--bad-rgb), 0.1); border: 1px solid rgba(var(--bad-rgb), 0.4); }
+.zt-none { margin: 0; font-size: 0.78rem; color: var(--muted); font-style: italic; }
+.ps-zone-star { color: rgb(var(--mid-rgb)); font-size: 0.8rem; margin-right: 1px; }
+.rush-lanes-player-block { border-top: 1px dashed var(--border-strong); }
+
+/* Passing tab: one boxed column per team (table on top, coverage + QB
+   rushing / red zone side by side underneath) instead of a loose row */
+.team-pair-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 8px; }
+.team-col-panel { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--panel); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.team-col-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.team-col-row > section { min-width: 0; }
+@media (max-width: 1100px) {
+ .team-pair-cols { grid-template-columns: 1fr; }
+}
+
+.pass-zone-pair, .rush-pair { border-radius: 12px; }
+.pass-zone-player-banner.player-click { cursor: pointer; }
+.pass-zone-player-banner.player-click:hover .pass-zone-player-name { text-decoration: underline; }
+
+/* Receiving table: team-relative shading on the core stats (inline, see
+   renderReceivingTeamTable) and the depth columns boxed as their own group
+   (their colors compare each player to the league, not his teammates). */
+.props-rec-table tr.rec-group-row th { padding: 0 2px 2px; background: transparent; }
+.props-rec-table th.rec-depth-group { border: 1px solid var(--border-strong); border-bottom: none; border-radius: 8px 8px 0 0; font-size: 0.6rem; letter-spacing: 0.08em; color: var(--muted); }
+.props-rec-table th.rec-depth, .props-rec-table td.rec-depth { box-shadow: inset 0 0 0 1px var(--border-strong) !important; }
+.props-rec-table th.rec-depth { border-radius: 0; }
+.props-rec-table td.rec-depth.tier-good { box-shadow: inset 0 0 0 1px rgba(var(--good-rgb), 0.55) !important; }
+.props-rec-table td.rec-depth.tier-bad { box-shadow: inset 0 0 0 1px rgba(var(--bad-rgb), 0.55) !important; }
+.props-rec-table td.rec-depth.tier-mid { box-shadow: inset 0 0 0 1px rgba(var(--mid-rgb), 0.55) !important; }
+
+/* ---- QB card (Passing tab) ---- */
+.qb-card { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.qb-card + .qb-card { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border-strong); }
+.qb-hero { display: flex; align-items: center; gap: 12px; padding: 6px 4px; cursor: pointer; }
+.qb-hero:hover .qb-hero-name { text-decoration: underline; }
+.qb-hero-name { font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1.05; }
+.qb-hero-sub { font-size: 0.8rem; font-weight: 700; color: var(--muted); margin-top: 2px; }
+.qb-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.qb-tile { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 4px 8px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); cursor: pointer; }
+.qb-tile span { font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
+.qb-tile.tier-good { background-color: rgba(var(--good-rgb), calc(var(--tier-a, 0.16) + 0.14)); border-color: rgba(var(--good-rgb), 0.45); }
+.qb-tile.tier-mid { background-color: rgba(var(--mid-rgb), calc(var(--tier-a, 0.14) + 0.12)); border-color: rgba(var(--mid-rgb), 0.4); }
+.qb-tile.tier-bad { background-color: rgba(var(--bad-rgb), calc(var(--tier-a, 0.16) + 0.14)); border-color: rgba(var(--bad-rgb), 0.45); }
+.qb-tile:hover { outline: 2px solid var(--accent); outline-offset: -2px; }
+.qb-lines { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; height: 30px; }
+.qb-lines-chips { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: nowrap; gap: 5px; overflow: hidden; white-space: nowrap; -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+.qb-lines-chips .qb-line { flex: 0 0 auto; }
+.qb-line-none { font-size: 0.78rem; font-style: italic; color: var(--muted); }
+.qb-line-hint { flex: 0 0 auto; white-space: nowrap; }
+.qb-line { padding: 3px 9px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--border); font-size: 0.76rem; font-weight: 700; color: var(--muted); }
+.qb-line-hint { margin-left: auto; font-size: 0.76rem; font-weight: 700; color: var(--accent); }
+.qb-boxes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.qb-box .data-table:not(.pass-zone-grid) td:not([class*="tier-"]):not(.edge-hit) { background-color: var(--panel); }
+.qb-box-title { display: flex; align-items: center; gap: 5px; font-family: var(--font-display); font-size: 0.86rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 7px; background: var(--table-head); box-shadow: inset 3px 0 0 var(--accent); }
+.qb-box-table { width: 100%; table-layout: auto; }
+.qb-box-table td:first-child { font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+@media (max-width: 1300px) {
+ .qb-boxes { grid-template-columns: 1fr; }
+}
+
+
+/* ---- Zone popup (QB + receiver grids, team grids) ---- */
+#pass-zone-modal { z-index: 1300; } /* above the player card when opened from it */
+.pz-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin: 4px 0 12px; }
+.pz-tile { display: flex; flex-direction: column; align-items: center; padding: 6px 4px; border-radius: 10px; background: var(--panel-2); border: 1px solid var(--border); }
+.pz-tile span { font-size: 0.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.pz-play-table td { white-space: nowrap; }
+.pz-play-yds { color: var(--good-text); }
+.pz-verdict { margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; background: var(--table-head); color: var(--muted); }
+.pz-verdict-soft { background: rgba(var(--bad-rgb), 0.2); color: var(--bad-text); }
+.pz-verdict-firm { background: rgba(var(--good-rgb), 0.2); color: var(--good-text); }
+.pass-zone-qb-hint { margin: 6px 0 0; font-size: 0.72rem; font-style: italic; color: var(--muted); }
+@media (max-width: 900px) {
+ .pz-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Zone popup: the who-got-targeted column gets real room */
+.pass-zone-modal-layout > .pass-zone-modal-col:not(.pass-zone-modal-col-rank):not(.pass-zone-modal-col-plays) { flex: 1.3 1 0; min-width: 480px; }
+.pass-zone-modal-col-rank .pass-zone-rank-table td:nth-child(2) { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pz-blurb { margin: 8px 0 2px; padding: 7px 10px; border-radius: 8px; font-size: 0.84rem; background: var(--table-head); border-left: 3px solid var(--border-strong); }
+.pz-blurb-good { background: rgba(var(--good-rgb), 0.12); border-left-color: rgb(var(--good-rgb)); }
+.pz-blurb-bad { background: rgba(var(--bad-rgb), 0.1); border-left-color: rgb(var(--bad-rgb)); }
+.pz-note { margin: 4px 0 0; font-size: 0.68rem; font-style: italic; color: var(--muted); }
+
+/* ---- Zone matchup panel (beside the QB grid) + overall read ---- */
+.pass-zone-players-inline.pzm-row { flex-wrap: wrap; align-items: flex-start; gap: 14px; }
+.pzm-row > .pass-zone-qb-card { flex: 0 1 420px; }
+.pzm-panel { flex: 1 1 360px; min-width: 330px; display: flex; flex-direction: column; gap: 4px; }
+.pzm-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; display: flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 7px; background: var(--table-head); box-shadow: inset 3px 0 0 var(--accent); }
+.pzm-key { display: flex; justify-content: flex-end; gap: 10px; font-size: 0.62rem; font-weight: 700; color: var(--muted); padding-right: 76px; }
+.pzm-key span:first-child::before, .pzm-key span:last-child::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; background: var(--border-strong); }
+.pzm-table { width: 100%; table-layout: auto; }
+.pzm-table thead + tbody + thead th { padding-top: 10px; }
+.pzm-table td.pzm-label { font-family: var(--font-display); font-weight: 800; font-size: 0.92rem; }
+.pzm-table td.pzm-share { color: var(--muted); font-weight: 700; font-size: 0.8rem; }
+.pzm-table td.pzm-pair { white-space: nowrap; padding: 3px; }
+.pzm-v { display: inline-block; min-width: 34px; padding: 2px 4px; margin: 0 1px; border-radius: 5px; font-family: var(--font-display); font-size: 0.84rem; font-weight: 800; background: var(--panel); }
+.pzm-v.tier-good, .pzm-v.tier-bad, .pzm-v.tier-mid { background-color: rgba(var(--mid-rgb), 0.18); }
+.pzm-v.tier-good { background-color: rgba(var(--good-rgb), calc(var(--tier-a, 0.16) + 0.14)); }
+.pzm-v.tier-bad { background-color: rgba(var(--bad-rgb), calc(var(--tier-a, 0.16) + 0.14)); }
+.pzm-chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; background: var(--table-head); color: var(--muted); }
+.pzm-chip.pzm-good { background: rgba(var(--good-rgb), 0.22); color: var(--good-text); }
+.pzm-chip.pzm-bad { background: rgba(var(--bad-rgb), 0.2); color: var(--bad-text); }
+.pzm-read { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--border); }
+.pzm-read-main { font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 10px; border-radius: 8px; background: var(--table-head); }
+.pzm-read-main.pzm-good { background: rgba(var(--good-rgb), 0.2); color: var(--good-text); }
+.pzm-read-main.pzm-bad { background: rgba(var(--bad-rgb), 0.18); color: var(--bad-text); }
+.pzm-read-item { display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; }
+.pzm-row > .pass-zone-qb-card { flex: 0 0 360px; max-width: 360px; }
+.pzm-row > .pass-zone-qb-card .pass-zone-grid-qb { width: 100%; }
+.pzm-row .pass-zone-heat-cell-qb small { font-size: 0.56rem; }
+.pzm-panel { min-width: 330px; }
+.pzm-v { min-width: 30px; font-size: 0.8rem; }
+.pzm-table td.pzm-label { white-space: nowrap; }
+@media (max-width: 760px) {
+  .pzm-panel { overflow-x: auto; }
+  .pass-zone-pair, .rush-pair { padding: 10px 8px; }
+
+  /* Target Zones: drop the 420px column minimum so receiver cards sit
+     two across at a readable size instead of three squeezed ones. */
+  .pass-zone-col { min-width: 0; flex-basis: 100%; }
+  .pass-zone-player-mini-card { flex: 1 1 calc(50% - 10px); min-width: 0; max-width: none; }
+  .pzm-row > .pass-zone-qb-card { flex: 1 1 100%; max-width: 100%; }
+  .pzm-panel { min-width: 0; flex-basis: 100%; }
+}
+
+.bp-count { margin: 12px 0 6px; font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; }
+.bp-table th.bp-sort { cursor: pointer; white-space: nowrap; }
+.bp-table th.bp-sort:hover, .bp-table th.bp-sort-on { color: var(--text); }
+.bp-table td { vertical-align: middle; }
+.bp-table td.num { white-space: nowrap; }
+.bp-rating, .bp-edge { display: inline-block; min-width: 58px; padding: 3px 8px; border-radius: 6px; border: 1px solid transparent; text-align: center; font-family: var(--font-display); font-weight: 700; }
+.bp-edge { min-width: 48px; }
+.bp-rating.tier-good, .bp-edge.tier-good { border-color: rgba(var(--good-rgb), 0.5); }
+.bp-rating.tier-mid, .bp-edge.tier-mid { border-color: rgba(var(--mid-rgb), 0.5); }
+.bp-lean { --tier-a: 0.07; }
+.bp-player { white-space: nowrap; }
+.bp-sub { margin-top: 2px; font-size: 0.75rem; color: var(--muted); }
+.bp-stars { margin-left: 6px; color: var(--mid-text); font-size: 0.8rem; letter-spacing: 1px; }
+.bp-bet { white-space: nowrap; }
+.bp-note { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 4px; border: 1px dashed var(--border-strong); color: var(--muted); font-size: 0.72rem; font-weight: 700; }
+.bp-price { white-space: nowrap; }
+.bp-why { min-width: 220px; font-size: 0.8rem; color: var(--muted); }
+.bp-ytd-btn { margin-left: 10px; }
+#bp-ytd-modal .modal-box { max-width: 1000px; max-height: 92vh; overflow-y: auto; }
+.bp-ytd-list { margin-top: 14px; }

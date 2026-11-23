@@ -53,8 +53,12 @@ Ground rules:
 - `nfl_tool/build_stats.py` is 4,700 lines (2026-11-23; `nhl/build_nhl.py` 4,000): split by feature (odds, injuries, TD data, props,
   team stats, schedule) into modules, keeping one entry script. Tests from item 3 come first so
   the split can be proven to change nothing (compare the built `data.json` before and after).
-- `nfl_tool/site/style.css` is 4,400 lines (and growing) of layers stacked on layers: one file per page plus a
-  shared file for the building blocks (tiles, chips, the shared-label "tape", rank colors).
+- `nfl_tool/site/style.css` (done 2026-11-23): 4,400 lines became a shared style.css (~2,700) plus one
+  file per NFL page group (`game-previews.css`, `td-data.css`, `player-props.css`, `my-plays.css`,
+  `promos.css`, `support.css`, `activity.css`), proven by every element's computed style (styles.md).
+  Left: about 350 rules no page uses any more (old Summary card designs, `gs-*`, `ps-*`, `sc-*`,
+  `quick-select-*`, `results-*`) still sit in style.css, and most TD Data rules stay shared because
+  Best Plays loads app.js.
 - The NBA / NHL day picker (done 2026-11-23): the day bar and the day label are one copy in
   sync.js (`gmgDayBar`, `gmgDayLabel`). The game cards under it stay per page on purpose (each shows
   its own badges). Left for the owner to decide: NBA League Stats Chart / Matchup Keys cards show a

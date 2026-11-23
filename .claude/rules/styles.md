@@ -1,6 +1,7 @@
 ---
 paths:
   - "nfl_tool/site/style.css"
+  - "nfl_tool/site/*.css"
   - "nfl_tool/site/common.js"
   - "nfl_tool/site/teams.js"
   - "nfl_tool/site/sync.js"
@@ -168,8 +169,21 @@ automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for eve
 
 ## One stylesheet per sport (2026-10-13)
 
-- `style.css`: the tokens, the site-wide look and every NFL page. It holds no `.nba-*`, `.nhl-*`,
+- `style.css`: the tokens, the site-wide look, the building blocks (tiles, chips, tags, rank
+  colors, tables, pop-ups, top menu) and every rule two or more NFL page groups use. It holds no `.nba-*`, `.nhl-*`,
   `.shots-*` or `.crease-*` rule (a test fails if one comes back).
+- **One file per NFL page group (2026-11-23), loaded right after style.css by its pages only:**
+  `game-previews.css` (game-overview), `td-data.css` (index, opening-drives), `player-props.css`
+  (player-props, best-plays), `my-plays.css`, `promos.css` (promo-tools, contest), `support.css`,
+  `activity.css`. A rule goes in a page file only when every name in it exists on that group's
+  pages alone; best-plays loads app.js, so most TD Data rules are shared and stay in style.css.
+  A new rule for one page goes at the end of that page's file (its own phone block last).
+  `tests/test_stylesheets.py` checks the links and that no page file's class shows up elsewhere.
+- **Moving a rule between files changes the cascade:** a page file loads after all of style.css, so
+  a moved rule now beats any later style.css rule of the same specificity that hits the same
+  element. The split kept such rules in style.css (169 of them) and was proven by every element's
+  computed style on every NFL page, desktop and phone, dark and light, every view tab, three
+  Summary cards and a player card: zero differences (the 2026-10-13 method, below).
 - `suite.css`: the layout the NBA and NHL pages share (`.nba-*`: the owner-only guard, boxes,
   tiles, banners). Loaded after style.css by every NBA and NHL page, never by an NFL page.
 - `nhl/nhl.css`: everything hockey-only, loaded last by the NHL pages. Each has its own phone
@@ -182,10 +196,10 @@ automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for eve
 
 ## Phone layout
 
-- style.css has four `@media (max-width: 760px)` blocks: two small early ones (`.two-col`,
-  `.box-score-grid`), the main phone block, and a last one at the very end of the file.
-  **Put new phone-only rules in the last block** so they win over everything above and desktop
-  stays pixel-identical.
+- style.css and each NFL page file end with an `@media (max-width: 760px)` block.
+  **Put new phone-only rules in the last block of the file the rule belongs to** (a page's own rule:
+  its page file, which loads after style.css) so they win over everything above and desktop stays
+  pixel-identical.
 - Nothing is hidden on phones: wide sections scroll sideways inside their own box with the first
   (name) column pinned, side-by-side columns stack, Target Zones cards go two across, and the tab
   menu tightens (edge fade under 380px).

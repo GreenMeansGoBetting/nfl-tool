@@ -1,0 +1,186 @@
+/* My Plays (my-plays.html): saved plays, Photo Export, the parlay wheel.
+   Loaded after style.css (the shared look) by that page only. Rules keep the
+   order they had in the old single style.css; this file's last phone block
+   (@media (max-width: 760px)) stays last. styles.md, "Stylesheets". */
+.quick-select-label { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-right: 2px; }
+.wheel-spin-btn:hover { filter: brightness(1.12); }
+.wheel-spin-btn:disabled { opacity: 0.5; cursor: default; }
+#wheel-modal .modal-box { max-width: 420px; text-align: center; }
+/* Once a round is showing (wheel + running slip), the box needs to be much
+   wider than the plain leg-count-picker screen -- overridden per-state via
+   this second class rather than just always being huge, so the initial
+   "how many legs" screen still reads as a normal small dialog. */
+#wheel-modal .modal-box.wheel-modal-wide { max-width: 980px; width: 95vw; }
+.wheel-legs-label { display: block; margin: 10px 0; font-weight: 600; font-size: 0.9rem; }
+.wheel-sgp { display: flex; justify-content: center; gap: 8px; margin: 12px 0 4px; }
+.wheel-sgp-btn { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 14px; min-width: 140px; }
+.wheel-round-layout {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.wheel-col { flex: 0 0 auto; }
+.wheel-slip-col { flex: 1 1 220px; max-width: 300px; text-align: left; padding-top: 8px; }
+.wheel-wrap {
+  position: relative;
+  width: 600px;
+  max-width: 100%;
+  height: 600px;
+  margin: 16px auto;
+}
+.wheel-wrap svg { width: 100%; height: 100%; }
+.wheel-pointer {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 22px solid var(--grid-line);
+  z-index: 2;
+}
+#wheel-spinner {
+  display: inline-block;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--border);
+  transition: transform 4s cubic-bezier(0.12, 0.67, 0.1, 0.99);
+}
+.wheel-slip {
+  text-align: left;
+  background: var(--table-head);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+.wheel-slip h4 { margin: 0 0 4px; font-size: 0.85rem; }
+.wheel-slip ul { margin: 0; padding-left: 18px; font-size: 0.85rem; }
+.wheel-slip li { margin: 2px 0; }
+.wheel-done { font-weight: 700; font-size: 1.1rem; margin-top: 12px; }
+.results-week-label { font-size: 0.85rem; font-weight: 600; }
+.results-week-label select { margin-left: 6px; font-family: inherit; font-weight: 600; }
+.results-clear-selection { padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-strong); background: transparent; color: var(--muted); font: inherit; font-size: 0.75rem; cursor: pointer; }
+.results-clear-selection:hover { color: var(--text); }
+.results-table tr.result-row-selected td { box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.55); }
+.results-select, .results-select-all { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.results-type-summary { margin-bottom: 14px; }
+.results-type-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  max-width: 360px;
+  padding: 3px 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.results-table-scroll { overflow-x: auto; }
+.results-sort-th { cursor: pointer; user-select: none; white-space: nowrap; }
+.results-sort-th:hover { color: var(--accent); }
+.results-table .result-override-group { display: flex; gap: 4px; }
+.result-override-btn {
+  background: var(--panel);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.result-override-btn:hover { border-color: var(--accent); color: var(--text); }
+.result-override-btn.active[data-result="win"] { background: rgba(var(--good-rgb), 0.22); border-color: var(--good); color: var(--good-text); }
+.result-override-btn.active[data-result="loss"] { background: rgba(var(--bad-rgb), 0.22); border-color: var(--bad); color: var(--bad-text); }
+.result-override-btn.active[data-result="void"] { background: rgba(102, 102, 102, 0.18); border-color: var(--muted); color: var(--text); }
+.result-row-win td { background: rgba(var(--good-rgb), 0.06); }
+.result-row-loss td { background: rgba(var(--bad-rgb), 0.06); }
+#export-modal .modal-box { width: fit-content; max-width: 96vw; max-height: 94vh; overflow: auto; }
+.pe-controls { display: grid; gap: 8px; margin: 10px 0 14px; }
+.pe-control-row { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+.pe-check { display: inline-flex; align-items: center; gap: 5px; font-size: 0.86rem; font-weight: 600; cursor: pointer; }
+.pe-save-btn { margin-left: auto; }
+.pe-preview { overflow: auto; border: 1px dashed var(--border-strong); border-radius: 10px; }
+.pe-card { box-sizing: border-box; padding: 12px 14px 14px; background: var(--bg); color: var(--text); }
+.pe-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+.pe-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+.pe-total { margin-left: auto; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.pe-body { column-gap: 14px; }
+.pe-group-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 0 0 4px; padding: 4px 8px; border-radius: 6px;
+  background: var(--table-head); border-left: 4px solid var(--accent);
+  font-family: var(--font-display); font-size: 0.95rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase;
+  break-inside: avoid; break-after: avoid;
+}
+.pe-row + .pe-group-head { margin-top: 10px; }
+.pe-count { font-size: 0.78rem; color: var(--muted); }
+.pe-row {
+  display: flex; align-items: center; gap: 7px; height: 28px; margin-bottom: 3px; padding: 0 4px 0 7px;
+  border-radius: 6px; background: var(--panel); border: 1px solid var(--border);
+  break-inside: avoid;
+}
+.pe-logo { display: inline-flex; min-width: 18px; flex: none; gap: 2px; }
+.pe-play { flex: 1; min-width: 0; font-size: 0.86rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pe-odds {
+  flex: none; min-width: 50px; padding: 1px 6px; border-radius: 5px; text-align: center;
+  font-family: var(--font-display); font-size: 0.98rem; font-weight: 800;
+  background: rgba(var(--good-rgb), 0.14); border: 1px solid rgba(var(--good-rgb), 0.4); color: var(--good-text);
+}
+/* Show results: graded rows shaded green / red, units in their own box, the
+   record in the title bar. Pending, push and void stay plain. */
+.pe-units {
+  flex: none; min-width: 54px; padding: 1px 5px; border-radius: 5px; text-align: center;
+  font-family: var(--font-display); font-size: 0.98rem; font-weight: 800;
+}
+.pe-units-muted { font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.pe-row-win { background: rgba(var(--good-rgb), 0.13); border-color: rgba(var(--good-rgb), 0.5); }
+.pe-row-win .pe-units { background: rgba(var(--good-rgb), 0.28); color: var(--good-text); }
+.pe-row-loss { background: rgba(var(--bad-rgb), 0.11); border-color: rgba(var(--bad-rgb), 0.45); }
+.pe-row-loss .pe-units { background: rgba(var(--bad-rgb), 0.24); color: var(--bad-text); }
+.pe-row-loss .pe-odds { background: rgba(var(--bad-rgb), 0.12); border-color: rgba(var(--bad-rgb), 0.4); color: var(--bad-text); }
+.pe-row-pending .pe-odds, .pe-row-push .pe-odds, .pe-row-void .pe-odds { background: var(--panel-2); border-color: var(--border-strong); color: var(--text); }
+.pe-record {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px; border-radius: 7px;
+  font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; white-space: nowrap;
+  background: var(--panel-2); border: 1px solid var(--border-strong);
+}
+.pe-record-up { background: rgba(var(--good-rgb), 0.18); border-color: rgba(var(--good-rgb), 0.55); color: var(--good-text); }
+.pe-record-down { background: rgba(var(--bad-rgb), 0.16); border-color: rgba(var(--bad-rgb), 0.5); color: var(--bad-text); }
+.pe-record + .pe-total { margin-left: 0; }
+
+/* ---- My Plays (my-plays.html): every sport's saved plays, graded ---- */
+.mp-head { display: flex; align-items: center; gap: 10px; margin: 6px 0 8px; }
+.mp-title { margin: 0; font-family: var(--font-display); font-size: 1.7rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.mp-info { max-width: 900px; margin: 0 0 10px; padding: 10px 12px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--border); font-size: 0.88rem; line-height: 1.45; }
+.mp-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 10px; }
+.mp-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.mp-actions { display: flex; gap: 8px; margin-left: auto; }
+.mp-sort { cursor: pointer; user-select: none; white-space: nowrap; }
+.mp-sort:hover, .mp-sort-on { color: var(--accent); }
+/* Parlay Wheel's play picker (my-plays.js renderWheelPicker) */
+#wheel-modal .modal-box:has(.wp-picker) { max-width: 640px; width: 95vw; text-align: left; }
+.wp-picker h3 { margin: 0 0 2px; }
+.wp-filters { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 8px; }
+.wp-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.wp-bulk { display: flex; gap: 8px; margin-bottom: 6px; }
+.wp-list { max-height: 46vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--panel-2); padding: 4px 0; }
+.wp-game { padding: 6px 10px 3px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.wp-row { display: grid; grid-template-columns: auto 1fr auto 56px; align-items: center; gap: 10px; padding: 4px 10px; cursor: pointer; }
+.wp-row:hover { background: var(--table-head); }
+.wp-row .mp-play { white-space: normal; }
+.wp-odds { text-align: right; font-weight: 700; }
+.wp-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.mp-summary { max-width: 520px; margin-bottom: 8px; }
+.mp-summary .mp-up { background: rgba(var(--good-rgb), 0.12); color: var(--good-text); }
+.mp-summary .mp-down { background: rgba(var(--bad-rgb), 0.11); color: var(--bad-text); }
+.mp-sport-tag { display: inline-block; padding: 1px 6px; border-radius: 5px; background: var(--table-head); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; }
+.mp-play { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.mp-play .team-logo-mini + .team-logo-mini { margin-left: -2px; }
+.mp-price { width: 64px; padding: 2px 5px; border-radius: 5px; border: 1px solid var(--border-strong); background: var(--panel); color: var(--text); font: inherit; text-align: right; }
+.mp-remove { font-size: 1rem; line-height: 1; }
+.mp-odds-cell { white-space: nowrap; }
+.mp-odds-mine { font-weight: 700; border-bottom: 1px dashed currentColor; }
+.mp-edit-price { margin-left: 4px; padding: 0 3px; border: 0; background: none; color: var(--text); opacity: 0.55; cursor: pointer; font-size: 0.85rem; line-height: 1; }
+.mp-edit-price:hover { opacity: 1; }

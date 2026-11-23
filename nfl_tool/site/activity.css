@@ -1,0 +1,10 @@
+/* Member Activity (activity.html, owner only).
+   Loaded after style.css (the shared look) by that page only. Rules keep the
+   order they had in the old single style.css; this file's last phone block
+   (@media (max-width: 760px)) stays last. styles.md, "Stylesheets". */
+/* Member Activity (owner only; activity.js) */
+.act-page h2 { font-family: var(--font-display); font-size: 1.6rem; font-weight: 700; margin: 4px 0; }
+.act-note { color: var(--text); font-family: var(--font-body); margin: 0 0 12px; }
+.act-box { width: fit-content; max-width: 100%; overflow-x: auto; margin-bottom: 14px; }
+.act-tile { min-width: 76px; }
+.data-table.od-grid td.act-day { padding: 3px 10px; font-weight: 600; }
