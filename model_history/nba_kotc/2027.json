@@ -13048,58 +13048,58 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3606,
+    "lead": 0.361,
     "name": "Luka Doncic",
     "proj": 52.9,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.2314,
+    "lead": 0.2317,
     "name": "Victor Wembanyama",
     "proj": 48.2,
     "team": "SA"
    },
    {
-    "id": "4871144",
-    "lead": 0.0522,
-    "name": "Alperen Sengun",
-    "proj": 38.5,
-    "team": "HOU"
-   },
-   {
     "id": "4433134",
-    "lead": 0.0522,
+    "lead": 0.0524,
     "name": "Scottie Barnes",
     "proj": 38.0,
     "team": "TOR"
    },
    {
+    "id": "4871144",
+    "lead": 0.0523,
+    "name": "Alperen Sengun",
+    "proj": 38.5,
+    "team": "HOU"
+   },
+   {
     "id": "3908809",
-    "lead": 0.0441,
+    "lead": 0.0438,
     "name": "Donovan Mitchell",
-    "proj": 36.7,
+    "proj": 36.6,
     "team": "CLE"
    },
    {
     "id": "4683021",
-    "lead": 0.0375,
+    "lead": 0.0376,
     "name": "Deni Avdija",
     "proj": 36.8,
     "team": "POR"
    },
    {
     "id": "5142620",
-    "lead": 0.0279,
+    "lead": 0.028,
     "name": "Darius Acuff Jr.",
     "proj": 35.6,
     "team": "SAC"
    },
    {
     "id": "4433627",
-    "lead": 0.0208,
+    "lead": 0.0204,
     "name": "Keyonte George",
-    "proj": 33.9,
+    "proj": 33.8,
     "team": "UTAH"
    },
    {
@@ -13111,21 +13111,21 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0177,
+    "lead": 0.0178,
     "name": "Tyrese Maxey",
     "proj": 33.7,
     "team": "PHI"
    },
    {
     "id": "3917376",
-    "lead": 0.0142,
+    "lead": 0.0139,
     "name": "Jaylen Brown",
-    "proj": 32.5,
+    "proj": 32.4,
     "team": "PHI"
    },
    {
     "id": "3059318",
-    "lead": 0.0136,
+    "lead": 0.0137,
     "name": "Joel Embiid",
     "proj": 33.0,
     "team": "PHI"
@@ -13160,9 +13160,9 @@
    },
    {
     "id": "4395725",
-    "lead": 0.0061,
+    "lead": 0.0057,
     "name": "Tyler Herro",
-    "proj": 29.6,
+    "proj": 29.5,
     "team": "MIL"
    },
    {
@@ -13194,18 +13194,18 @@
     "team": "SAC"
    },
    {
+    "id": "4432816",
+    "lead": 0.0038,
+    "name": "LaMelo Ball",
+    "proj": 28.5,
+    "team": "MIN"
+   },
+   {
     "id": "5144091",
     "lead": 0.0037,
     "name": "Jeremiah Fears",
     "proj": 29.4,
     "team": "NO"
-   },
-   {
-    "id": "4432816",
-    "lead": 0.0037,
-    "name": "LaMelo Ball",
-    "proj": 28.5,
-    "team": "MIN"
    },
    {
     "id": "4845367",
@@ -13232,7 +13232,7 @@
     "id": "1966",
     "lead": 0.0027,
     "name": "LeBron James",
-    "proj": 28.7,
+    "proj": 28.6,
     "team": "PHI"
    },
    {
@@ -13244,9 +13244,9 @@
    },
    {
     "id": "4395724",
-    "lead": 0.002,
+    "lead": 0.0019,
     "name": "Immanuel Quickley",
-    "proj": 28.3,
+    "proj": 28.2,
     "team": "TOR"
    },
    {
@@ -13267,7 +13267,7 @@
     "id": "4397002",
     "lead": 0.0016,
     "name": "Ayo Dosunmu",
-    "proj": 26.3,
+    "proj": 26.4,
     "team": "MIN"
    },
    {
@@ -13281,7 +13281,7 @@
     "id": "5041955",
     "lead": 0.0013,
     "name": "Darryn Peterson",
-    "proj": 27.1,
+    "proj": 27.0,
     "team": "UTAH"
    },
    {
@@ -13292,18 +13292,18 @@
     "team": "LAL"
    },
    {
+    "id": "4278104",
+    "lead": 0.0011,
+    "name": "Michael Porter Jr.",
+    "proj": 27.0,
+    "team": "BKN"
+   },
+   {
     "id": "4903027",
     "lead": 0.0011,
     "name": "Cedric Coward",
     "proj": 26.7,
     "team": "MEM"
-   },
-   {
-    "id": "4278104",
-    "lead": 0.001,
-    "name": "Michael Porter Jr.",
-    "proj": 26.9,
-    "team": "BKN"
    },
    {
     "id": "5105565",
@@ -13335,9 +13335,9 @@
    },
    {
     "id": "5124612",
-    "lead": 0.0005,
+    "lead": 0.0004,
     "name": "VJ Edgecombe",
-    "proj": 24.3,
+    "proj": 24.2,
     "team": "PHI"
    },
    {
@@ -13435,7 +13435,7 @@
     "id": "4684272",
     "lead": 0.0002,
     "name": "Ja'Kobe Walter",
-    "proj": 18.5,
+    "proj": 18.4,
     "team": "TOR"
    },
    {
@@ -13449,7 +13449,7 @@
     "id": "4397014",
     "lead": 0.0001,
     "name": "Quentin Grimes",
-    "proj": 20.0,
+    "proj": 19.9,
     "team": "LAL"
    },
    {
