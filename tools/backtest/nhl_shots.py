@@ -34,7 +34,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nhl"))
-import build_nhl as b  # noqa: E402
+import nhl_games  # noqa: E402
+import nhl_lineups  # noqa: E402
 import shots_model as sm  # noqa: E402
 
 DATA = ROOT / "data" / "nhl"
@@ -47,13 +48,13 @@ LINES = (0.5, 1.5, 2.5, 3.5, 4.5)
 def load_records(season: int) -> list:
     folder = DATA / "games" / str(season)
     if not folder.exists() or len(list(folder.glob("*.json.gz"))) < 1000:
-        print(f"Downloading {b.season_label(season)} (kept in {folder})...", flush=True)
-        listing = b._request(f"{b.REST}/game?cayenneExp=season={b.season_id(season)}%20and%20gameType={b.REGULAR_SEASON}").get("data") or []
-        b.load_games(sorted(g["id"] for g in listing if g.get("gameStateId") in b.FINISHED_STATES), season, DATA)
+        print(f"Downloading {nhl_games.season_label(season)} (kept in {folder})...", flush=True)
+        listing = nhl_games._request(f"{nhl_games.REST}/game?cayenneExp=season={nhl_games.season_id(season)}%20and%20gameType={nhl_games.REGULAR_SEASON}").get("data") or []
+        nhl_games.load_games(sorted(g["id"] for g in listing if g.get("gameStateId") in nhl_games.FINISHED_STATES), season, DATA)
     records = []
     for path in sorted(folder.glob("*.json.gz")):
         with gzip.open(path, "rt", encoding="utf-8") as f:
-            records.append(b.reduce_game(json.load(f)))
+            records.append(nhl_games.reduce_game(json.load(f)))
     records.sort(key=lambda r: (r["date"], r["id"]))
     return records
 
@@ -69,11 +70,11 @@ def load_previews(season: int, records: list) -> dict:
 
         def one(game_id):
             try:
-                (folder / f"{game_id}.json").write_text(json.dumps(b.fetch_lineup_story(game_id)), encoding="utf-8")
+                (folder / f"{game_id}.json").write_text(json.dumps(nhl_lineups.fetch_lineup_story(game_id)), encoding="utf-8")
             except Exception:
                 pass  # asked for again on the next run
 
-        with ThreadPoolExecutor(max_workers=b.FETCH_WORKERS) as pool:
+        with ThreadPoolExecutor(max_workers=nhl_games.FETCH_WORKERS) as pool:
             list(pool.map(one, missing))
     out = {}
     for r in records:
@@ -91,12 +92,12 @@ def game_slots(record: dict, story: dict | None) -> dict:
     if not story:
         return slots
     positions = {pid: line["pos"] for pid, line in record["skaters"].items()}
-    for lineup in b.parse_lineups(story["markdown"]).values():
-        listed = {b.plain(name) for names in lineup["groups"] for name in names}
-        by_team = {team: {b.plain(line["name"]): pid for pid, line in record["skaters"].items() if line["team"] == team} for team in (record["home"], record["away"])}
+    for lineup in nhl_lineups.parse_lineups(story["markdown"]).values():
+        listed = {nhl_games.plain(name) for names in lineup["groups"] for name in names}
+        by_team = {team: {nhl_games.plain(line["name"]): pid for pid, line in record["skaters"].items() if line["team"] == team} for team in (record["home"], record["away"])}
         team = max(by_team, key=lambda t: len(listed & set(by_team[t])))
         if len(listed & set(by_team[team])) >= 8:
-            slots.update(b.lineup_slots(lineup, team, lambda _team, name: by_team[team].get(b.plain(name)), positions)["skaters"])
+            slots.update(nhl_lineups.lineup_slots(lineup, team, lambda _team, name: by_team[team].get(nhl_games.plain(name)), positions)["skaters"])
     return slots
 
 
@@ -260,9 +261,9 @@ def main():
     if args.tune:
         tune(records, prior)
     d = replay(records, prior, None, PREVIEWS)
-    fitted = report(d, b.season_label(args.season))
+    fitted = report(d, nhl_games.season_label(args.season))
     regulars = d["base"] >= 1.5
-    report({k: v[regulars] for k, v in d.items()}, f"{b.season_label(args.season)}, players projected for 1.5+ (the ones books post lines on)")
+    report({k: v[regulars] for k, v in d.items()}, f"{nhl_games.season_label(args.season)}, players projected for 1.5+ (the ones books post lines on)")
     print("\nFitted on the whole season (copy into shots_model.py if they hold up in both halves):")
     print("  WEIGHTS =", {k: round(v, 3) for k, v in fitted["weights"].items()})
     print("  DISPERSION =", round(fitted["dispersion"], 3))

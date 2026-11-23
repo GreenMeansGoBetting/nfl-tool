@@ -1,5 +1,5 @@
 """NHL Line Matchups: the 5-on-5 counting (nfl_tool/nhl/lines_model.py) and its
-half of the build (build_nhl.lines_file), on the saved game with its shift
+half of the build (line_matchups_page.lines_file), on the saved game with its shift
 chart and hand-made ones.
 
 What is pinned: a game's 5-on-5 seconds, attempts and goals add up the same
@@ -17,7 +17,8 @@ from datetime import datetime
 
 import helpers  # first: puts nfl_tool/nhl on the import path
 
-import build_nhl
+import line_matchups_page
+import nhl_games
 import lines_model as lm
 
 
@@ -90,8 +91,8 @@ class GameUnits(unittest.TestCase):
         self.assertEqual(later["HOM"]["F"][FIRST][3], 0)
 
     def test_reduce_game_keeps_it(self):
-        self.assertEqual(build_nhl.reduce_game(saved_game())["lines5"], lm.game_units(saved_game()))
-        self.assertIsNone(build_nhl.reduce_game(helpers.nhl_game())["lines5"])
+        self.assertEqual(nhl_games.reduce_game(saved_game())["lines5"], lm.game_units(saved_game()))
+        self.assertIsNone(nhl_games.reduce_game(helpers.nhl_game())["lines5"])
 
 
 def record(gid, date, home, away, home_units, away_units, vs):
@@ -172,9 +173,9 @@ class File(unittest.TestCase):
         self.now = datetime(2026, 10, 20, 16, 0)
 
     def test_usual_lines_until_the_lineup_is_posted(self):
-        out = build_nhl.lines_file(2027, "x", self.records, [self.game()], {}, self.skaters, None, self.now)
+        out = line_matchups_page.lines_file(2027, "x", self.records, [self.game()], {}, self.skaters, None, self.now)
         g = out["games"]["9"]
-        self.assertEqual(out["rules"], build_nhl.LINES_RULES)
+        self.assertEqual(out["rules"], line_matchups_page.LINES_RULES)
         self.assertEqual(g["teams"]["AAA"]["source"], "usual")
         self.assertEqual([u["slot"] for u in g["teams"]["AAA"]["lines"]], ["F1", "F2"])
         self.assertEqual(g["players"]["a1"][0], "Player a1")
@@ -185,7 +186,7 @@ class File(unittest.TestCase):
 
     def test_a_posted_lineup_in_its_order(self):
         posted = {"9": {"posted": "2026-10-20T16:00Z", "AAA": {"skaters": {"a4": "F1", "a5": "F1", "a6": "F1", "a1": "F2", "a2": "F2", "zz": "F2", "a3": None}}}}
-        g = build_nhl.lines_file(2027, "x", self.records, [self.game()], posted, self.skaters, None, self.now)["games"]["9"]
+        g = line_matchups_page.lines_file(2027, "x", self.records, [self.game()], posted, self.skaters, None, self.now)["games"]["9"]
         lines = g["teams"]["AAA"]["lines"]
         self.assertEqual(g["teams"]["AAA"]["source"], "posted")
         self.assertEqual([(u["slot"], u["ids"]) for u in lines], [("F1", ["a4", "a5", "a6"]), ("F2", ["a1", "a2", "zz"])])
@@ -195,13 +196,13 @@ class File(unittest.TestCase):
 
     def test_a_started_game_keeps_what_it_said(self):
         kept = {"games": {"9": {"locked": False, "teams": {"AAA": "before"}}}}
-        out = build_nhl.lines_file(2027, "x", self.records, [self.game(start="2026-10-20T15:00Z")], {}, self.skaters, kept, self.now)
+        out = line_matchups_page.lines_file(2027, "x", self.records, [self.game(start="2026-10-20T15:00Z")], {}, self.skaters, kept, self.now)
         self.assertEqual(out["games"]["9"], {"locked": True, "teams": {"AAA": "before"}})
-        self.assertEqual(build_nhl.lines_file(2027, "x", self.records, [self.game(status="final")], {}, self.skaters, None, self.now)["games"], {})
+        self.assertEqual(line_matchups_page.lines_file(2027, "x", self.records, [self.game(status="final")], {}, self.skaters, None, self.now)["games"], {})
 
     def test_only_the_shots_page_days(self):
         far = self.game(gid="10", start="2026-10-30T23:00Z", date="2026-10-30")
-        self.assertEqual(list(build_nhl.lines_file(2027, "x", self.records, [self.game(), far], {}, self.skaters, None, self.now)["games"]), ["9"])
+        self.assertEqual(list(line_matchups_page.lines_file(2027, "x", self.records, [self.game(), far], {}, self.skaters, None, self.now)["games"]), ["9"])
 
 
 if __name__ == "__main__":

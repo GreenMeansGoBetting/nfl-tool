@@ -16,7 +16,7 @@ import unittest
 
 from helpers import nhl_data, nhl_goals, nhl_points, nhl_saves, nhl_shots  # first: puts tools/ on the import path
 
-import build_nhl
+import shots_page
 from site_browser import SiteBrowser
 
 SITE = PAGE = None
@@ -73,7 +73,7 @@ def expected(day=TONIGHT):
             market = ((data["player_odds"].get(gid) or {}).get(row["id"]) or {}).get("sog")
             if row["out"] or not market:
                 continue
-            play = build_nhl.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"], row["move"])
+            play = shots_page.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"], row["move"])
             if play and play["size"] == "play":
                 out[f"sog:{gid}:{row['id']}"] = {**play, "row": row}
         for row in (goals["games"].get(gid) or {}).get("players", []):
@@ -110,7 +110,7 @@ class Listing(unittest.TestCase):
         self.assertEqual(SITE.errors, [])
 
     def test_the_plays_are_the_builds(self):
-        """Shots: the side, line, price and edge the record grades (build_nhl.shots_play). Goals and Points: the build's play and edge."""
+        """Shots: the side, line, price and edge the record grades (shots_page.shots_play). Goals and Points: the build's play and edge."""
         plays = expected()
         for r in reset():
             play = plays[r["key"]]

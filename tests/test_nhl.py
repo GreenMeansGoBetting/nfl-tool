@@ -17,7 +17,9 @@ from pathlib import Path
 
 import helpers  # first: puts nfl_tool/nhl on the import path
 
-import build_nhl
+import nhl_games
+import nhl_prices
+import nhl_stats
 
 BUF, FLA = 7, 13  # the NHL's team ids in the saved game (FLA @ BUF)
 
@@ -34,13 +36,13 @@ class RinkAreas(unittest.TestCase):
             (40, 10): "point", (26, -40): "point", (53, 0): "point",
             (10, 0): "long", (-60, 5): "long",
         }.items():
-            self.assertEqual(build_nhl.shot_area(x, y), area, f"({x}, {y})")
+            self.assertEqual(nhl_games.shot_area(x, y), area, f"({x}, {y})")
 
     def test_a_shot_is_turned_to_face_the_net_it_attacks(self):
-        self.assertEqual(build_nhl.normalize_xy({"xCoord": 61, "yCoord": -19}, 1), (61, -19))
-        self.assertEqual(build_nhl.normalize_xy({"xCoord": -84, "yCoord": 9}, -1), (84, -9))
-        self.assertIsNone(build_nhl.normalize_xy({"xCoord": 61}, 1))
-        self.assertIsNone(build_nhl.normalize_xy({"xCoord": 61, "yCoord": 2}, None))
+        self.assertEqual(nhl_games.normalize_xy({"xCoord": 61, "yCoord": -19}, 1), (61, -19))
+        self.assertEqual(nhl_games.normalize_xy({"xCoord": -84, "yCoord": 9}, -1), (84, -9))
+        self.assertIsNone(nhl_games.normalize_xy({"xCoord": 61}, 1))
+        self.assertIsNone(nhl_games.normalize_xy({"xCoord": 61, "yCoord": 2}, None))
 
 
 class Manpower(unittest.TestCase):
@@ -58,11 +60,11 @@ class Manpower(unittest.TestCase):
             ("1010", "ps", "ps"),
             ("0101", "ps", "ps"),
         ):
-            self.assertEqual(build_nhl.strength(code, True), home, f"{code} home")
-            self.assertEqual(build_nhl.strength(code, False), away, f"{code} away")
+            self.assertEqual(nhl_games.strength(code, True), home, f"{code} home")
+            self.assertEqual(nhl_games.strength(code, False), away, f"{code} away")
 
     def test_a_missing_code_counts_as_five_a_side(self):
-        self.assertEqual(build_nhl.strength(None, True), "5v5")
+        self.assertEqual(nhl_games.strength(None, True), "5v5")
 
 
 class SavedGame(unittest.TestCase):
@@ -71,7 +73,7 @@ class SavedGame(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.raw = helpers.nhl_game()
-        cls.game = build_nhl.reduce_game(cls.raw)
+        cls.game = nhl_games.reduce_game(cls.raw)
 
     def test_score_and_teams(self):
         g = self.game
@@ -99,7 +101,7 @@ class SavedGame(unittest.TestCase):
 
     def test_where_the_shots_came_from(self):
         buf, fla = self.game["teams"]["BUF"], self.game["teams"]["FLA"]
-        areas = lambda t: {a: t.get(f"a_{a}", 0) for a in build_nhl.AREAS}
+        areas = lambda t: {a: t.get(f"a_{a}", 0) for a in nhl_games.AREAS}
         self.assertEqual(areas(buf), {"low_slot": 8, "slot": 10, "left": 6, "right": 5, "point": 13, "long": 0})
         self.assertEqual(areas(fla), {"low_slot": 11, "slot": 3, "left": 9, "right": 2, "point": 21, "long": 0})
         # BUF's one shot at the empty net isn't part of where it shoots from.
@@ -113,14 +115,14 @@ class SavedGame(unittest.TestCase):
         turn, an offensive-zone shot must sit past the blue line."""
         pbp = self.raw["pbp"]
         team_of = {r["playerId"]: r["teamId"] for r in pbp["rosterSpots"]}
-        directions = build_nhl.attack_directions(pbp["plays"], team_of, pbp["homeTeam"]["id"])
+        directions = nhl_games.attack_directions(pbp["plays"], team_of, pbp["homeTeam"]["id"])
         self.assertEqual(directions, {(1, FLA): -1, (1, BUF): 1, (2, FLA): 1, (2, BUF): -1, (3, FLA): -1, (3, BUF): 1})
         checked = 0
         for p in pbp["plays"]:
             d = p.get("details") or {}
             if p["typeDescKey"] in ("goal", "shot-on-goal", "missed-shot") and d.get("zoneCode") == "O":
-                x, _ = build_nhl.normalize_xy(d, directions[(p["periodDescriptor"]["number"], d["eventOwnerTeamId"])])
-                self.assertGreater(x, build_nhl.BLUE_LINE_X, p["timeInPeriod"])
+                x, _ = nhl_games.normalize_xy(d, directions[(p["periodDescriptor"]["number"], d["eventOwnerTeamId"])])
+                self.assertGreater(x, nhl_games.BLUE_LINE_X, p["timeInPeriod"])
                 checked += 1
         self.assertGreater(checked, 70)
 
@@ -130,7 +132,7 @@ class SavedGame(unittest.TestCase):
         for p in pbp["plays"]:
             p.pop("homeTeamDefendingSide", None)
         team_of = {r["playerId"]: r["teamId"] for r in pbp["rosterSpots"]}
-        self.assertEqual(build_nhl.attack_directions(pbp["plays"], team_of, BUF), {(1, FLA): -1, (1, BUF): 1, (2, FLA): 1, (2, BUF): -1, (3, FLA): -1, (3, BUF): 1})
+        self.assertEqual(nhl_games.attack_directions(pbp["plays"], team_of, BUF), {(1, FLA): -1, (1, BUF): 1, (2, FLA): 1, (2, BUF): -1, (3, FLA): -1, (3, BUF): 1})
 
     def test_a_skaters_line(self):
         benson = self.game["skaters"]["8484145"]
@@ -149,19 +151,19 @@ class SavedGame(unittest.TestCase):
 
     def test_a_shootout_counts_only_in_the_final_score(self):
         raw = helpers.nhl_game()
-        before = build_nhl.reduce_game(raw)["teams"]["BUF"]
+        before = nhl_games.reduce_game(raw)["teams"]["BUF"]
         raw["pbp"]["plays"].append({
             "typeDescKey": "goal", "periodDescriptor": {"number": 5, "periodType": "SO"}, "situationCode": "1010",
             "details": {"xCoord": 80, "yCoord": 0, "scoringPlayerId": 8484145, "eventOwnerTeamId": BUF, "goalieInNetId": 8474593},
         })
-        self.assertEqual(build_nhl.reduce_game(raw)["teams"]["BUF"], before)
+        self.assertEqual(nhl_games.reduce_game(raw)["teams"]["BUF"], before)
 
 
 class SeasonNumbers(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.game = build_nhl.reduce_game(helpers.nhl_game())
-        cls.stats = build_nhl.compute_team_stats([cls.game], {}, {}, {})
+        cls.game = nhl_games.reduce_game(helpers.nhl_game())
+        cls.stats = nhl_stats.compute_team_stats([cls.game], {}, {}, {})
 
     def test_what_a_defense_allows_is_what_the_other_offense_did(self):
         buf, fla = self.stats["BUF"], self.stats["FLA"]
@@ -174,28 +176,28 @@ class SeasonNumbers(unittest.TestCase):
 
     def test_area_shares_add_up(self):
         for team in ("BUF", "FLA"):
-            self.assertAlmostEqual(sum(self.stats[team][f"off_{a}_share"] for a in build_nhl.AREAS), 1, places=3)
+            self.assertAlmostEqual(sum(self.stats[team][f"off_{a}_share"] for a in nhl_games.AREAS), 1, places=3)
 
     def test_the_penalty_kill_is_the_other_side_of_a_power_play_row(self):
         reports = {"powerplay": {7: {"powerPlayPct": 0.25, "ppOpportunitiesPerGame": 3.5}}, "penaltykill": {7: {"penaltyKillPct": 0.8, "timesShorthandedPerGame": 2.75}}}
-        buf = build_nhl.compute_team_stats([self.game], {}, reports, {"BUF": 7})["BUF"]
+        buf = nhl_stats.compute_team_stats([self.game], {}, reports, {"BUF": 7})["BUF"]
         self.assertEqual((buf["off_pp_pct"], buf["off_pp_opp_pg"], buf["pk_pct"], buf["def_pp_pct"], buf["def_pp_opp_pg"]), (0.25, 3.5, 0.8, 0.2, 2.75))
 
     def test_results(self):
         game = {"home": "AAA", "away": "BBB", "score": {"AAA": 3, "BBB": 2}, "ended": "REG"}
-        self.assertEqual((build_nhl.result_for(game, "AAA"), build_nhl.result_for(game, "BBB")), ("W", "L"))
+        self.assertEqual((nhl_stats.result_for(game, "AAA"), nhl_stats.result_for(game, "BBB")), ("W", "L"))
         for ended in ("OT", "SO"):
-            self.assertEqual(build_nhl.result_for({**game, "ended": ended}, "BBB"), "OTL")
+            self.assertEqual(nhl_stats.result_for({**game, "ended": ended}, "BBB"), "OTL")
 
     def test_recent_games_name_the_starter(self):
-        recent = build_nhl.compute_recent_games([self.game])
+        recent = nhl_stats.compute_recent_games([self.game])
         self.assertEqual(recent["BUF"][0], {
             "date": "2026-10-12", "opp": "FLA", "home": True, "gf": 5, "ga": 3, "result": "W", "ended": "REG", "sog": 32, "sog_against": 23, "goalie": "Colten Ellis",
         })
         self.assertEqual(recent["FLA"][0]["goalie"], "Jacob Markstrom")
 
     def test_goalie_season_line(self):
-        goalies = build_nhl.compute_goalies([self.game])
+        goalies = nhl_stats.compute_goalies([self.game])
         luukkonen = goalies["8480045"]
         self.assertEqual((luukkonen["games"], luukkonen["starts"], luukkonen["record"]), (1, 0, "1-0-0"))
         self.assertEqual(luukkonen["sv_pct"], round(13 / 14, 4))
@@ -211,7 +213,7 @@ class Lineup(unittest.TestCase):
 
     def test_one_big_night_doesnt_top_the_list(self):
         skaters = {"reg": self.skater("reg", 18.0, 10), "fill": self.skater("fill", 22.0, 1), "dman": self.skater("dman", 24.0, 10, "D")}
-        order = [s["id"] for s in build_nhl.lineup(skaters, Counter({"AAA": 10}))["AAA"]]
+        order = [s["id"] for s in nhl_stats.lineup(skaters, Counter({"AAA": 10}))["AAA"]]
         self.assertEqual(order, ["reg", "fill", "dman"])  # forwards first, then defense
 
     def test_a_regular_back_from_injury_makes_the_list(self):
@@ -223,11 +225,11 @@ class Lineup(unittest.TestCase):
         skaters["back"] = self.skater("back", 24.7, 1, "D")
         skaters["fill"] = self.skater("fill", 24.0, 1, "D")
         dressed = {"AAA": {"back", "d0", "d1", "d2", "d3", "d4"}}
-        order = [s["id"] for s in build_nhl.lineup(skaters, Counter({"AAA": 7}), dressed)["AAA"]]
+        order = [s["id"] for s in nhl_stats.lineup(skaters, Counter({"AAA": 7}), dressed)["AAA"]]
         self.assertEqual(order[0], "back")
         self.assertNotIn("fill", order)
         # Without knowing who dressed, the old discount drops him.
-        self.assertNotIn("back", [s["id"] for s in build_nhl.lineup(skaters, Counter({"AAA": 7}))["AAA"]])
+        self.assertNotIn("back", [s["id"] for s in nhl_stats.lineup(skaters, Counter({"AAA": 7}))["AAA"]])
 
     def test_last_dressed_is_each_teams_latest_game(self):
         line = lambda team: {"team": team}
@@ -235,7 +237,7 @@ class Lineup(unittest.TestCase):
             {"home": "AAA", "away": "BBB", "skaters": {"a1": line("AAA"), "a2": line("AAA"), "b1": line("BBB")}},
             {"home": "CCC", "away": "AAA", "skaters": {"a1": line("AAA"), "a3": line("AAA"), "c1": line("CCC")}},
         ]
-        self.assertEqual(build_nhl.last_dressed(records), {"AAA": {"a1", "a3"}, "BBB": {"b1"}, "CCC": {"c1"}})
+        self.assertEqual(nhl_stats.last_dressed(records), {"AAA": {"a1", "a3"}, "BBB": {"b1"}, "CCC": {"c1"}})
 
     def test_the_tripwire_names_a_priced_player_on_no_list(self):
         now = datetime(2026, 10, 16, 18, 0)
@@ -246,19 +248,19 @@ class Lineup(unittest.TestCase):
                       "chuck": {"name": "Charlie McAvoy", "team": "BOS", "sog": {"line": 1.5}},
                       "goalie": {"name": "Jeremy Swayman", "team": "BOS", "saves": {"line": 27.5}}},
                 "2": {"x": {"name": "Started Game", "team": "NJD", "sog": {"line": 2.5}}}}
-        self.assertEqual(build_nhl.unlisted_priced(games, lineups, odds, now),
+        self.assertEqual(nhl_prices.unlisted_priced(games, lineups, odds, now),
                          [{"game": "1", "team": "BOS", "id": "chuck", "name": "Charlie McAvoy"}])
 
     def test_early_in_the_season_everyone_counts_in_full(self):
         skaters = {"a": self.skater("a", 18.0, 2), "b": self.skater("b", 22.0, 1)}
-        self.assertEqual([s["id"] for s in build_nhl.lineup(skaters, Counter({"AAA": 2}))["AAA"]], ["b", "a"])
+        self.assertEqual([s["id"] for s in nhl_stats.lineup(skaters, Counter({"AAA": 2}))["AAA"]], ["b", "a"])
 
 
 class Schedule(unittest.TestCase):
     def test_eastern_time_uses_the_feeds_offset(self):
-        self.assertEqual(build_nhl.eastern("2026-10-13T23:00:00Z", "-04:00"), datetime(2026, 10, 13, 19, 0))
-        self.assertEqual(build_nhl.eastern("2026-11-10T00:30:00Z", "-05:00"), datetime(2026, 11, 9, 19, 30))
-        self.assertEqual(build_nhl.utc_text("2026-10-13T23:00:00Z"), "2026-10-13T23:00Z")
+        self.assertEqual(nhl_games.eastern("2026-10-13T23:00:00Z", "-04:00"), datetime(2026, 10, 13, 19, 0))
+        self.assertEqual(nhl_games.eastern("2026-11-10T00:30:00Z", "-05:00"), datetime(2026, 11, 9, 19, 30))
+        self.assertEqual(nhl_games.utc_text("2026-10-13T23:00:00Z"), "2026-10-13T23:00Z")
 
     def test_rest_days(self):
         games = [{"date": "2026-10-13", "away": "NJD", "home": "DET"}]
@@ -267,19 +269,19 @@ class Schedule(unittest.TestCase):
             {"gameDate": "2026-10-10", "homeTeamId": 17, "visitingTeamId": 8},
             {"gameDate": "2026-10-13", "homeTeamId": 17, "visitingTeamId": 1},
         ]
-        build_nhl.add_rest(games, season, {1: "NJD", 17: "DET", 9: "OTT", 8: "MTL"})
+        nhl_games.add_rest(games, season, {1: "NJD", 17: "DET", 9: "OTT", 8: "MTL"})
         self.assertEqual((games[0]["away_rest"], games[0]["home_rest"]), (1, 3))  # NJD played yesterday
 
     def test_first_game_has_no_rest_number(self):
         games = [{"date": "2026-10-13", "away": "NJD", "home": "DET"}]
-        build_nhl.add_rest(games, [], {})
+        nhl_games.add_rest(games, [], {})
         self.assertEqual((games[0]["away_rest"], games[0]["home_rest"]), (None, None))
 
 
 class NovigLines(unittest.TestCase):
     def test_main_lines_from_the_saved_event(self):
         """NJD @ DET: only the main (consensus) moneyline, puck line and total, never an alternate line."""
-        lines = build_nhl.lines_from_event(helpers.nhl_novig_event()["event"])
+        lines = nhl_prices.lines_from_event(helpers.nhl_novig_event()["event"])
         self.assertEqual(lines, {
             "away_team_spread": 1.5, "away_spread_odds": -257, "home_team_spread": -1.5, "home_spread_odds": 245,
             "total_line": 6.5, "over_odds": 125, "under_odds": -127,
@@ -287,11 +289,11 @@ class NovigLines(unittest.TestCase):
         })
 
     def test_win_chances_add_to_one(self):
-        lines = build_nhl.lines_from_event(helpers.nhl_novig_event()["event"])
+        lines = nhl_prices.lines_from_event(helpers.nhl_novig_event()["event"])
         self.assertAlmostEqual(lines["away_ml_implied_prob"] + lines["home_ml_implied_prob"], 1, places=3)
 
     def test_price_conversion(self):
-        self.assertEqual([build_nhl.price_to_american(p) for p in (0.5, 0.6, 0.4, 0, 1, None)], [-100, -150, 150, None, None, None])
+        self.assertEqual([nhl_prices.price_to_american(p) for p in (0.5, 0.6, 0.4, 0, 1, None)], [-100, -150, 150, None, None, None])
 
 
 class OddsLock(unittest.TestCase):
@@ -306,36 +308,36 @@ class OddsLock(unittest.TestCase):
 
     def test_started_game_keeps_the_previous_builds_line(self):
         games = [self.game("2026-10-13T22:00Z")]
-        build_nhl.apply_lines(games, {"1": self.LIVE}, {"schedule": [{"game_id": "1", **self.PREGAME}]}, self.NOW)
+        nhl_prices.apply_lines(games, {"1": self.LIVE}, {"schedule": [{"game_id": "1", **self.PREGAME}]}, self.NOW)
         self.assertEqual({k: games[0][k] for k in self.PREGAME}, self.PREGAME)
         self.assertTrue(games[0]["lines_locked"])
 
     def test_started_game_with_no_earlier_build_shows_no_line(self):
         for status in ("scheduled", "final"):
             games = [self.game("2026-10-13T22:00Z", status)]
-            build_nhl.apply_lines(games, {"1": self.LIVE}, None, self.NOW)
+            nhl_prices.apply_lines(games, {"1": self.LIVE}, None, self.NOW)
             self.assertFalse(any(k in games[0] for k in self.LIVE))
             self.assertTrue(games[0]["lines_locked"])
 
     def test_game_that_hasnt_started_gets_this_runs_line(self):
         games = [self.game("2026-10-14T00:00Z")]
-        build_nhl.apply_lines(games, {"1": self.PREGAME}, {"schedule": [{"game_id": "1", **self.LIVE}]}, self.NOW)
+        nhl_prices.apply_lines(games, {"1": self.PREGAME}, {"schedule": [{"game_id": "1", **self.LIVE}]}, self.NOW)
         self.assertEqual({k: games[0][k] for k in self.PREGAME}, self.PREGAME)
         self.assertFalse(games[0]["lines_locked"])
 
     def test_no_fresh_line_falls_back_to_the_last_one(self):
         games = [self.game("2026-10-14T00:00Z")]
-        build_nhl.apply_lines(games, {}, {"schedule": [{"game_id": "1", **self.PREGAME}]}, self.NOW)
+        nhl_prices.apply_lines(games, {}, {"schedule": [{"game_id": "1", **self.PREGAME}]}, self.NOW)
         self.assertEqual(games[0]["total_line"], 6.5)
 
     def test_player_odds_lock_the_same_way(self):
         fresh, old = {"1": {"p": {"goal": "in-game"}}, "2": {"p": {"goal": "fresh"}}}, {"player_odds": {"1": {"p": {"goal": "pregame"}}, "2": {"p": {"goal": "old"}}, "9": {"p": {}}}}
         games = [self.game("2026-10-13T22:00Z"), {**self.game("2026-10-14T00:00Z"), "game_id": "2"}, {**self.game("2026-10-14T02:00Z"), "game_id": "3"}]
-        locked = build_nhl.locked_player_odds(games, fresh, old, self.NOW)
+        locked = nhl_prices.locked_player_odds(games, fresh, old, self.NOW)
         # Started: the last build's. Not started: this run's. A game off the schedule is dropped.
         self.assertEqual(locked, {"1": {"p": {"goal": "pregame"}}, "2": {"p": {"goal": "fresh"}}})
-        self.assertEqual(build_nhl.locked_player_odds(games, fresh, None, self.NOW), {"2": {"p": {"goal": "fresh"}}})
-        self.assertEqual(build_nhl.locked_player_odds(games, {}, old, self.NOW)["2"], {"p": {"goal": "old"}})
+        self.assertEqual(nhl_prices.locked_player_odds(games, fresh, None, self.NOW), {"2": {"p": {"goal": "fresh"}}})
+        self.assertEqual(nhl_prices.locked_player_odds(games, {}, old, self.NOW)["2"], {"p": {"goal": "old"}})
 
 
 class PlayerCardData(unittest.TestCase):
@@ -344,8 +346,8 @@ class PlayerCardData(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.game = build_nhl.reduce_game(helpers.nhl_game())
-        cls.detail = build_nhl.compute_player_details([cls.game])
+        cls.game = nhl_games.reduce_game(helpers.nhl_game())
+        cls.detail = nhl_stats.compute_player_details([cls.game])
 
     def test_a_skaters_areas_and_shot_types(self):
         benson = self.game["skaters"]["8484145"]
@@ -356,7 +358,7 @@ class PlayerCardData(unittest.TestCase):
     def test_players_areas_add_up_to_the_teams(self):
         for team in ("BUF", "FLA"):
             skaters = [s for s in self.game["skaters"].values() if s["team"] == team]
-            for area in build_nhl.AREAS:
+            for area in nhl_games.AREAS:
                 self.assertEqual(sum(s["areas"].get(area, [0, 0, 0])[0] for s in skaters), self.game["teams"][team].get(f"a_{area}", 0), f"{team} {area}")
                 self.assertEqual(sum(s["areas"].get(area, [0, 0, 0])[2] for s in skaters), self.game["teams"][team].get(f"ag_{area}", 0), f"{team} {area} goals")
         for s in self.game["skaters"].values():
@@ -374,32 +376,32 @@ class PlayerCardData(unittest.TestCase):
         self.assertEqual(self.detail["goalies"]["8480045"]["log"], [["2026020087", "BUF", 0, "W", 2014, 14, 1, 5, 1]])
 
     def test_the_file_spells_each_game_out_from_the_players_side(self):
-        self.assertEqual(build_nhl.player_file(self.detail, "8484145")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 1180, 0, 1, 2, 3, 0, 1, 0, 0, 1, None]])
-        self.assertEqual(build_nhl.player_file(self.detail, "8480045")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 0, "W", 2014, 14, 1, 5, 1]])
+        self.assertEqual(nhl_stats.player_file(self.detail, "8484145")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 1180, 0, 1, 2, 3, 0, 1, 0, 0, 1, None]])
+        self.assertEqual(nhl_stats.player_file(self.detail, "8480045")["log"], [["2026-10-12", "FLA", 1, 5, 3, "REG", 0, "W", 2014, 14, 1, 5, 1]])
         visitor = next(pid for pid, s in self.game["skaters"].items() if s["team"] == "FLA")
-        self.assertEqual(build_nhl.player_file(self.detail, visitor)["log"][0][:6], ["2026-10-12", "BUF", 0, 3, 5, "REG"])
-        self.assertIsNone(build_nhl.player_file(self.detail, "1"))
-        self.assertIsNone(build_nhl.player_file(None, "8484145"))
+        self.assertEqual(nhl_stats.player_file(self.detail, visitor)["log"][0][:6], ["2026-10-12", "BUF", 0, 3, 5, "REG"])
+        self.assertIsNone(nhl_stats.player_file(self.detail, "1"))
+        self.assertIsNone(nhl_stats.player_file(None, "8484145"))
 
     def test_games_add_up(self):
         second = {**self.game, "id": 2026020099}
-        benson = build_nhl.compute_player_details([self.game, second])["skaters"]["8484145"]
+        benson = nhl_stats.compute_player_details([self.game, second])["skaters"]["8484145"]
         self.assertEqual(len(benson["log"]), 2)
         self.assertEqual((benson["areas"], benson["types"], benson["unb"], benson["pp_unb"]), ({"low_slot": [4, 2, 0], "left": [2, 2, 0]}, {"snap": [6, 0]}, 6, 2))
 
     def test_the_leagues_yardstick(self):
-        league = build_nhl.league_areas([self.game])
+        league = nhl_stats.league_areas([self.game])
         self.assertEqual(league["low_slot"], {"share": 0.2159, "sh_pct": 0.3846})  # 19 of 88 shots; 5 goals on 13 on goal
         self.assertEqual(league["long"], {"share": 0.0, "sh_pct": None})
         self.assertAlmostEqual(sum(a["share"] for a in league.values()), 1, places=3)
 
     def test_one_file_per_team(self):
-        stats = {"skaters": build_nhl.compute_skaters([self.game], {}), "goalies": build_nhl.compute_goalies([self.game]), "detail": self.detail}
+        stats = {"skaters": nhl_stats.compute_skaters([self.game], {}), "goalies": nhl_stats.compute_goalies([self.game]), "detail": self.detail}
         with tempfile.TemporaryDirectory() as folder:
-            build_nhl.write_player_files(Path(folder), {"BUF": {}, "FLA": {}, "DET": {}}, stats, "2026-10-13T14:12Z")
+            nhl_stats.write_player_files(Path(folder), {"BUF": {}, "FLA": {}, "DET": {}}, stats, "2026-10-13T14:12Z")
             buf = json.loads((Path(folder) / "BUF.json").read_text())
             det = json.loads((Path(folder) / "DET.json").read_text())
-        self.assertEqual((buf["log_lead"], buf["skater_cols"], buf["goalie_cols"]), (["date", "opp", "home", "gf", "ga", "ended"], list(build_nhl.SKATER_LOG_COLS), list(build_nhl.GOALIE_LOG_COLS)))
+        self.assertEqual((buf["log_lead"], buf["skater_cols"], buf["goalie_cols"]), (["date", "opp", "home", "gf", "ga", "ended"], list(nhl_games.SKATER_LOG_COLS), list(nhl_games.GOALIE_LOG_COLS)))
         self.assertEqual(len(buf["skaters"]), 18)
         self.assertEqual(sorted(buf["goalies"]), ["8480045", "8481551"])
         benson = buf["skaters"]["8484145"]
@@ -425,7 +427,7 @@ class PlayerOdds(unittest.TestCase):
     TEAMS = {"Detroit Red Wings": "DET", "New Jersey Devils": "NJD"}
 
     def read(self, event):
-        return build_nhl.player_odds_from_event(event, self.TEAMS.get, lambda team, name: f"{team}:{name}")
+        return nhl_prices.player_odds_from_event(event, self.TEAMS.get, lambda team, name: f"{team}:{name}")
 
     @classmethod
     def setUpClass(cls):
@@ -497,8 +499,8 @@ class PlayerOdds(unittest.TestCase):
 
     def test_a_player_the_site_doesnt_know_is_left_out(self):
         event = helpers.nhl_novig_event()["event"]
-        self.assertEqual(build_nhl.player_odds_from_event(event, self.TEAMS.get, lambda team, name: None), {})
-        self.assertEqual(build_nhl.player_odds_from_event(event, lambda name: None, lambda team, name: "x"), {})
+        self.assertEqual(nhl_prices.player_odds_from_event(event, self.TEAMS.get, lambda team, name: None), {})
+        self.assertEqual(nhl_prices.player_odds_from_event(event, lambda name: None, lambda team, name: "x"), {})
 
 
 class FindingPlayers(unittest.TestCase):
@@ -510,7 +512,7 @@ class FindingPlayers(unittest.TestCase):
             "1": {"name": "Tim Stützle", "team": "OTT"}, "2": {"name": "Mitchell Marner", "team": "VGK"},
             "3": {"name": "Elias Pettersson", "team": "VAN"}, "4": {"name": "Elias Pettersson", "team": "VAN"},
         }
-        cls.find = staticmethod(build_nhl.player_finder(skaters, {"9": {"name": "Jake Allen", "team": "NJD"}}))
+        cls.find = staticmethod(nhl_prices.player_finder(skaters, {"9": {"name": "Jake Allen", "team": "NJD"}}))
 
     def test_matches(self):
         self.assertEqual(self.find("OTT", "Tim Stutzle"), "1")    # accents
@@ -523,7 +525,7 @@ class FindingPlayers(unittest.TestCase):
 
     def test_team_names(self):
         teams = {"DET": {"mascot": "Red Wings"}, "MTL": {"mascot": "Canadiens"}, "STL": {"mascot": "Blues"}, "CBJ": {"mascot": "Blue Jackets"}}
-        name = build_nhl.team_namer(teams)
+        name = nhl_prices.team_namer(teams)
         self.assertEqual([name(n) for n in ("Detroit Red Wings", "Montréal Canadiens", "St. Louis Blues", "Columbus Blue Jackets", "Seattle Kraken")], ["DET", "MTL", "STL", "CBJ", None])
 
 

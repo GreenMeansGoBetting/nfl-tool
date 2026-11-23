@@ -4,6 +4,8 @@ paths:
   - "nfl_tool/site/nhl/points.*"
   - "nfl_tool/nhl/goals_model.py"
   - "nfl_tool/nhl/points_model.py"
+  - "nfl_tool/nhl/goals_page.py"
+  - "nfl_tool/nhl/points_page.py"
   - "tools/backtest/nhl_goals*.py"
   - "tools/backtest/nhl_points*.py"
   - "tools/backtest/nhl_pp_units.py"

@@ -25,6 +25,10 @@ from pathlib import Path
 import helpers  # first: puts nfl_tool/nhl on the import path
 
 import build_nhl
+import goalie_pages
+import goals_page
+import points_page
+import shots_page
 import goals_model
 import shots_model
 
@@ -73,8 +77,8 @@ class TheInjuryGame(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.records = season()
-        cls.shots = build_nhl.shots_model_for(cls.records)
-        cls.goals = build_nhl.goals_model_for(cls.records, cls.shots, {})
+        cls.shots = shots_page.shots_model_for(cls.records)
+        cls.goals = goals_page.goals_model_for(cls.records, cls.shots, {})
         cls.old = shots_model.ShotsModel(params={"short_first": 0.0})  # the rule before 2026-10-22
         for r in cls.records:
             cls.old.add_game(r)
@@ -122,33 +126,33 @@ class TheInjuryGame(unittest.TestCase):
 
 class TheSafetyNet(unittest.TestCase):
     def test_sandersons_plays_are_unsure(self):
-        self.assertEqual(build_nhl.UNSURE_EDGE, 0.25)
+        self.assertEqual(shots_page.UNSURE_EDGE, 0.25)
         # His locked rows: points 0.5 at -103 / -107, the model's over 1%; shots 2.5 at +153 / -165, the over 0%.
-        pts = build_nhl.points_play(0.01, 0.5, -103, -107, 0.0, "up")
+        pts = points_page.points_play(0.01, 0.5, -103, -107, 0.0, "up")
         self.assertEqual((pts["side"], pts["size"]), ("under", "unsure"))
         self.assertAlmostEqual(pts["edge"], 0.473, places=3)
-        sog = build_nhl.shots_play(0.0, 2.5, 153, -165, 0.0, "up")
+        sog = shots_page.shots_play(0.0, 2.5, 153, -165, 0.0, "up")
         self.assertEqual((sog["side"], sog["size"]), ("under", "unsure"))
 
     def test_every_prop_uses_it(self):
         # Just under the net is still a play; from it, unsure.
-        self.assertEqual(build_nhl.shots_play(0.27, 1.5, -110, -110)["size"], "play")      # edge 20.6
-        self.assertEqual(build_nhl.shots_play(0.22, 1.5, -110, -110)["size"], "unsure")    # edge 25.6
-        self.assertEqual(build_nhl.points_play(0.22, 0.5, -110, -110)["size"], "unsure")
-        self.assertEqual(build_nhl.points_play(0.22, 1.5, -110, -110, None, "down")["size"], "unsure")
-        self.assertEqual(build_nhl.goals_play(0.45, 300)["size"], "check")                  # +300 needs 25%: edge 20
-        self.assertEqual(build_nhl.goals_play(0.52, 300)["size"], "unsure")
-        self.assertEqual(build_nhl.saves_play(0.2, 26.5, -110, -110, 25, 22.0, 26.5)["size"], "unsure")
+        self.assertEqual(shots_page.shots_play(0.27, 1.5, -110, -110)["size"], "play")      # edge 20.6
+        self.assertEqual(shots_page.shots_play(0.22, 1.5, -110, -110)["size"], "unsure")    # edge 25.6
+        self.assertEqual(points_page.points_play(0.22, 0.5, -110, -110)["size"], "unsure")
+        self.assertEqual(points_page.points_play(0.22, 1.5, -110, -110, None, "down")["size"], "unsure")
+        self.assertEqual(goals_page.goals_play(0.45, 300)["size"], "check")                  # +300 needs 25%: edge 20
+        self.assertEqual(goals_page.goals_play(0.52, 300)["size"], "unsure")
+        self.assertEqual(goalie_pages.saves_play(0.2, 26.5, -110, -110, 25, 22.0, 26.5)["size"], "unsure")
 
     def test_the_record_keeps_it_out_of_the_plays(self):
-        cols = build_nhl.POINTS_RECORD_COLS
+        cols = points_page.POINTS_RECORD_COLS
         row = lambda pid, chance_over, actual, move: [pid, pid, "OTT", 0.5, -103, -107, 0.5, chance_over, chance_over, actual, 0.0, move, 0.5, -104, -105, None]
         with tempfile.TemporaryDirectory() as tmp:
             Path(tmp, "2026-10.json").write_text(json.dumps({"cols": list(cols), "games": {"1": {"date": "2026-10-21", "away": "FLA", "home": "OTT", "plays": [
                 row("sanderson", 0.01, 2, "up"),  # edge 47: unsure, lost
                 row("strong", 0.40, 0, None),     # under, edge 8: strong, won
             ]}}}), encoding="utf-8")
-            summary = build_nhl.points_record_summary(Path(tmp))
+            summary = points_page.points_record_summary(Path(tmp))
         self.assertEqual(summary["unsure"], {"wins": 0, "losses": 1, "units": -1.0})
         self.assertEqual((summary["play"]["wins"], summary["play"]["losses"]), (1, 0))
         self.assertEqual(summary["under"]["losses"], 0)
@@ -156,7 +160,8 @@ class TheSafetyNet(unittest.TestCase):
         self.assertEqual(len(summary["ledger"]), 1)
 
     def test_every_file_says_where_the_net_is(self):
-        source = Path(build_nhl.__file__).read_text(encoding="utf-8")
+        folder = Path(build_nhl.__file__).parent  # the build's page files (split 2026-11-23)
+        source = "".join(f.read_text(encoding="utf-8") for f in sorted(folder.glob("*.py")))
         self.assertEqual(source.count('"unsure": UNSURE_EDGE'), 4)  # shots, goals, points, saves.json
 
 

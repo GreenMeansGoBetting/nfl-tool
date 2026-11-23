@@ -32,7 +32,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nhl"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import build_nhl as b  # noqa: E402
+import nhl_games  # noqa: E402
 import saves_model as sv  # noqa: E402
 from nhl_shots import deviance, fit_dispersion, load_records, poisson_fit  # noqa: E402
 
@@ -108,7 +108,7 @@ def report(d: dict, label: str) -> dict:
     se = np.sqrt(np.diag(np.linalg.inv(X.T @ (X * mu[:, None])))) * np.sqrt(np.mean(1 + k_all * mu))
     seasons = sorted(set(d["season"]))
     by_season = [poisson_fit(X[d["season"] == s], y[d["season"] == s], np.log(base[d["season"] == s])) for s in seasons]
-    print("   piece        every start    (+/-)   the site uses   " + "   ".join(b.season_label(int(s)) for s in seasons))
+    print("   piece        every start    (+/-)   the site uses   " + "   ".join(nhl_games.season_label(int(s)) for s in seasons))
     for i, key in enumerate(("scale",) + X_KEYS):
         print(f"   {key:<10} {w_all[i]:>12.3f}   {se[i]:.3f} {sv.WEIGHTS[key]:>12.2f}       " + "   ".join(f"{w[i]:>7.3f}" for w in by_season))
 
@@ -201,7 +201,7 @@ def main():
     args = parser.parse_args()
     if args.tune:
         tune(args.seasons)
-    fitted = report(pooled(args.seasons), " and ".join(b.season_label(s) for s in args.seasons))
+    fitted = report(pooled(args.seasons), " and ".join(nhl_games.season_label(s) for s in args.seasons))
     print("\nFitted on every start (round these into saves_model.py if they hold up in each season):")
     print("  WEIGHTS =", {k: round(v, 3) for k, v in fitted["weights"].items()})
 

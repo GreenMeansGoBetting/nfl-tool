@@ -1,7 +1,7 @@
 """Past days on the NHL prop pages (the owner, 2026-11-03: "go back to or pick
 any date that has already happened to see how those performed").
 
-The build turns each page's record into nhl/past_<market>.json (build_nhl.past_file):
+The build turns each page's record into nhl/past_<market>.json (past_days.past_file):
 every priced row, filed by today's rules, biggest edge first. The pages
 (nhl-common.js nhlRenderPast) add those days to the day arrows and the date
 picker; a day the live board still has is drawn as before.
@@ -18,7 +18,10 @@ from pathlib import Path
 
 from helpers import nhl_game  # first: puts the build's folders on the import path
 
-import build_nhl
+import goalie_pages
+import goals_page
+import past_days
+import shots_page
 from site_browser import SiteBrowser
 
 PAST_DAY = "2026-10-10"  # before the saved sample's schedule
@@ -34,14 +37,14 @@ class Build(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             row = lambda pid, chance, odds, actual, move=None: [pid, f"P{pid}", "NJD", chance, 0.4, odds, odds, False, None, actual, move, None, None]
-            self.write(folder, build_nhl.GOALS_RECORD_COLS, {"g1": {"date": PAST_DAY, "away": "NJD", "home": "DET", "plays": [
+            self.write(folder, goals_page.GOALS_RECORD_COLS, {"g1": {"date": PAST_DAY, "away": "NJD", "home": "DET", "plays": [
                 row("1", 0.30, 300, 0), row("2", 0.45, 200, 1), row("3", 0.40, None, 1), row("4", 0.45, 200, 0, "down")]}})
-            blob = build_nhl.past_file("goals", folder, build_nhl.GOALS_RECORD_COLS)
+            blob = past_days.past_file("goals", folder, goals_page.GOALS_RECORD_COLS)
         self.assertEqual(blob["games"], {"g1": ["NJD", "DET"]})
         rows = [dict(zip(blob["cols"], r)) for r in blob["days"][PAST_DAY]]
         self.assertEqual([r["id"] for r in rows], ["2", "4", "1"], "biggest edge first; no price = left out")
         for r in rows:
-            self.assertEqual(r["size"], build_nhl.goals_play(r["chance"], r["price"], "down" if r["id"] == "4" else None)["size"])
+            self.assertEqual(r["size"], goals_page.goals_play(r["chance"], r["price"], "down" if r["id"] == "4" else None)["size"])
         self.assertEqual(rows[1]["size"], "check", "moved down a line is set apart, as on the page")
         self.assertEqual((rows[0]["side"], rows[0]["line"], rows[0]["actual"]), ("yes", 0.5, 1))
 
@@ -49,9 +52,9 @@ class Build(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
             row = lambda pid, line, over, under, chance_over, actual: [pid, f"P{pid}", "NJD", line, over, under, 2.0, chance_over, actual, 2.0, None]
-            self.write(folder, build_nhl.SHOTS_RECORD_COLS, {"g1": {"date": PAST_DAY, "away": "NJD", "home": "DET", "plays": [
+            self.write(folder, shots_page.SHOTS_RECORD_COLS, {"g1": {"date": PAST_DAY, "away": "NJD", "home": "DET", "plays": [
                 row("1", 2.5, -110, -110, 0.62, 3), row("2", 1.5, -150, 120, 0.40, 2), row("3", 2.0, -110, -110, 0.5, 2)]}})
-            blob = build_nhl.past_file("shots", folder, build_nhl.SHOTS_RECORD_COLS)
+            blob = past_days.past_file("shots", folder, shots_page.SHOTS_RECORD_COLS)
         rows = {r[1]: dict(zip(blob["cols"], r)) for r in blob["days"][PAST_DAY]}
         self.assertEqual(set(rows), {"1", "2", "3"}, "a push is still shown")
         self.assertEqual((rows["1"]["side"], rows["1"]["size"]), ("over", "play"))
@@ -64,13 +67,13 @@ class Build(unittest.TestCase):
             bad.mkdir()
             (bad / "2026-10.json").write_text("{not json", encoding="utf-8")
             site.mkdir()
-            build_nhl.write_past_files(site, {"shots": (bad, build_nhl.SHOTS_RECORD_COLS), "saves": (good, build_nhl.SAVES_RECORD_COLS)})
+            past_days.write_past_files(site, {"shots": (bad, shots_page.SHOTS_RECORD_COLS), "saves": (good, goalie_pages.SAVES_RECORD_COLS)})
             self.assertIn("error", json.loads((site / "past_shots.json").read_text()))
             self.assertEqual(json.loads((site / "past_saves.json").read_text())["days"], {})
 
 
 def past_blob(rows):
-    return {"cols": list(build_nhl.PAST_COLS), "games": {"g1": ["NJD", "DET"], "g2": ["BOS", "TOR"]}, "days": {PAST_DAY: rows}}
+    return {"cols": list(past_days.PAST_COLS), "games": {"g1": ["NJD", "DET"], "g2": ["BOS", "TOR"]}, "days": {PAST_DAY: rows}}
 
 
 GOALS_PAST = past_blob([

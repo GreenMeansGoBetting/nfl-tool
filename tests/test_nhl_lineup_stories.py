@@ -1,4 +1,4 @@
-"""Which projected-lineups story belongs to which game (build_nhl.fetch_lineups).
+"""Which projected-lineups story belongs to which game (nhl_lineups.fetch_lineups).
 
 What is pinned: NHL.com tags its stories by hand, and on 2026-10-22 it tagged
 "Red Wings at Canucks projected lineups" with Utah at Seattle's game id and gave
@@ -12,7 +12,7 @@ from unittest import mock
 
 import helpers  # noqa: F401  first: puts nfl_tool/nhl on the import path
 
-import build_nhl
+import nhl_lineups
 
 TEAMS = {abbr: {"mascot": mascot} for abbr, mascot in (("UTA", "Mammoth"), ("SEA", "Kraken"), ("DET", "Red Wings"), ("VAN", "Canucks"))}
 SLUG = "https://forge-dapi.d3.nhle.com/v2/content/en-us/stories/{}-game-preview-october-22-2026"
@@ -47,8 +47,8 @@ class MisTaggedStories(unittest.TestCase):
             {"game_id": "165", "away": "DET", "home": "VAN", "date": "2026-10-22", "start_utc": "2026-10-23T02:00Z", "status": "pre"},
         ]
         slots = lambda lineup, team, find, positions: {"lines": lineup["groups"]}  # noqa: E731
-        with mock.patch.object(build_nhl, "_request", fake_request), mock.patch.object(build_nhl, "lineup_slots", slots):
-            out, error = build_nhl.fetch_lineups(games, TEAMS, None, {}, datetime(2026, 10, 22, 18, 0))
+        with mock.patch.object(nhl_lineups, "_request", fake_request), mock.patch.object(nhl_lineups, "lineup_slots", slots):
+            out, error = nhl_lineups.fetch_lineups(games, TEAMS, None, {}, datetime(2026, 10, 22, 18, 0))
         self.assertIsNone(error)
         self.assertEqual(sorted(k for k in out["164"] if k != "posted"), ["SEA", "UTA"])
         self.assertEqual(sorted(k for k in out["165"] if k != "posted"), ["DET", "VAN"])

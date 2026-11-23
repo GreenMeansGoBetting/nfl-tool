@@ -19,7 +19,8 @@ import unittest
 
 from helpers import nhl_data, nhl_players, nhl_shots, nhl_zone_shooters  # first: puts tools/ on the import path
 
-import build_nhl
+import nhl_prices
+import shots_page
 from site_browser import SiteBrowser
 
 SITE = PAGE = OPENED_ON = OPENED_EVERY = None
@@ -93,7 +94,7 @@ def expected_plays(day=TONIGHT):
             market = ((data["player_odds"].get(g["game_id"]) or {}).get(row["id"]) or {}).get("sog")
             if row["out"] or not market:
                 continue
-            play = build_nhl.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"], row["move"])
+            play = shots_page.shots_play(row["chances"][math.floor(market["line"])], market["line"], market.get("over"), market.get("under"), row["avg"], row["move"])
             if play:
                 out[row["id"]] = {**play, "mean": row["mean"], "avg": row["avg"], "slot": row["slot"], "move": row["move"], "posted": bool(shots["games"][g["game_id"]].get("posted"))}
     return out
@@ -122,7 +123,7 @@ class Ranking(unittest.TestCase):
             # The Rating column: a play says so (and, before its game's lineup is posted, that it assumes he
             # stays on his usual line); over the bar but moved down a line says why it is left out; past the
             # safety net (UNSURE_EDGE) it is "Model Unsure", never a play.
-            rating = ("Play" if play["posted"] else "Play: no lineup yet") if play["size"] == "play" else "Model Unsure" if play["size"] == "unsure" else "Lower line" if play["edge"] >= build_nhl.SHOTS_BAR and play["move"] == "down" else "--"
+            rating = ("Play" if play["posted"] else "Play: no lineup yet") if play["size"] == "play" else "Model Unsure" if play["size"] == "unsure" else "Lower line" if play["edge"] >= shots_page.SHOTS_BAR and play["move"] == "down" else "--"
             self.assertTrue(r["rating"].startswith(rating), (r, play["size"]))
             if rating == "Play":
                 self.assertNotIn("no lineup", r["rating"], r)
@@ -268,7 +269,7 @@ class TonightsLines(unittest.TestCase):
         sides), said as "Lower line". A player moved UP keeps his play, whichever side."""
         plays = expected_plays()
         rows = {r["id"]: r for r in reset()}
-        under_net = lambda p: build_nhl.SHOTS_BAR <= p["edge"] < build_nhl.UNSURE_EDGE
+        under_net = lambda p: shots_page.SHOTS_BAR <= p["edge"] < shots_page.UNSURE_EDGE
         down = {pid: p for pid, p in plays.items() if p["move"] == "down" and under_net(p)}
         up = {pid: p for pid, p in plays.items() if p["move"] == "up" and under_net(p)}
         self.assertGreater(len(down) + len(up), 0)
@@ -283,7 +284,7 @@ class TonightsLines(unittest.TestCase):
         missing something. The build files it "unsure"; the page lists it under Every line as
         "Model Unsure", never green, never on the plays-only view."""
         plays = expected_plays()
-        unsure = {pid for pid, p in plays.items() if p["edge"] >= build_nhl.UNSURE_EDGE}
+        unsure = {pid for pid, p in plays.items() if p["edge"] >= shots_page.UNSURE_EDGE}
         self.assertGreater(len(unsure), 0)
         self.assertTrue(all(plays[pid]["size"] == "unsure" for pid in unsure))
         rows = {r["id"]: r for r in reset()}
@@ -560,7 +561,7 @@ class Breakdown(unittest.TestCase):
         chance = self.hughes["chances"][3]
         self.assertLessEqual(abs(int(four[1].rstrip("%")) - chance * 100), 0.5 + 1e-9)
         self.assertEqual(four[2], signed(round(100 * (1 - chance) / chance)))
-        self.assertEqual(four[4], f"{(chance - build_nhl.break_even(self.odds['sog']['over'])) * 100:+.1f}")
+        self.assertEqual(four[4], f"{(chance - nhl_prices.break_even(self.odds['sog']['over'])) * 100:+.1f}")
 
     def test_the_ladder_reads_every_books_price_and_each_line_saves(self):
         # the owner, 2026-11-02: the ladders at SmartStake's prices, "not just novig", and every line
@@ -690,7 +691,7 @@ class FinishedGames(unittest.TestCase):
         sides = []
         for over, under in ((-400, 150), (150, -400)):
             PAGE.evaluate("([gid, id, over, under]) => { DATA.player_odds[gid] = { [id]: { sog: { line: 2.5, over, under } } }; render(); }", [game["game_id"], benson["id"], over, under])
-            sides.append(build_nhl.shots_play(benson["chances"][2], 2.5, over, under)["side"])
+            sides.append(shots_page.shots_play(benson["chances"][2], 2.5, over, under)["side"])
             self.assertEqual(result(), "W 2" if sides[-1] == "under" else "L 2")
         self.assertEqual(sides, ["under", "over"])  # each time the play is the side with the generous price
         # Under "Lineup Confirmed" a game that started before its lineup was read says so, and offers All.

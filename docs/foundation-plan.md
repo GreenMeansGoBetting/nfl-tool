@@ -53,7 +53,9 @@ Ground rules:
 - `nfl_tool/build_stats.py` (done 2026-11-23): 4,700 lines became a 360-line entry script (the order of the
   build) plus `nfl_common`, `nfl_sources`, `nfl_lines`, `nfl_td`, `nfl_team_stats`, `nfl_players`,
   `nfl_props` (moved verbatim; an offline build from saved data wrote identical files before and after).
-  Next: `nhl/build_nhl.py` (4,000 lines), the same way.
+  `nhl/build_nhl.py` (done the same day): 4,000 lines became a 230-line entry script plus 12 job files
+  (nhl.md, "Files"), proven by replaying one recorded build's network answers through the old and
+  new code: all 116 written files identical except the build minute.
 - `nfl_tool/site/style.css` (done 2026-11-23): 4,400 lines became a shared style.css (~2,700) plus one
   file per NFL page group (`game-previews.css`, `td-data.css`, `player-props.css`, `my-plays.css`,
   `promos.css`, `support.css`, `activity.css`), proven by every element's computed style (styles.md).

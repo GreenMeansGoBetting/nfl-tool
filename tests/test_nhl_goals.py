@@ -22,7 +22,10 @@ from pathlib import Path
 
 import helpers  # first: puts nfl_tool/nhl on the import path
 
-import build_nhl
+import goals_page
+import nhl_games
+import nhl_stats
+import shots_page
 import goals_model
 import shots_model
 
@@ -47,12 +50,12 @@ def game(date, home, away, skaters, shots, game_id=1):
 
 
 class TheShots(unittest.TestCase):
-    """build_nhl.game_shots on the saved game (FLA 3 @ BUF 5)."""
+    """nhl_games.game_shots on the saved game (FLA 3 @ BUF 5)."""
 
     @classmethod
     def setUpClass(cls):
         cls.raw = helpers.nhl_game()
-        cls.game = build_nhl.reduce_game(cls.raw)
+        cls.game = nhl_games.reduce_game(cls.raw)
 
     def test_every_unblocked_shot_on_a_goalie(self):
         shots = self.game["shots"]
@@ -60,7 +63,7 @@ class TheShots(unittest.TestCase):
         # Every goal is in (none went into an empty net).
         self.assertEqual(sum(s["goal"] for s in shots), 8)
         # Florida's two shots with its own goalie pulled are left out (the rink areas keep them).
-        self.assertEqual(sum(self.game["teams"]["FLA"][f"a_{a}"] for a in build_nhl.AREAS if f"a_{a}" in self.game["teams"]["FLA"]), 46)
+        self.assertEqual(sum(self.game["teams"]["FLA"][f"a_{a}"] for a in nhl_games.AREAS if f"a_{a}" in self.game["teams"]["FLA"]), 46)
         self.assertEqual({s["area"] for s in shots} <= set(goals_model.AREAS), True)
         self.assertEqual(sum(s["rebound"] for s in shots), 10)
         self.assertEqual(sum(s["pp"] for s in shots), 22)
@@ -71,7 +74,7 @@ class TheShots(unittest.TestCase):
 
     def test_power_play_seconds_from_the_leagues_report(self):
         self.assertIsNone(self.game["skaters"][BENSON]["pp_toi"])  # a game without the report
-        with_report = build_nhl.reduce_game({**self.raw, "pp_toi": {BENSON: 95}})
+        with_report = nhl_games.reduce_game({**self.raw, "pp_toi": {BENSON: 95}})
         self.assertEqual(with_report["skaters"][BENSON]["pp_toi"], 95)
         self.assertEqual(next(v["pp_toi"] for k, v in with_report["skaters"].items() if k != BENSON), 0)
 
@@ -127,8 +130,8 @@ class Projection(unittest.TestCase):
             skaters_tn = {k: v for k, v in skaters.items() if v["team"] in ("TBL", "NYR")}
             cls.records.append(game(f"2026-10-0{n + 1}", "FLA", "BUF", skaters_bf, [s for s in shots if s["team"] in ("BUF", "FLA")], 10 + n))
             cls.records.append(game(f"2026-10-0{n + 1}", "TBL", "NYR", skaters_tn, [s for s in shots if s["team"] in ("TBL", "NYR")], 20 + n))
-        cls.shots = build_nhl.shots_model_for(cls.records)
-        cls.model = build_nhl.goals_model_for(cls.records, cls.shots, {})
+        cls.shots = shots_page.shots_model_for(cls.records)
+        cls.model = goals_page.goals_model_for(cls.records, cls.shots, {})
 
     def test_a_projection_is_his_usual_times_each_piece(self):
         p = self.model.project("1", "FLA", False)
@@ -156,44 +159,44 @@ class Projection(unittest.TestCase):
         self.assertNotIn("zone", goals_model.WEIGHTS)
 
     def test_too_few_shots_for_a_tag(self):
-        model = build_nhl.goals_model_for(self.records[:4], build_nhl.shots_model_for(self.records[:4]), {})  # 2 games: 10 low-slot shots
+        model = goals_page.goals_model_for(self.records[:4], shots_page.shots_model_for(self.records[:4]), {})  # 2 games: 10 low-slot shots
         self.assertIsNone(model.zone_match("1", "FLA"))
 
     def test_the_site_never_gives_the_model_last_season(self):
-        self.assertEqual(list(inspect.signature(build_nhl.goals_model_for).parameters), ["records", "shots", "hand"])
+        self.assertEqual(list(inspect.signature(goals_page.goals_model_for).parameters), ["records", "shots", "hand"])
         self.assertNotIn("prior", inspect.signature(goals_model.GoalsModel).parameters)
 
 
 class Prices(unittest.TestCase):
     def test_how_a_price_is_filed(self):
         # +300 needs 25%.
-        self.assertEqual(build_nhl.goals_play(0.27, 300)["size"], "none")
-        self.assertEqual(build_nhl.goals_play(0.29, 300)["size"], "lean")
-        self.assertEqual(build_nhl.goals_play(0.32, 300)["size"], "strong")
-        self.assertEqual(build_nhl.goals_play(0.40, 300)["size"], "check")
-        self.assertAlmostEqual(build_nhl.goals_play(0.32, 300)["edge"], 0.07)
-        self.assertIsNone(build_nhl.goals_play(0.3, None))
+        self.assertEqual(goals_page.goals_play(0.27, 300)["size"], "none")
+        self.assertEqual(goals_page.goals_play(0.29, 300)["size"], "lean")
+        self.assertEqual(goals_page.goals_play(0.32, 300)["size"], "strong")
+        self.assertEqual(goals_page.goals_play(0.40, 300)["size"], "check")
+        self.assertAlmostEqual(goals_page.goals_play(0.32, 300)["edge"], 0.07)
+        self.assertIsNone(goals_page.goals_play(0.3, None))
 
     def test_a_player_moved_down_a_line_is_set_apart(self):
-        self.assertEqual(build_nhl.goals_play(0.32, 300, "down")["size"], "check")
-        self.assertEqual(build_nhl.goals_play(0.32, 300, "up")["size"], "strong")
-        self.assertEqual(build_nhl.goals_play(0.2, 300, "down")["size"], "none")
+        self.assertEqual(goals_page.goals_play(0.32, 300, "down")["size"], "check")
+        self.assertEqual(goals_page.goals_play(0.32, 300, "up")["size"], "strong")
+        self.assertEqual(goals_page.goals_play(0.2, 300, "down")["size"], "none")
 
 
 class Board(unittest.TestCase):
-    """build_nhl.goals_board with the saved game as the season so far."""
+    """goals_page.goals_board with the saved game as the season so far."""
 
     NOW = datetime(2026, 10, 13, 14, 0)
 
     @classmethod
     def setUpClass(cls):
-        cls.record = build_nhl.reduce_game(helpers.nhl_game())
-        cls.shots = build_nhl.shots_model_for([cls.record])
-        cls.model = build_nhl.goals_model_for([cls.record], cls.shots, {})
-        cls.skaters = build_nhl.compute_skaters([cls.record], {})
-        cls.lineups = build_nhl.lineup(cls.skaters, Counter(BUF=1, FLA=1))
+        cls.record = nhl_games.reduce_game(helpers.nhl_game())
+        cls.shots = shots_page.shots_model_for([cls.record])
+        cls.model = goals_page.goals_model_for([cls.record], cls.shots, {})
+        cls.skaters = nhl_stats.compute_skaters([cls.record], {})
+        cls.lineups = nhl_stats.lineup(cls.skaters, Counter(BUF=1, FLA=1))
         cls.goalies = {}
-        for g in build_nhl.compute_goalies([cls.record]).values():
+        for g in nhl_stats.compute_goalies([cls.record]).values():
             cls.goalies.setdefault(g["team"], []).append(g)
 
     def schedule(self, **changes):
@@ -201,7 +204,7 @@ class Board(unittest.TestCase):
 
     def board(self, games=None, records=(), previous=None, now=None, odds=None):
         odds = {"77": {BENSON: {"goal": {"odds": 400, "no_odds": -600, "thin": False}}}} if odds is None else odds
-        return build_nhl.goals_board(self.model, games or self.schedule(), self.lineups, {}, list(records), previous, now or self.NOW, None, self.skaters, self.goalies, odds)
+        return goals_page.goals_board(self.model, games or self.schedule(), self.lineups, {}, list(records), previous, now or self.NOW, None, self.skaters, self.goalies, odds)
 
     def test_every_skater_priced_or_not(self):
         entry = self.board()["77"]
@@ -229,19 +232,19 @@ class Board(unittest.TestCase):
         final = {**self.record, "id": 77}
         entry = self.board(self.schedule(status="final", away_rest=1), records=[final], previous={"games": self.board(self.schedule(away_rest=1))})["77"]
         with tempfile.TemporaryDirectory() as folder:
-            build_nhl.record_goal_games(Path(folder), {"77": entry}, self.schedule())
+            goals_page.record_goal_games(Path(folder), {"77": entry}, self.schedule())
             saved = json.loads((Path(folder) / "2026-10.json").read_text(encoding="utf-8"))
-        self.assertEqual(saved["factors"], list(build_nhl.GOALS_FACTORS))
+        self.assertEqual(saved["factors"], list(goals_page.GOALS_FACTORS))
         plays = {p[0]: p for p in saved["games"]["77"]["plays"]}
         row = next(r for r in entry["players"] if r["id"] == BENSON)
-        f = dict(zip(build_nhl.GOALS_FACTORS, plays[BENSON][-2]))  # [-1] = Novig's prices (nv)
+        f = dict(zip(goals_page.GOALS_FACTORS, plays[BENSON][-2]))  # [-1] = Novig's prices (nv)
         self.assertEqual((f["pos"], f["games"], f["goals"], f["home"], f["rest"], f["opp_rest"], f["zone"]), (row["pos"], 1, 0, 0, 1, 2, None))
         self.assertEqual(f["vs_avg"], round(row["mean"] - 0, 3))  # no goals in his one game
         self.assertEqual({k: f[f"l_{k}"] for k in row["lift"]}, row["lift"])
         self.assertEqual({a: f[f"s_{a}"] for a in row["shares"]}, row["shares"])
         self.assertTrue(all(p[-2] is None for pid, p in plays.items() if pid != BENSON))
         # The record still reads it the same way.
-        self.assertEqual(len(plays[BENSON]), len(build_nhl.GOALS_RECORD_COLS))
+        self.assertEqual(len(plays[BENSON]), len(goals_page.GOALS_RECORD_COLS))
 
     def test_a_game_that_has_started_keeps_the_last_builds_numbers(self):
         kept = json.loads(json.dumps(self.board()))
@@ -274,11 +277,11 @@ class Record(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             folder = Path(folder)
             rows = [self.row("1", 0.3, 300, 350, 1), self.row("2", 0.1, None, None, 0), {**self.row("3", 0.2, 400, 400, None)}]
-            self.assertEqual(build_nhl.record_goal_games(folder, self.entry(rows), self.games()), 1)
-            self.assertEqual(build_nhl.record_goal_games(folder, self.entry([self.row("1", 0.9, 300, 300, 0)]), self.games()), 0)
+            self.assertEqual(goals_page.record_goal_games(folder, self.entry(rows), self.games()), 1)
+            self.assertEqual(goals_page.record_goal_games(folder, self.entry([self.row("1", 0.9, 300, 300, 0)]), self.games()), 0)
             saved = json.loads((folder / "2026-10.json").read_text(encoding="utf-8"))
             game = saved["games"]["77"]
-            self.assertEqual(saved["cols"], list(build_nhl.GOALS_RECORD_COLS))
+            self.assertEqual(saved["cols"], list(goals_page.GOALS_RECORD_COLS))
             self.assertEqual([p[0] for p in game["plays"]], ["1", "2"])  # the scratch is left out, the unpriced player kept
             self.assertEqual(game["market"], {"total_line": 6.5, "away_ml_implied_prob": 0.45, "home_ml_implied_prob": 0.55})
 
@@ -292,8 +295,8 @@ class Record(unittest.TestCase):
                 self.row("4", 0.45, 300, 300, 1),                   # check
                 self.row("5", 0.10, None, None, 1, zone="slot"),    # no price: graded for honesty and the tag only
             ]
-            build_nhl.record_goal_games(folder, self.entry(rows), self.games())
-            r = build_nhl.goals_record_summary(folder)
+            goals_page.record_goal_games(folder, self.entry(rows), self.games())
+            r = goals_page.goals_record_summary(folder)
             self.assertEqual((r["games"], r["players"]), (1, 5))
             self.assertEqual(r["strong"], {"wins": 1, "losses": 0, "units": 3.0})
             self.assertEqual(r["lean"], {"wins": 0, "losses": 1, "units": -1.0})
@@ -313,11 +316,11 @@ class Record(unittest.TestCase):
 
     def test_rows_saved_before_the_factors_still_read(self):
         old = ["1", "P1", "BUF", 0.32, 0.386, 300, 350, False, "low_slot", 1, None]  # 11 columns, no factors
-        new = ["2", *old[1:], [None] * len(build_nhl.GOALS_FACTORS)]  # 12, with them
+        new = ["2", *old[1:], [None] * len(goals_page.GOALS_FACTORS)]  # 12, with them
         with tempfile.TemporaryDirectory() as folder:
             game = {"date": "2026-10-13", "away": "BUF", "home": "FLA", "plays": [old, new]}
             (Path(folder) / "2026-10.json").write_text(json.dumps({"games": {"77": game}}))
-            r = build_nhl.goals_record_summary(Path(folder))
+            r = goals_page.goals_record_summary(Path(folder))
         self.assertEqual(r["strong"], {"wins": 2, "losses": 0, "units": 6.0})
 
 

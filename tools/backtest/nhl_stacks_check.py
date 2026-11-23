@@ -36,7 +36,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import nhl_stacks as ns  # noqa: E402
-from nhl_stacks import DATA, b  # noqa: E402
+from nhl_stacks import DATA  # noqa: E402
+import nhl_games  # noqa: E402
 import stacks_model as km  # noqa: E402
 
 SHIPPED = {"line_pair", "line_trio", "d_pair", "line_fd", "line_pair_d", "line_trio_d", "line_pair_dd", "pp_cross"}
@@ -49,7 +50,7 @@ def check_ice(season=2026, count=6):
             raw = json.load(f)
         with gzip.open(DATA / "shifts" / str(season) / path.name, "rt", encoding="utf-8") as f:
             raw["shifts"] = json.load(f)
-        rec = b.reduce_game(raw)
+        rec = nhl_games.reduce_game(raw)
         want = ns.shared_ice(raw, rec)
         marks = []
         for p in sorted(raw["pbp"].get("plays") or [], key=lambda p: p.get("sortOrder", 0)):
@@ -57,13 +58,13 @@ def check_ice(season=2026, count=6):
             if per.get("periodType") == "SO" or not per.get("number") or per["number"] > 4:
                 continue
             code = p.get("situationCode")
-            marks.append(((per["number"] - 1) * ns.PERIOD + b.clock_seconds(p.get("timeInPeriod")), b.strength(code, True), b.strength(code, False)))
+            marks.append(((per["number"] - 1) * ns.PERIOD + nhl_games.clock_seconds(p.get("timeInPeriod")), nhl_games.strength(code, True), nhl_games.strength(code, False)))
         even, pp = km.phases(marks, ns.SPAN)
         for team, side in ((rec["home"], "home"), (rec["away"], "away")):
             spans = {pid: [] for pid, s in rec["skaters"].items() if s["team"] == team}
             for pid, _t, per, on, off in raw["shifts"]:
                 if str(pid) in spans and per <= 4:
-                    a, z = (per - 1) * ns.PERIOD + b.clock_seconds(on), (per - 1) * ns.PERIOD + b.clock_seconds(off)
+                    a, z = (per - 1) * ns.PERIOD + nhl_games.clock_seconds(on), (per - 1) * ns.PERIOD + nhl_games.clock_seconds(off)
                     spans[str(pid)].append((a, z))
             got = km.shared_ice(spans, even, pp[side])
             ids, ev, ppm = want[team]
@@ -160,7 +161,7 @@ def main():
     for season, d in data.items():
         _, p = predict(d, rho, xg_avg, w)
         y = d["stacks"]["hit"][d["m"]]
-        print(f"   {b.season_label(season)}: said {100 * p.mean():.2f}%, hit {100 * y.mean():.2f}%, log loss {ns.logloss(y, p):.5f}")
+        print(f"   {nhl_games.season_label(season)}: said {100 * p.mean():.2f}%, hit {100 * y.mean():.2f}%, log loss {ns.logloss(y, p):.5f}")
 
     # 4. The file's own math on a sample of 2025-26 stacks, with these numbers.
     weights = {"const": float(w[0]), "xg": float(w[1]), "pp": float(w[2])}

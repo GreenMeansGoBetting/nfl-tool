@@ -18,6 +18,10 @@ from pathlib import Path
 from helpers import nhl_game  # first: puts the build's folders on the import path
 
 import build_nhl
+import goalie_pages
+import nhl_games
+import nhl_lineups
+import nhl_prices
 import saves_model
 
 NOW = datetime(2026, 10, 13, 18, 0)
@@ -43,7 +47,7 @@ def season():
 
 
 def model_for(records):
-    return build_nhl.saves_model_for(records)
+    return goalie_pages.saves_model_for(records)
 
 
 def scheduled(game_id, date, away, home, start="2026-10-13T23:00Z", status="scheduled", **rest):
@@ -123,7 +127,7 @@ class Projection(unittest.TestCase):
         self.assertNotIn("prior", saves_model.SavesModel.__init__.__code__.co_varnames)
 
     def test_it_reads_a_real_game(self):
-        record = build_nhl.reduce_game(nhl_game())
+        record = nhl_games.reduce_game(nhl_game())
         model = model_for([record])
         # Both starters were pulled in the saved game (7 and 9 saves): that is the whole "league" here.
         self.assertEqual(model.base(), 8.0)
@@ -138,7 +142,7 @@ class NovigSaves(unittest.TestCase):
                 "outcomes": [{"description": f"Over {strike}", "available": over}, {"description": f"Under {strike}", "available": under}]}
 
     def read(self, markets, find=lambda team, name: {"Al Net": "g1"}.get(name)):
-        return build_nhl.saves_lines_from_event({"markets": markets}, self.TEAMS.get, find)
+        return nhl_prices.saves_lines_from_event({"markets": markets}, self.TEAMS.get, find)
 
     def test_main_line_prices_and_the_other_lines(self):
         rows = self.read([self.market("Al Net", "Aces", 26.5, 0.48, 0.56), self.market("Al Net", "Aces", 28.5, 0.36, None, main=False), self.market("Al Net", "Aces", 22.5, None, 0.4, main=False)])
@@ -152,10 +156,10 @@ class NovigSaves(unittest.TestCase):
         self.assertEqual((row["id"], row["line"], row["over"], row["under"], row["chance"], row["thin"]), (None, 24.5, None, None, 0.5, True))
 
     def test_one_price_and_junk_prices(self):
-        self.assertAlmostEqual(build_nhl.saves_over_chance(0.42, None), 0.4)
-        self.assertAlmostEqual(build_nhl.saves_over_chance(None, 0.63), 0.4)
-        self.assertEqual(build_nhl.saves_over_chance(0.999, 0.999), 0.5)
-        self.assertEqual(build_nhl.saves_over_chance(0.9, None), 0.65)  # a thin ask can only pull so far
+        self.assertAlmostEqual(nhl_prices.saves_over_chance(0.42, None), 0.4)
+        self.assertAlmostEqual(nhl_prices.saves_over_chance(None, 0.63), 0.4)
+        self.assertEqual(nhl_prices.saves_over_chance(0.999, 0.999), 0.5)
+        self.assertEqual(nhl_prices.saves_over_chance(0.9, None), 0.65)  # a thin ask can only pull so far
 
     def test_only_goalies_with_a_main_line_and_a_team(self):
         rows = self.read([self.market("Al Net", "Aces", 28.5, 0.4, None, main=False), self.market("Cy Else", "Nobody", 25.5, 0.5, 0.5)])
@@ -167,8 +171,8 @@ class LineupReader(unittest.TestCase):
     IDS = {"F One": "f1", "F Two": "f2", "F Three": "f3", "D One": "d1", "D Two": "d2", "Seventh Dman": "d7", "Star Goalie": "g1"}
 
     def slots(self, text):
-        lineup = build_nhl.parse_lineups(text)["Aces"]
-        return lineup, build_nhl.lineup_slots(lineup, "AAA", lambda team, name: self.IDS.get(name), self.POSITIONS)
+        lineup = nhl_lineups.parse_lineups(text)["Aces"]
+        return lineup, nhl_lineups.lineup_slots(lineup, "AAA", lambda team, name: self.IDS.get(name), self.POSITIONS)
 
     def test_a_seventh_defenseman_on_his_own_line_is_not_the_goalie(self):
         _, out = self.slots("**Aces projected lineup**\nF One -- F Two -- F Three\nD One -- D Two\nSeventh Dman\nStar Goalie\nBackup Goalie\n**Scratched:** None")
@@ -198,7 +202,7 @@ class Starter(unittest.TestCase):
     ALL = {g["id"]: g for g in GOALIES}
 
     def pick(self, posted=None, listed=(), rest=None, last=None):
-        return build_nhl.crease_starter(posted, list(listed), self.GOALIES, self.ALL, rest, last)
+        return goalie_pages.crease_starter(posted, list(listed), self.GOALIES, self.ALL, rest, last)
 
     def test_two_sources_agreeing_is_the_most_it_can_say(self):
         got = self.pick({"goalie": "g2"}, [{"id": "g2", "name": "N. Two"}])
@@ -234,7 +238,7 @@ class Starter(unittest.TestCase):
         self.assertEqual(self.pick()["id"], "g1")
         self.assertEqual(self.pick(rest=1, last="g1")["id"], "g2")
         self.assertEqual(self.pick(rest=1, last="g2")["id"], "g1")
-        self.assertEqual(build_nhl.crease_starter(None, [], [], {}, None, None), {"id": None, "name": None, "source": "usual", "other": None, "doubt": False})
+        self.assertEqual(goalie_pages.crease_starter(None, [], [], {}, None, None), {"id": None, "name": None, "source": "usual", "other": None, "doubt": False})
 
     def test_no_source_is_ever_called_confirmed(self):
         page = (Path(build_nhl.__file__).parent.parent / "site" / "nhl" / "promo-tools.js").read_text(encoding="utf-8")
@@ -253,7 +257,7 @@ class Board(unittest.TestCase):
         line = lambda pid, name, strike, chance: {"id": pid, "name": name, "line": strike, "over": -110, "under": -110, "chance": chance, "thin": False, "alts": []}
         cls.lines = {"1": {"LEAKY": [line("gl", "Lee Leaky", 22.5, 0.5)], "BUSY": [line("gb", "Bo Busy", 21.5, 0.5)]}}
         cls.tonight = {"1": {"posted": "x", "LEAKY": {"goalie": "gl"}}}
-        cls.board = build_nhl.crease_board(cls.model, cls.games, cls.tonight, cls.lines, cls.goalies, cls.records, None, NOW)
+        cls.board = goalie_pages.crease_board(cls.model, cls.games, cls.tonight, cls.lines, cls.goalies, cls.records, None, NOW)
         cls.rows = {row["team"]: row for row in cls.board["2026-10-13"]["goalies"]}
 
     def test_one_row_per_team_named_for_its_starter(self):
@@ -284,7 +288,7 @@ class Board(unittest.TestCase):
         # Changing another goalie's line moves the field for both chances, not the gap between them much.
         other = json.loads(json.dumps(self.lines))
         other["1"]["BUSY"][0]["line"] = 27.5
-        again = {r["team"]: r for r in build_nhl.crease_board(self.model, self.games, self.tonight, other, self.goalies, self.records, None, NOW)["2026-10-13"]["goalies"]}
+        again = {r["team"]: r for r in goalie_pages.crease_board(self.model, self.games, self.tonight, other, self.goalies, self.records, None, NOW)["2026-10-13"]["goalies"]}
         self.assertLess(again["LEAKY"]["top"], row["top"])
         self.assertAlmostEqual(again["LEAKY"]["value"], row["value"], delta=0.12)
 
@@ -298,7 +302,7 @@ class Board(unittest.TestCase):
     def test_the_value_tag_needs_a_real_chance_and_no_check(self):
         row = lambda **over: {"locked": False, "top": 0.2, "value": 1.3, "check": False, **over}
         rows = [row(), row(check=True), row(value=1.1), row(top=0.01), row(value=None)]
-        build_nhl.crease_tags(rows)
+        goalie_pages.crease_tags(rows)
         self.assertEqual(["value" in r["tags"] for r in rows], [True, False, False, False, False])
 
     def test_chances_cover_the_day(self):
@@ -307,7 +311,7 @@ class Board(unittest.TestCase):
         self.assertLess(total, 1.2)
 
     def test_a_far_off_game_is_left_out(self):
-        board = build_nhl.crease_board(self.model, [scheduled("9", "2026-10-20", "BUSY", "CALM", start="2026-10-20T23:00Z")], None, None, self.goalies, self.records, None, NOW)
+        board = goalie_pages.crease_board(self.model, [scheduled("9", "2026-10-20", "BUSY", "CALM", start="2026-10-20T23:00Z")], None, None, self.goalies, self.records, None, NOW)
         self.assertEqual(board, {})
 
 
@@ -317,11 +321,11 @@ class LockAndRecord(unittest.TestCase):
         self.goalies = Board.goalies if hasattr(Board, "goalies") else None
         self.goalies = {"BUSY": [{"id": "gb", "name": "Bo Busy"}], "LEAKY": [{"id": "gl", "name": "Lee Leaky"}], "CALM": [{"id": "gc", "name": "Cal Calm"}], "TIGHT": [{"id": "gt", "name": "Ty Tight"}]}
         self.games = [scheduled("1", "2026-10-13", "BUSY", "LEAKY"), scheduled("2", "2026-10-13", "TIGHT", "CALM")]
-        self.before = {"days": build_nhl.crease_board(model_for(self.records), self.games, None, None, self.goalies, self.records, None, NOW)}
+        self.before = {"days": goalie_pages.crease_board(model_for(self.records), self.games, None, None, self.goalies, self.records, None, NOW)}
 
     def test_a_started_game_keeps_the_rows_from_before_puck_drop(self):
         later = datetime(2026, 10, 14, 0, 30)
-        board = build_nhl.crease_board(model_for(self.records), self.games, None, {"1": {"LEAKY": [{"id": "gl", "name": "x", "line": 40.5, "over": 100, "under": 100, "chance": 0.5, "thin": False, "alts": []}]}}, self.goalies, self.records, self.before, later)
+        board = goalie_pages.crease_board(model_for(self.records), self.games, None, {"1": {"LEAKY": [{"id": "gl", "name": "x", "line": 40.5, "over": 100, "under": 100, "chance": 0.5, "thin": False, "alts": []}]}}, self.goalies, self.records, self.before, later)
         rows = {row["team"]: row for row in board["2026-10-13"]["goalies"]}
         old = {row["team"]: row for row in self.before["days"]["2026-10-13"]["goalies"]}
         self.assertTrue(rows["LEAKY"]["locked"])
@@ -329,7 +333,7 @@ class LockAndRecord(unittest.TestCase):
         self.assertEqual(rows["LEAKY"]["top"], old["LEAKY"]["top"])
 
     def test_a_started_game_with_nothing_saved_has_no_rows(self):
-        board = build_nhl.crease_board(model_for(self.records), self.games, None, None, self.goalies, self.records, None, datetime(2026, 10, 14, 0, 30))
+        board = goalie_pages.crease_board(model_for(self.records), self.games, None, None, self.goalies, self.records, None, datetime(2026, 10, 14, 0, 30))
         self.assertEqual(board, {})
 
     def finished(self):
@@ -340,7 +344,7 @@ class LockAndRecord(unittest.TestCase):
         ]
         games = [{**g, "status": "final"} for g in self.games]
         records = self.records + played
-        return build_nhl.crease_board(model_for(records), games, None, None, self.goalies, records, self.before, datetime(2026, 10, 14, 12, 0))
+        return goalie_pages.crease_board(model_for(records), games, None, None, self.goalies, records, self.before, datetime(2026, 10, 14, 12, 0))
 
     def test_a_final_day_names_who_led_it(self):
         day = self.finished()["2026-10-13"]
@@ -355,27 +359,27 @@ class LockAndRecord(unittest.TestCase):
         board = self.finished()
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
-            self.assertEqual(build_nhl.record_crease_days(folder, board), 1)
-            self.assertEqual(build_nhl.record_crease_days(folder, board), 0)
+            self.assertEqual(goalie_pages.record_crease_days(folder, board), 1)
+            self.assertEqual(goalie_pages.record_crease_days(folder, board), 0)
             saved = json.loads((folder / "2026-10.json").read_text())
-            self.assertEqual(saved["cols"], list(build_nhl.CREASE_RECORD_COLS))
+            self.assertEqual(saved["cols"], list(goalie_pages.CREASE_RECORD_COLS))
             self.assertEqual(len(saved["days"]["2026-10-13"]["goalies"]), 4)
-            summary = build_nhl.crease_record_summary(folder)
+            summary = goalie_pages.crease_record_summary(folder)
         self.assertEqual((summary["days"], summary["since"], summary["through"]), (1, "2026-10-13", "2026-10-13"))
         rows = {row["team"]: row for row in board["2026-10-13"]["goalies"]}
         favorite = max(rows.values(), key=lambda row: row["top"])
         self.assertEqual(summary["favorite"]["led"], int(favorite["team"] == "LEAKY"))
         self.assertEqual(summary["upside"]["tagged"], 1)
         self.assertEqual(summary["miss"]["goalies"], 0)  # nobody had a line
-        self.assertEqual(build_nhl.crease_record_summary(Path(tmp) / "nowhere")["days"], 0)
+        self.assertEqual(goalie_pages.crease_record_summary(Path(tmp) / "nowhere")["days"], 0)
 
     def test_the_winners_list_has_every_recorded_day_best_chance_first(self):
         board = self.finished()
         with tempfile.TemporaryDirectory() as tmp:
-            build_nhl.record_crease_days(Path(tmp), board)
-            history = build_nhl.crease_history(Path(tmp))
-            self.assertEqual(build_nhl.crease_history(Path(tmp) / "nowhere")["days"], {})
-        self.assertEqual(history["cols"], list(build_nhl.CREASE_HISTORY_COLS))
+            goalie_pages.record_crease_days(Path(tmp), board)
+            history = goalie_pages.crease_history(Path(tmp))
+            self.assertEqual(goalie_pages.crease_history(Path(tmp) / "nowhere")["days"], {})
+        self.assertEqual(history["cols"], list(goalie_pages.CREASE_HISTORY_COLS))
         day = history["days"]["2026-10-13"]
         self.assertEqual((day["best"], day["starters"]), (41, board["2026-10-13"]["starters"]))
         rows = [dict(zip(history["cols"], values)) for values in day["goalies"]]
@@ -384,7 +388,7 @@ class LockAndRecord(unittest.TestCase):
 
     def test_an_open_day_is_not_recorded(self):
         with tempfile.TemporaryDirectory() as tmp:
-            self.assertEqual(build_nhl.record_crease_days(Path(tmp), self.before["days"]), 0)
+            self.assertEqual(goalie_pages.record_crease_days(Path(tmp), self.before["days"]), 0)
 
 
 if __name__ == "__main__":

@@ -137,7 +137,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from nhl_goals import DATA, b, sm  # noqa: E402
+from nhl_goals import DATA, sm  # noqa: E402
+import nhl_games  # noqa: E402
 from nhl_goals_check import np_fit  # noqa: E402
 from nhl_shots import game_slots, load_previews  # noqa: E402
 import goals_model as gm  # noqa: E402
@@ -172,13 +173,13 @@ def shared_ice(raw: dict, rec: dict) -> dict | None:
         per = p.get("periodDescriptor") or {}
         if per.get("periodType") == "SO" or not per.get("number") or per["number"] > 4:
             continue
-        marks.append(((per["number"] - 1) * PERIOD + b.clock_seconds(p.get("timeInPeriod")), p.get("situationCode")))
+        marks.append(((per["number"] - 1) * PERIOD + nhl_games.clock_seconds(p.get("timeInPeriod")), p.get("situationCode")))
     even = np.zeros(SPAN, dtype=np.float32)
     pp = {rec["home"]: np.zeros(SPAN, dtype=np.float32), rec["away"]: np.zeros(SPAN, dtype=np.float32)}
     for (t, code), (nxt, _) in zip(marks, marks[1:] + [(SPAN, None)]):
         if nxt <= t:
             continue
-        h, a = b.strength(code, True), b.strength(code, False)
+        h, a = nhl_games.strength(code, True), nhl_games.strength(code, False)
         if h in ("5v5", "ev"):
             even[t:nxt] = 1
         if h == "pp":
@@ -194,7 +195,7 @@ def shared_ice(raw: dict, rec: dict) -> dict | None:
             i = index.get(str(pid))
             if i is None or per > 4:
                 continue
-            a, z = (per - 1) * PERIOD + b.clock_seconds(start), (per - 1) * PERIOD + b.clock_seconds(end)
+            a, z = (per - 1) * PERIOD + nhl_games.clock_seconds(start), (per - 1) * PERIOD + nhl_games.clock_seconds(end)
             on[i, a:z] = 1
         out[team] = (ids, (on * even) @ on.T, (on * pp[team]) @ on.T)
     return out
@@ -214,7 +215,7 @@ def load(season: int) -> list:
         if "shifts" not in raw and sp.exists():
             with gzip.open(sp, "rt", encoding="utf-8") as f:
                 raw["shifts"] = json.load(f)
-        rec = b.reduce_game(raw)
+        rec = nhl_games.reduce_game(raw)
         rec["ice"] = shared_ice(raw, rec)
         games.append(rec)
     games.sort(key=lambda r: (r["date"], r["id"]))
@@ -648,10 +649,10 @@ def main():
         if hand is None:
             hand = {}
             for s in (FIT, TEST):
-                for pid, row in b.fetch_report("skater/timeonice", s, "playerId").items():
+                for pid, row in nhl_games.fetch_report("skater/timeonice", s, "playerId").items():
                     if row.get("shootsCatches"):
                         hand[str(pid)] = row["shootsCatches"]
-        print(f"Replaying {b.season_label(season)}...", flush=True)
+        print(f"Replaying {nhl_games.season_label(season)}...", flush=True)
         games = load(season)
         data[season] = replay(games, load_previews(season, games), hand)
         if path:
@@ -697,7 +698,7 @@ def main():
     print("\nQ2. Tonight's projected line vs his usual linemates (games with a posted lineup)")
     for season in (FIT, TEST):
         st = data[season]["stacks"]
-        print(f"   {b.season_label(season)}:")
+        print(f"   {nhl_games.season_label(season)}:")
         for a, z in (("line_trio", "u_line_trio"), ("line_pair", "u_line_pair")):
             for kind in (a, z):
                 m = (st["kind"] == kind) & (st["together"] >= 0)

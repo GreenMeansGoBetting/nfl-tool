@@ -4,6 +4,8 @@ paths:
   - "nfl_tool/site/nhl/icebreaker.js"
   - "nfl_tool/site/nhl/hattrick.js"
   - "nfl_tool/nhl/saves_model.py"
+  - "nfl_tool/nhl/goalie_pages.py"
+  - "nfl_tool/nhl/promo_pages.py"
   - "tools/backtest/nhl_icebreaker*.py"
 ---
 # NHL: Promo Tools (King of the Crease, Icebreaker, King of the Hat Trick)

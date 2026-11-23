@@ -21,7 +21,11 @@ them: read the one for the part you are changing.
 ## Files
 
 - Build: `nfl_tool/nhl/build_nhl.py` -> `site/nhl/data.json`, `nhl/shots.json` +
-  `nhl/players/<TEAM>.json` (games kept in `data/nhl`). Models: `shots_model.py` (shots on goal),
+  `nhl/players/<TEAM>.json` (games kept in `data/nhl`). `build_nhl.py` is the order (main); the work is
+  in job files (2026-11-23, each imports only files above it, list in its opening note): `nhl_games`
+  (NHL feed, play-by-play, schedule, injuries), `nhl_stats`, `nhl_prices` (Novig, locks, best prices,
+  CLV), `nhl_lineups`, `nhl_records`, `shots_page`, `goals_page`, `points_page`, `line_matchups_page`,
+  `goalie_pages` (Crease + Saves), `promo_pages` (Icebreaker, Hat Trick), `past_days`. Models: `shots_model.py` (shots on goal),
   `saves_model.py` (King of the Crease + Saves, `nhl/saves.json`), `goals_model.py` (anytime,
   `nhl/goals.json`), `points_model.py` (1+ point on top of goals, `nhl/points.json`),
   `lines_model.py` (Line Matchups, `nhl/lines.json`). `stacks_model.py` (retired Line Stacks) stays

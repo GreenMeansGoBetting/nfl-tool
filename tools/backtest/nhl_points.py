@@ -76,7 +76,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from nhl_goals import DATA, b, deviance, game_slots, logloss, poisson_fit, sm  # noqa: E402
+from nhl_goals import DATA, deviance, game_slots, logloss, poisson_fit, sm  # noqa: E402
+import nhl_games  # noqa: E402
 from nhl_goals_check import np_fit  # noqa: E402
 from nhl_shots import load_previews  # noqa: E402
 import goals_model as gm  # noqa: E402
@@ -107,7 +108,7 @@ def shot_times(raw):
     abbr = {home["id"]: home["abbrev"], away["id"]: away["abbrev"]}
     team_of = {r["playerId"]: r["teamId"] for r in pbp.get("rosterSpots") or []}
     plays = sorted(pbp.get("plays") or [], key=lambda p: p.get("sortOrder", 0))
-    directions = b.attack_directions(plays, team_of, home["id"])
+    directions = nhl_games.attack_directions(plays, team_of, home["id"])
     out = []
     for p in plays:
         period = p.get("periodDescriptor") or {}
@@ -116,9 +117,9 @@ def shot_times(raw):
         d = p.get("details") or {}
         shooter = d.get("scoringPlayerId") or d.get("shootingPlayerId")
         team_id = team_of.get(shooter, d.get("eventOwnerTeamId"))
-        man = b.strength(p.get("situationCode"), team_id == home["id"])
-        if team_id in abbr and man not in ("en", "ps", "extra") and b.normalize_xy(d, directions.get((period.get("number"), team_id))):
-            out.append((period.get("number"), b.clock_seconds(p.get("timeInPeriod"))))
+        man = nhl_games.strength(p.get("situationCode"), team_id == home["id"])
+        if team_id in abbr and man not in ("en", "ps", "extra") and nhl_games.normalize_xy(d, directions.get((period.get("number"), team_id))):
+            out.append((period.get("number"), nhl_games.clock_seconds(p.get("timeInPeriod"))))
     return out
 
 
@@ -137,8 +138,8 @@ def goal_events(raw):
         team_id = team_of.get(d.get("scoringPlayerId"), d.get("eventOwnerTeamId"))
         if team_id not in abbr:
             continue
-        out.append({"team": abbr[team_id], "per": period.get("number"), "t": b.clock_seconds(p.get("timeInPeriod")),
-                    "pp": b.strength(p.get("situationCode"), team_id == home["id"]) == "pp",
+        out.append({"team": abbr[team_id], "per": period.get("number"), "t": nhl_games.clock_seconds(p.get("timeInPeriod")),
+                    "pp": nhl_games.strength(p.get("situationCode"), team_id == home["id"]) == "pp",
                     "scorer": str(d.get("scoringPlayerId")), "assists": [str(d[k]) for k in ("assist1PlayerId", "assist2PlayerId") if d.get(k)]})
     return out
 
@@ -168,7 +169,7 @@ def load(season):
             with gzip.open(sp, "rt", encoding="utf-8") as f:
                 shifts = json.load(f)
         raw.setdefault("shifts", shifts)  # the lines he played on (reduce_game's `slot`)
-        r = b.reduce_game(raw)
+        r = nhl_games.reduce_game(raw)
         r["goal_events"] = goal_events(raw)
         r["onice"] = None
         if shifts:
@@ -420,7 +421,7 @@ def calibration(y_any, lam, two=None):
 def main():
     hand = {}
     for season in (FIT, TEST) if "--rows" not in sys.argv or not all((Path(sys.argv[sys.argv.index("--rows") + 1]) / f"points_rows_{x}.npz").exists() for x in (FIT, TEST)) else ():
-        for pid, row in b.fetch_report("skater/timeonice", season, "playerId").items():
+        for pid, row in nhl_games.fetch_report("skater/timeonice", season, "playerId").items():
             if row.get("shootsCatches"):
                 hand[str(pid)] = row["shootsCatches"]
     data = {}
@@ -430,7 +431,7 @@ def main():
         if saved and saved.exists():
             data[season] = dict(np.load(saved))
         else:
-            print(f"Replaying {b.season_label(season)}...", flush=True)
+            print(f"Replaying {nhl_games.season_label(season)}...", flush=True)
             games = load(season)
             have = sum(1 for g in games if g["onice"])
             print(f"  {len(games):,} games, shift charts for {have:,}", flush=True)
@@ -447,7 +448,7 @@ def main():
     for season, d in ((FIT, f), (TEST, t)):
         known = d["x_mates"] != 0
         lo, hi = np.percentile(np.exp(d["x_mates"][known]), [10, 90]) if known.any() else (1, 1)
-        print(f"Linemates tonight, {b.season_label(season)}: read for {100 * known.mean():.0f}% of skater-games; middle 80% {lo:.2f}x to {hi:.2f}x his usual linemates")
+        print(f"Linemates tonight, {nhl_games.season_label(season)}: read for {100 * known.mean():.0f}% of skater-games; middle 80% {lo:.2f}x to {hi:.2f}x his usual linemates")
     y_any, y_two = (t["pts"] > 0).astype(float), (t["pts"] > 1).astype(float)
     print("\nWeights fitted on 2024-25, scored on 2025-26 (1+ point log loss: lower is better)")
     results = {}

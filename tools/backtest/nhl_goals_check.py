@@ -21,7 +21,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from nhl_goals import DATA, b, deviance, game_slots, logloss, poisson_fit, sm  # noqa: E402
+from nhl_goals import DATA, deviance, game_slots, logloss, poisson_fit, sm  # noqa: E402
+import nhl_games  # noqa: E402
 from nhl_shots import load_previews  # noqa: E402
 import goals_model as gm  # noqa: E402  (nfl_tool/nhl is on the path via nhl_goals)
 
@@ -42,7 +43,7 @@ def load(season):
         with gzip.open(path, "rt", encoding="utf-8") as f:
             raw = json.load(f)
         raw.setdefault("pp_toi", pp.get(path.name.split(".")[0]))
-        games.append(b.reduce_game(raw))
+        games.append(nhl_games.reduce_game(raw))
     games.sort(key=lambda r: (r["date"], r["id"]))
     return games
 
@@ -110,12 +111,12 @@ def X_of(d):
 def main():
     hand = {}
     for season in (2025, 2026):
-        for pid, row in b.fetch_report("skater/timeonice", season, "playerId").items():
+        for pid, row in nhl_games.fetch_report("skater/timeonice", season, "playerId").items():
             if row.get("shootsCatches"):
                 hand[str(pid)] = row["shootsCatches"]
     data = {}
     for season in (2025, 2026):
-        print(f"Replaying {b.season_label(season)} through goals_model.py...", flush=True)
+        print(f"Replaying {nhl_games.season_label(season)} through goals_model.py...", flush=True)
         games = load(season)
         data[season] = replay(games, load_previews(season, games), hand)
     f, t = data[2025], data[2026]

@@ -2,6 +2,7 @@
 paths:
   - "nfl_tool/site/nhl/shots.*"
   - "nfl_tool/nhl/shots_model.py"
+  - "nfl_tool/nhl/shots_page.py"
   - "tools/backtest/nhl_shots*.py"
 ---
 # NHL: Shots on Goal

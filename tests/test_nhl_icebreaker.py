@@ -17,7 +17,8 @@ from pathlib import Path
 
 from helpers import nhl_game  # first: puts nfl_tool/nhl on the import path
 
-import build_nhl as b
+import nhl_games
+import promo_pages
 import smartstake
 import nhl_odds
 
@@ -30,7 +31,7 @@ def secs(text):
 class Game(unittest.TestCase):
     def test_first_goals_and_early_shots_come_from_the_play_by_play(self):
         raw = nhl_game()
-        r = b.reduce_game(raw)
+        r = nhl_games.reduce_game(raw)
         pbp = raw["pbp"]
         team_of = {pbp["homeTeam"]["id"]: pbp["homeTeam"]["abbrev"], pbp["awayTeam"]["id"]: pbp["awayTeam"]["abbrev"]}
         goals = [((p["periodDescriptor"]["number"] - 1) * 1200 + secs(p["timeInPeriod"]), team_of[p["details"]["eventOwnerTeamId"]], str(p["details"]["scoringPlayerId"]))
@@ -42,26 +43,26 @@ class Game(unittest.TestCase):
             mine = [t for t, who, _ in goals if who == team]
             self.assertEqual(r["first_goals"].get(team), min(mine) if mine else None)
             early = sum(1 for p in pbp["plays"] if p["typeDescKey"] in ("goal", "shot-on-goal") and p["periodDescriptor"]["number"] == 1
-                        and secs(p["timeInPeriod"]) < b.EARLY_SECONDS and team_of.get(p["details"].get("eventOwnerTeamId")) == team)
+                        and secs(p["timeInPeriod"]) < nhl_games.EARLY_SECONDS and team_of.get(p["details"].get("eventOwnerTeamId")) == team)
             self.assertEqual(r["teams"][team].get("sog_early", 0), early)
 
     def test_each_skaters_first_ten_minutes_come_from_the_play_by_play_and_shift_chart(self):
         raw = nhl_game()
-        r = b.reduce_game(raw)
+        r = nhl_games.reduce_game(raw)
         early = [p for p in raw["pbp"]["plays"] if p["typeDescKey"] in ("goal", "shot-on-goal") and p["periodDescriptor"]["number"] == 1
-                 and secs(p["timeInPeriod"]) < b.FIRST_TEN]
+                 and secs(p["timeInPeriod"]) < nhl_games.FIRST_TEN]
         self.assertEqual(sum(s["sog10"] for s in r["skaters"].values()), len(early))
         self.assertEqual(sum(s["g10"] for s in r["skaters"].values()), sum(p["typeDescKey"] == "goal" for p in early))
         self.assertIsNone(next(iter(r["skaters"].values()))["toi10"])  # no shift chart on this saved game
         raw["shifts"] = [["1", "AAA", 1, "00:00", "00:45"], ["1", "AAA", 1, "09:30", "11:00"], ["1", "AAA", 2, "00:00", "05:00"]]
-        self.assertEqual(b.first_ten_toi(raw), {"1": 75})  # 45 s, then 30 s up to 10:00; the 2nd period never counts
+        self.assertEqual(nhl_games.first_ten_toi(raw), {"1": 75})  # 45 s, then 30 s up to 10:00; the 2nd period never counts
 
     def test_first_ten_adds_up_his_games_and_reads_ice_time_only_from_charted_games(self):
         records = [
             {"skaters": {"1": {"g10": 1, "sog10": 2, "toi10": 200}, "2": {"g10": 0, "sog10": 1, "toi10": 100}}},
             {"skaters": {"1": {"g10": 0, "sog10": 1, "toi10": None}}},
         ]
-        self.assertEqual(b.first_ten(records, {"1"}), {"1": [2, 1, 3, 1, 200]})
+        self.assertEqual(promo_pages.first_ten(records, {"1"}), {"1": [2, 1, 3, 1, 200]})
 
 
 def record(home, away, first=None, firsts=None, early=(0, 0)):
@@ -76,7 +77,7 @@ class FastStarts(unittest.TestCase):
             record("BBB", "AAA", {"t": 50, "team": "BBB"}, {"BBB": 50}, (2, 0)),
             record("AAA", "CCC", {"t": 300, "team": "AAA"}, {"AAA": 300}, (1, 4)),
         ]
-        fast = b.fast_starts(records)
+        fast = promo_pages.fast_starts(records)
         self.assertEqual(fast["AAA"]["gp"], 3)
         self.assertEqual(fast["AAA"]["first"], 2)
         self.assertEqual(fast["AAA"]["first_time"], 300)  # 100, 300, never: the middle game
@@ -96,7 +97,7 @@ def goal_row(pid, team="AAA", mean=0.4, out=False):
 
 class Row(unittest.TestCase):
     def test_no_price_is_the_model_alone(self):
-        row = b.icebreaker_row(goal_row("9"), GAME, None, {}, 8)
+        row = promo_pages.icebreaker_row(goal_row("9"), GAME, None, {}, 8)
         self.assertEqual(row["rate"], 0.4)
         self.assertIsNone(row["mkt_mean"])
         self.assertEqual(row["game_id"], "1")
@@ -105,7 +106,7 @@ class Row(unittest.TestCase):
         odds = {"goal": {"chance": 0.3}}
         mkt = round(-math.log(0.7), 4)  # the build keeps 4 places
         for games, weight in ((8, 0.5 * 8 / 20), (40, 0.5)):
-            row = b.icebreaker_row(goal_row("9"), GAME, odds, {}, games)
+            row = promo_pages.icebreaker_row(goal_row("9"), GAME, odds, {}, games)
             self.assertAlmostEqual(row["mkt_mean"], mkt, places=4)
             self.assertAlmostEqual(row["rate"], mkt + weight * (0.4 - mkt), places=4)
 
@@ -113,9 +114,9 @@ class Row(unittest.TestCase):
         books = {"AAA_BBB": {"props": {"first_goal": {"9": {"name": "P9", "q": [
             ["draftkings", "o", None, 700, ""], ["fanduel", "o", None, 800, ""], ["betmgm", "u", None, 2000, ""]]},
             "8": {"name": "P8", "q": [["betmgm", "o", None, 900, ""]]}}}}}
-        self.assertEqual(b.first_goal_prices(books, GAME, "9"), {"fg": 700})
-        self.assertEqual(b.first_goal_prices(books, GAME, "8"), {"fg": None})  # another book's price never counts
-        self.assertEqual(b.first_goal_prices(books, GAME, "7"), {"fg": None})
+        self.assertEqual(promo_pages.first_goal_prices(books, GAME, "9"), {"fg": 700})
+        self.assertEqual(promo_pages.first_goal_prices(books, GAME, "8"), {"fg": None})  # another book's price never counts
+        self.assertEqual(promo_pages.first_goal_prices(books, GAME, "7"), {"fg": None})
 
 
 class Board(unittest.TestCase):
@@ -123,7 +124,7 @@ class Board(unittest.TestCase):
 
     def test_an_open_game_is_built_from_the_goals_rows_without_anyone_out(self):
         goals = {"1": {"players": [goal_row("1", mean=0.2), goal_row("2", mean=0.5), goal_row("3", out=True)]}}
-        board = b.icebreaker_board(goals, [GAME], [], {}, {}, None, self.NOW)
+        board = promo_pages.icebreaker_board(goals, [GAME], [], {}, {}, None, self.NOW)
         day = board["2026-10-20"]
         self.assertEqual([r["id"] for r in day["players"]], ["2", "1"])  # most likely first
         self.assertEqual(day["games"][0]["locked"], False)
@@ -131,11 +132,11 @@ class Board(unittest.TestCase):
     def test_a_started_game_keeps_the_last_builds_rows_and_never_makes_new_ones(self):
         goals = {"1": {"players": [goal_row("1", mean=0.9)]}}
         late = datetime(2026, 10, 20, 23, 30)
-        kept = {"days": {"2026-10-20": {"players": [{**b.icebreaker_row(goal_row("1", mean=0.3), GAME, None, {}, 8)}]}}}
-        board = b.icebreaker_board(goals, [GAME], [], {}, {}, kept, late)
+        kept = {"days": {"2026-10-20": {"players": [{**promo_pages.icebreaker_row(goal_row("1", mean=0.3), GAME, None, {}, 8)}]}}}
+        board = promo_pages.icebreaker_board(goals, [GAME], [], {}, {}, kept, late)
         self.assertEqual(board["2026-10-20"]["players"][0]["rate"], 0.3)
         self.assertTrue(board["2026-10-20"]["games"][0]["locked"])
-        board = b.icebreaker_board(goals, [GAME], [], {}, {}, None, late)
+        board = promo_pages.icebreaker_board(goals, [GAME], [], {}, {}, None, late)
         self.assertEqual(board["2026-10-20"]["players"], [])
 
 
@@ -159,14 +160,14 @@ class Record(unittest.TestCase):
     def test_the_quickest_7pm_goal_is_the_icebreaker_written_once(self):
         with tempfile.TemporaryDirectory() as folder:
             folder = Path(folder)
-            self.assertEqual(b.record_icebreaker_days(folder, finished_day()), 1)
-            self.assertEqual(b.record_icebreaker_days(folder, finished_day()), 0)
+            self.assertEqual(promo_pages.record_icebreaker_days(folder, finished_day()), 1)
+            self.assertEqual(promo_pages.record_icebreaker_days(folder, finished_day()), 0)
             saved = json.loads((folder / "2026-10.json").read_text(encoding="utf-8"))
             day = saved["days"]["2026-10-20"]
             self.assertEqual((day["games"], day["time"]), (2, 40))
             self.assertEqual([w["id"] for w in day["winners"]], ["11"])
             self.assertEqual(len(day["players"]), 3)  # the 8:00 game isn't the promo's
-            history = b.icebreaker_history(folder)
+            history = promo_pages.icebreaker_history(folder)
             self.assertEqual(len(history), 1)
             w = history[0]["winners"][0]
             self.assertEqual((w["rank"], w["chance"], w["fg"]), (2, 0.2, 2500))
@@ -176,16 +177,16 @@ class Record(unittest.TestCase):
     def test_a_tie_crowns_both_and_an_open_slate_waits(self):
         day = finished_day()
         day["2026-10-20"]["games"][1]["first"]["t"] = 40
-        self.assertEqual([w["id"] for w in b.icebreaker_slate(day["2026-10-20"])["winners"]], ["11", "21"])
+        self.assertEqual([w["id"] for w in promo_pages.icebreaker_slate(day["2026-10-20"])["winners"]], ["11", "21"])
         day["2026-10-20"]["games"][1]["final"] = False
-        self.assertIsNone(b.icebreaker_slate(day["2026-10-20"]))
+        self.assertIsNone(promo_pages.icebreaker_slate(day["2026-10-20"]))
 
     def test_a_winner_the_page_never_listed_has_no_place(self):
         day = finished_day()
         day["2026-10-20"]["games"][0]["first"]["id"] = "99"
         with tempfile.TemporaryDirectory() as folder:
-            b.record_icebreaker_days(Path(folder), day)
-            w = b.icebreaker_history(Path(folder))[0]["winners"][0]
+            promo_pages.record_icebreaker_days(Path(folder), day)
+            w = promo_pages.icebreaker_history(Path(folder))[0]["winners"][0]
             self.assertEqual((w["rank"], w["chance"]), (None, None))
 
 

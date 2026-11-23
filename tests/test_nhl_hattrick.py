@@ -11,7 +11,7 @@ import unittest
 
 from helpers import nhl_game  # noqa: F401  first: puts nfl_tool/nhl on the import path
 
-import build_nhl as b
+import promo_pages
 
 
 def skater(team, g, name="P", pp_toi=60):
@@ -44,21 +44,21 @@ RECORDS = [
 
 class HatTrick(unittest.TestCase):
     def test_big_games_count_every_goal_and_charge_the_goalie_only_his(self):
-        big = b.big_games(RECORDS)
+        big = promo_pages.big_games(RECORDS)
         self.assertEqual([(x["id"], x["g"], x["opp"]) for x in big], [("1", 3, "NYR"), ("2", 2, "NYR")])
         self.assertEqual(big[0]["vs"], {"30": 2})  # the third went into an empty net
         self.assertEqual(big[0]["pp"], 1)
 
     def test_player_team_and_goalie_counts(self):
-        big = b.big_games(RECORDS)
-        p = b.hattrick_players(RECORDS, {"1", "3"})
+        big = promo_pages.big_games(RECORDS)
+        p = promo_pages.hattrick_players(RECORDS, {"1", "3"})
         self.assertEqual({k: p["1"][k] for k in ("gp", "g", "two", "three", "max", "pp_g", "l10", "l10_gp")},
                          {"gp": 2, "g": 3, "two": 1, "three": 1, "max": 3, "pp_g": 1, "l10": 3, "l10_gp": 2})
         self.assertNotIn("2", p)  # only the board's players
-        t = b.hattrick_teams(RECORDS, big)
+        t = promo_pages.hattrick_teams(RECORDS, big)
         self.assertEqual((t["BOS"]["two_for"], t["BOS"]["three_for"], t["BOS"]["five_for"]), (2, 1, 1))
         self.assertEqual((t["NYR"]["two_against"], t["NYR"]["three_against"], t["NYR"]["five_against"], t["NYR"]["ga"]), (2, 1, 1, 6))
-        g = b.hattrick_goalies(RECORDS, big)
+        g = promo_pages.hattrick_goalies(RECORDS, big)
         self.assertEqual((g["30"]["two"], g["30"]["three"], g["30"]["starts"]), (2, 0, 2))
         self.assertEqual(g["40"]["two"], 0)
 
@@ -68,7 +68,7 @@ class HatTrick(unittest.TestCase):
             {"id": "1", "name": "Hat Man", "team": "BOS", "opp": "NYR", "home": True, "mean": 0.5, "goalie": "30", "odds": -110, "edge": 0.05, "chance": 0.4},
             {"id": "5", "name": "Hurt", "team": "BOS", "opp": "NYR", "home": True, "mean": 0.6, "out": True},
         ]}}
-        f = b.hattrick_file(2027, "now", RECORDS, goals_games, games)
+        f = promo_pages.hattrick_file(2027, "now", RECORDS, goals_games, games)
         day = f["days"]["2026-10-12"]
         self.assertEqual([r["id"] for r in day["players"]], ["1"])
         self.assertEqual(day["games"][0]["total"], 6.5)

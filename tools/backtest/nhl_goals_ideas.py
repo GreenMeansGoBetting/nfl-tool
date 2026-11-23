@@ -51,7 +51,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import nhl_goals as ng  # noqa: E402
-from nhl_goals import AREAS, DATA, DECAY, b, deviance, game_slots, logloss, poisson_fit, sm  # noqa: E402
+from nhl_goals import AREAS, DATA, DECAY, deviance, game_slots, logloss, poisson_fit, sm  # noqa: E402
+import nhl_games  # noqa: E402
 from nhl_shots import load_previews  # noqa: E402
 
 FIT, TEST = 2025, 2026
@@ -105,7 +106,7 @@ def state_seconds(raw: dict, shifts: list | None) -> dict:
         if p.get("typeDescKey") == "goal" and (p.get("periodDescriptor") or {}).get("periodType") != "SO":
             d = p.get("details") or {}
             tid = d.get("eventOwnerTeamId")
-            if b.strength(p.get("situationCode"), tid == pbp["homeTeam"]["id"]) == "en":
+            if nhl_games.strength(p.get("situationCode"), tid == pbp["homeTeam"]["id"]) == "en":
                 en_goals[home if tid == pbp["homeTeam"]["id"] else away] += 1
     return {"team": team, "players": players, "en_goals": en_goals, "have_shifts": shifts is not None}
 
@@ -115,7 +116,7 @@ def load(season: int, hand: dict) -> list:
     for path in sorted((DATA / "games" / str(season)).glob("*.json.gz")):
         with gzip.open(path, "rt", encoding="utf-8") as f:
             raw = json.load(f)
-        r = b.reduce_game(raw)
+        r = nhl_games.reduce_game(raw)
         r["shots"] = ng.game_shots(raw)
         for s in r["shots"]:
             h = hand.get(s["shooter"])
@@ -314,13 +315,13 @@ def held_out(fit_d, test_d, keys):
 def main():
     hand = {}
     for season in (FIT, TEST):
-        for pid, row in b.fetch_report("skater/timeonice", season, "playerId").items():
+        for pid, row in nhl_games.fetch_report("skater/timeonice", season, "playerId").items():
             if row.get("shootsCatches"):
                 hand[str(pid)] = row["shootsCatches"]
     print(f"Handedness for {len(hand):,} skaters.")
     data, shots = {}, {}
     for season in (FIT, TEST):
-        print(f"Loading {b.season_label(season)}...", flush=True)
+        print(f"Loading {nhl_games.season_label(season)}...", flush=True)
         games = load(season, hand)
         previews = load_previews(season, games)
         have = sum(g["states"]["have_shifts"] for g in games)
@@ -332,7 +333,7 @@ def main():
         print(f"  empty-net goals: {en:,} of {allg:,} ({100 * en / allg:.1f}%, shootout winners included in the total)")
 
     f, t = data[FIT], data[TEST]
-    print(f"\n{b.season_label(FIT)}: {len(f['goals']):,} skater-games to fit on; {b.season_label(TEST)}: {len(t['goals']):,} to test on.")
+    print(f"\n{nhl_games.season_label(FIT)}: {len(f['goals']):,} skater-games to fit on; {nhl_games.season_label(TEST)}: {len(t['goals']):,} to test on.")
 
     # 5, per shot: the table fitted on all of one season, scored on the other.
     def shot_ll(s_fit, s_test, ow):
@@ -350,7 +351,7 @@ def main():
     print(f"   table weight for the off wing {w1[-1]:+.3f};  log loss {ll0:.5f} without, {ll1:.5f} with  ({'better' if ll1 < ll0 else 'not better'})")
 
     base_ll, base_dev, _ = held_out(f, t, BASE_KEYS)
-    print(f"\nThe step-1 pieces alone, fitted on {b.season_label(FIT)}, on {b.season_label(TEST)}: log loss {base_ll:.5f}, deviance {base_dev:.5f}")
+    print(f"\nThe step-1 pieces alone, fitted on {nhl_games.season_label(FIT)}, on {nhl_games.season_label(TEST)}: log loss {base_ll:.5f}, deviance {base_dev:.5f}")
     print("\nidea                          2024-25 weight (+/- se)  z     2025-26 log loss  change    2025-26 weight  moves (middle 80%)   a  b  c   verdict")
     passed = []
     for name, key in IDEAS.items():
@@ -371,7 +372,7 @@ def main():
     keys = BASE_KEYS + tuple(passed)
     ll, dev, lam = held_out(f, t, keys)
     w_f, se_f = fit(f, keys)
-    print(f"\nEverything that passed {passed}, fitted on {b.season_label(FIT)}, on {b.season_label(TEST)}: log loss {ll:.5f} (step-1 pieces {base_ll:.5f}), deviance {dev:.5f}")
+    print(f"\nEverything that passed {passed}, fitted on {nhl_games.season_label(FIT)}, on {nhl_games.season_label(TEST)}: log loss {ll:.5f} (step-1 pieces {base_ll:.5f}), deviance {dev:.5f}")
     print("   weights:", {k: round(float(v), 3) for k, v in zip(("scale",) + keys, w_f)})
     y_any = (t["goals"] > 0).astype(float)
     chance = 1 - np.exp(-lam)

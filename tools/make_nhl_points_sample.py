@@ -20,7 +20,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nhl"))
 sys.path.insert(0, str(ROOT / "tests"))
-import build_nhl as b  # noqa: E402
+import goals_page  # noqa: E402
+import nhl_games  # noqa: E402
+import points_page  # noqa: E402
+import shots_page  # noqa: E402
 import helpers  # noqa: E402
 
 STEPS = (("2026-10-12", datetime(2026, 10, 12, 14, 0)), ("2026-10-13", datetime(2026, 10, 13, 14, 12)))
@@ -34,7 +37,7 @@ def main():
         with gzip.open(path, "rt", encoding="utf-8") as f:
             raw = json.load(f)
         if raw["pbp"].get("gameState") in ("FINAL", "OFF"):
-            records.append(b.reduce_game(raw))
+            records.append(nhl_games.reduce_game(raw))
     records.sort(key=lambda r: (r["date"], r["id"]))
     lineups = data["skaters"]
     skaters = {p["id"]: p for team in lineups.values() for p in team}
@@ -43,9 +46,9 @@ def main():
         for day, now in STEPS:
             so_far = [r for r in records if r["date"] < day]
             schedule = [{**g, "status": "scheduled"} if g["date"] >= day else g for g in data["schedule"]]
-            shots = b.shots_model_for(so_far)
-            goals = b.goals_model_for(so_far, shots, b.goals_hand(skaters))
-            out = b.points_file(2027, now.strftime("%Y-%m-%dT%H:%MZ"), so_far, goals, schedule, lineups, data["injuries"], previous, now,
+            shots = shots_page.shots_model_for(so_far)
+            goals = goals_page.goals_model_for(so_far, shots, goals_page.goals_hand(skaters))
+            out = points_page.points_file(2027, now.strftime("%Y-%m-%dT%H:%MZ"), so_far, goals, schedule, lineups, data["injuries"], previous, now,
                                 None, skaters, data["goalies"], data["player_odds"], Path(record_dir))
             previous = out
     path = ROOT / "tests" / "fixtures" / "nhl_points.json.gz"

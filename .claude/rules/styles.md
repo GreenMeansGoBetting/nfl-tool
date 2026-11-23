@@ -156,7 +156,7 @@ automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for eve
 - The page's own list under the tiles follows the same window and slider (`ytdKeeps`), so they
   always agree. Tiles the ledger can't filter (Not Plays, closing line value, Said vs scored) sit
   under a "Season To Date" label (NHL: `nhlYtd` in nhl-common.js lays every prop page out the same).
-- NHL ledgers come from `record_ledger` (build_nhl.py); First Basket builds its own from
+- NHL ledgers come from `record_ledger` (nhl/nhl_records.py); First Basket builds its own from
   `record.history` (a Min Chance slider on the tip and Scores First picks, Min Edge on Value Plays).
 - **A new model tool:** send a ledger, load `../ytd.js`, call `ytdTracker`; button worded "YTD Model
   Performance". `tests/test_ytd_site.py` fails a page that mentions YTD without it, a page that

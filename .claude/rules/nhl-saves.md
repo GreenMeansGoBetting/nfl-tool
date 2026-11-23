@@ -2,6 +2,7 @@
 paths:
   - "nfl_tool/site/nhl/saves.*"
   - "nfl_tool/nhl/saves_model.py"
+  - "nfl_tool/nhl/goalie_pages.py"
   - "tools/backtest/nhl_saves*.py"
 ---
 # NHL: Saves

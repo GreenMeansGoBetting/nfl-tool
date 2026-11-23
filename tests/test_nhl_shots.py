@@ -22,7 +22,11 @@ from pathlib import Path
 
 import helpers  # first: puts nfl_tool/nhl on the import path
 
-import build_nhl
+import nhl_games
+import nhl_lineups
+import nhl_prices
+import nhl_stats
+import shots_page
 import shots_model
 
 BENSON = "8484145"  # Zach Benson, BUF forward, in the saved game (FLA @ BUF)
@@ -79,7 +83,7 @@ class WhatADefenseAllows(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.game = build_nhl.reduce_game(helpers.nhl_game())
+        cls.game = nhl_games.reduce_game(helpers.nhl_game())
 
     def test_it_is_what_the_other_offense_did(self):
         buf, fla = shots_model.allowed_in(self.game, "BUF"), shots_model.allowed_in(self.game, "FLA")
@@ -91,7 +95,7 @@ class WhatADefenseAllows(unittest.TestCase):
         self.assertEqual((buf["pp_unb"], fla["pp_unb"]), (self.game["teams"]["FLA"]["unb_pp"], self.game["teams"]["BUF"]["unb_pp"]))
         self.assertEqual((buf["pp_unb"], fla["pp_unb"]), (14, 8))
         # By area: what FLA's skaters took (the same placed shots the rink shows).
-        self.assertEqual({a: buf[f"a_{a}"] for a in build_nhl.AREAS}, {a: self.game["teams"]["FLA"].get(f"a_{a}", 0) for a in build_nhl.AREAS})
+        self.assertEqual({a: buf[f"a_{a}"] for a in nhl_games.AREAS}, {a: self.game["teams"]["FLA"].get(f"a_{a}", 0) for a in nhl_games.AREAS})
         self.assertEqual(buf["located"], 46)
 
     def test_a_season_boiled_down(self):
@@ -202,7 +206,7 @@ class Projection(unittest.TestCase):
         season has no projection, whatever he did the year before."""
         last = game("2025-12-01", "AAA", "BBB", {"p": skater("AAA", sog=3, att=6), "q": skater("BBB")}, 1)
         this = game("2026-10-10", "CCC", "DDD", {"c": skater("CCC"), "d": skater("DDD")}, 2)
-        model = build_nhl.shots_model_for([this])
+        model = shots_page.shots_model_for([this])
         self.assertEqual((model.prior_players, model.prior_teams), ({}, {}))
         self.assertIsNone(model.project("p", "CCC", True))
         self.assertIsNotNone(model.project("c", "DDD", True))
@@ -228,21 +232,21 @@ class Projection(unittest.TestCase):
 
 
 class Board(unittest.TestCase):
-    """build_nhl.shots_board with the saved game as the season so far."""
+    """shots_page.shots_board with the saved game as the season so far."""
 
     NOW = datetime(2026, 10, 13, 14, 0)
 
     @classmethod
     def setUpClass(cls):
-        cls.record = build_nhl.reduce_game(helpers.nhl_game())
-        cls.model = build_nhl.shots_model_for([cls.record])
-        cls.lineups = build_nhl.lineup(build_nhl.compute_skaters([cls.record], {}), Counter(BUF=1, FLA=1))
+        cls.record = nhl_games.reduce_game(helpers.nhl_game())
+        cls.model = shots_page.shots_model_for([cls.record])
+        cls.lineups = nhl_stats.lineup(nhl_stats.compute_skaters([cls.record], {}), Counter(BUF=1, FLA=1))
 
     def schedule(self, **changes):
         return [{"game_id": "77", "date": "2026-10-13", "start_utc": "2026-10-13T23:00Z", "away": "BUF", "home": "FLA", "status": "scheduled", "away_rest": 1, "home_rest": 1, **changes}]
 
     def board(self, games=None, injuries=None, records=(), previous=None, now=None):
-        return build_nhl.shots_board(self.model, games or self.schedule(), self.lineups, injuries or {}, list(records), previous, now or self.NOW)
+        return shots_page.shots_board(self.model, games or self.schedule(), self.lineups, injuries or {}, list(records), previous, now or self.NOW)
 
     def test_every_skater_in_both_lineups(self):
         entry = self.board()["77"]
@@ -257,7 +261,7 @@ class Board(unittest.TestCase):
         # Both teams played yesterday: his own tired legs and the other team's cancel out.
         self.assertEqual((benson["lift"]["home"], benson["lift"]["b2b"], benson["lift"]["opp_b2b"]), (1.0, 0.966, 1.036))
         self.assertAlmostEqual(benson["mean"], benson["usual"] * benson["matchup"], delta=0.011)
-        self.assertEqual(len(benson["chances"]), build_nhl.SHOTS_LADDER)
+        self.assertEqual(len(benson["chances"]), shots_page.SHOTS_LADDER)
         # The third rung is "3 or more": the chance of going over 2.5.
         self.assertAlmostEqual(benson["chances"][2], shots_model.chance_over(benson["mean"], 2.5), delta=0.002)
         self.assertTrue(all(b < a for a, b in zip(benson["chances"], benson["chances"][1:])))
@@ -298,11 +302,11 @@ class Board(unittest.TestCase):
         self.assertIsNone(next(r for r in entry["players"] if r["id"] == BENSON)["actual"])
 
     def test_defense_numbers_rank_who_allows_the_most(self):
-        defense = build_nhl.shots_defense(self.model, ["BUF", "FLA"])
+        defense = shots_page.shots_defense(self.model, ["BUF", "FLA"])
         self.assertEqual((defense["FLA"]["sog"]["season"], defense["FLA"]["sog"]["rank"], defense["FLA"]["sog"]["season_rank"]), (32.0, 1, 1))
         self.assertEqual((defense["BUF"]["sog"]["season"], defense["BUF"]["sog"]["rank"], defense["BUF"]["sog"]["season_rank"]), (23.0, 2, 2))
         self.assertEqual(set(defense["BUF"]["sog"]), {"season", "blend", "league", "factor", "rank", "season_rank", "games"})  # nothing from last season
-        self.assertEqual(set(defense["BUF"]), {"sog", "f_sog", "d_sog", "pp_unb", *(f"a_{a}" for a in build_nhl.AREAS)})
+        self.assertEqual(set(defense["BUF"]), {"sog", "f_sog", "d_sog", "pp_unb", *(f"a_{a}" for a in nhl_games.AREAS)})
 
 
 class TonightsLines(unittest.TestCase):
@@ -311,10 +315,10 @@ class TonightsLines(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.story = helpers.nhl_lineup_story()
-        cls.parsed = build_nhl.parse_lineups(cls.story["markdown"])
+        cls.parsed = nhl_lineups.parse_lineups(cls.story["markdown"])
         data = helpers.nhl_data()
         cls.skaters = {p["id"]: p for players in data["skaters"].values() for p in players}
-        cls.find = staticmethod(build_nhl.player_finder(cls.skaters, {p["id"]: p for players in data["goalies"].values() for p in players}))
+        cls.find = staticmethod(nhl_prices.player_finder(cls.skaters, {p["id"]: p for players in data["goalies"].values() for p in players}))
         cls.positions = {pid: p["pos"] for pid, p in cls.skaters.items()}
 
     def test_the_story_is_read_into_lines_pairs_and_goalies(self):
@@ -331,22 +335,22 @@ class TonightsLines(unittest.TestCase):
 
     def test_other_shapes_a_story_can_take(self):
         text = "**Kraken projected lineup**\n\nA One -- B Two -- C Three\n\nD Four -- E Five\n\nG Goalie\n\n***Scratched:** None*\n\n***Injured:** H Six (lower body), I Seven (illness)*\n\n**Status report**\n\nSix skated Monday.\n\nJ Eight -- K Nine"
-        kraken = build_nhl.parse_lineups(text)["Kraken"]
+        kraken = nhl_lineups.parse_lineups(text)["Kraken"]
         self.assertEqual((kraken["groups"], kraken["goalies"], kraken["scratched"], kraken["injured"]), ([["A One", "B Two", "C Three"], ["D Four", "E Five"]], ["G Goalie"], [], ["H Six", "I Seven"]))
-        self.assertEqual(build_nhl.parse_lineups("No lineups in this one."), {})
+        self.assertEqual(nhl_lineups.parse_lineups("No lineups in this one."), {})
         # Typed by hand: a non-breaking space before a dash, a curly apostrophe, a long dash.
-        odd = build_nhl.parse_lineups("**Predators projected lineup**\n\nA One -- Ryan O\u2019Reilly\u00a0-- C Three\n\nD Four \u2013 E Five")["Predators"]
+        odd = nhl_lineups.parse_lineups("**Predators projected lineup**\n\nA One -- Ryan O\u2019Reilly\u00a0-- C Three\n\nD Four \u2013 E Five")["Predators"]
         self.assertEqual(odd["groups"], [["A One", "Ryan O'Reilly", "C Three"], ["D Four", "E Five"]])
 
     def test_each_listed_skater_gets_his_line_or_pair(self):
-        team_of = build_nhl.team_namer(helpers.nhl_data()["teams"])
+        team_of = nhl_prices.team_namer(helpers.nhl_data()["teams"])
         self.assertEqual((team_of("Senators"), team_of("Blues")), ("OTT", "STL"))
-        ott = build_nhl.lineup_slots(self.parsed["Senators"], "OTT", self.find, self.positions)
+        ott = nhl_lineups.lineup_slots(self.parsed["Senators"], "OTT", self.find, self.positions)
         slot = lambda name: ott["skaters"][next(pid for pid, p in self.skaters.items() if p["name"] == name and p["team"] == "OTT")]
         self.assertEqual((slot("Warren Foegele"), slot("Drake Batherson"), slot("Stephen Halliday"), slot("Thomas Chabot"), slot("Carter Yakemchuk")), ("F1", "F1", "F4", "D1", "D2"))
         self.assertEqual(ott["lines"][0], ["Warren Foegele", "Tim Stutzle", "Drake Batherson"])
         # Players the page has no games for (a call-up before his first game) are named, not guessed at.
-        stl = build_nhl.lineup_slots(self.parsed["Blues"], "STL", self.find, self.positions)
+        stl = nhl_lineups.lineup_slots(self.parsed["Blues"], "STL", self.find, self.positions)
         self.assertIn("Dylan Peterson", stl["unknown"])
         self.assertTrue(all(isinstance(pid, str) and pid in self.skaters for pid in {**ott["skaters"], **stl["skaters"]}))
         # The injured and scratched it can match are out by id.
@@ -358,7 +362,7 @@ class TonightsLines(unittest.TestCase):
         """Eleven forwards and seven defensemen: the short line is still forwards."""
         find = lambda team, name: name.lower()
         lineup = {"groups": [["A", "B", "C"], ["D", "E"], ["X", "Y"], ["P", "Q", "R"]], "goalies": ["G"], "scratched": [], "injured": []}
-        slots = build_nhl.lineup_slots(lineup, "AAA", find, {"a": "C", "b": "L", "c": "R", "d": "L", "e": "C", "x": "D", "y": "D", "p": "D", "q": "D", "r": "D"})["skaters"]
+        slots = nhl_lineups.lineup_slots(lineup, "AAA", find, {"a": "C", "b": "L", "c": "R", "d": "L", "e": "C", "x": "D", "y": "D", "p": "D", "q": "D", "r": "D"})["skaters"]
         self.assertEqual((slots["a"], slots["d"], slots["e"], slots["x"], slots["p"]), ("F1", "F2", "F2", "D1", "D2"))
 
     def model(self):
@@ -397,15 +401,15 @@ class TonightsLines(unittest.TestCase):
         self.assertEqual(model.project("dep", "BBB", True, team="AAA", slot="D1")["lift"]["line"], 1.0)
 
     def test_the_board_lists_exactly_the_posted_lineup(self):
-        record = build_nhl.reduce_game(helpers.nhl_game())
-        model = build_nhl.shots_model_for([record])
-        skaters = build_nhl.compute_skaters([record], {})
-        lineups = build_nhl.lineup(skaters, Counter(BUF=1, FLA=1))
+        record = nhl_games.reduce_game(helpers.nhl_game())
+        model = shots_page.shots_model_for([record])
+        skaters = nhl_stats.compute_skaters([record], {})
+        lineups = nhl_stats.lineup(skaters, Counter(BUF=1, FLA=1))
         buf = [p["id"] for p in lineups["BUF"] if p["pos"] != "D"]
         # BUF's lineup is posted (its busiest forward listed on the fourth line, and one forward left out); FLA's is not.
         tonight = {"77": {"posted": "2026-10-13T16:00Z", "BUF": {"skaters": {buf[0]: "F4", **{pid: "F1" for pid in buf[1:4]}, **{pid: "F2" for pid in buf[4:11]}}}}}
         games = [{"game_id": "77", "date": "2026-10-13", "start_utc": "2026-10-13T23:00Z", "away": "BUF", "home": "FLA", "status": "scheduled", "away_rest": 2, "home_rest": 2}]
-        entry = build_nhl.shots_board(model, games, lineups, {"FLA": [{"id": lineups["FLA"][0]["id"], "status": "Out"}]}, [], None, datetime(2026, 10, 13, 14, 0), tonight, skaters)["77"]
+        entry = shots_page.shots_board(model, games, lineups, {"FLA": [{"id": lineups["FLA"][0]["id"], "status": "Out"}]}, [], None, datetime(2026, 10, 13, 14, 0), tonight, skaters)["77"]
         rows = {r["id"]: r for r in entry["players"]}
         self.assertEqual(entry["posted"], "2026-10-13T16:00Z")
         self.assertEqual(sum(1 for r in rows.values() if r["team"] == "BUF"), 11)   # only the listed skaters (no defensemen were listed here)
@@ -416,25 +420,25 @@ class TonightsLines(unittest.TestCase):
         # No lineup posted for FLA: its usual 18 by ice time, ESPN's injury list, no line.
         fla = [r for r in rows.values() if r["team"] == "FLA"]
         self.assertEqual((len(fla), sum(r["out"] for r in fla), {r["slot"] for r in fla}, {r["lift"]["line"] for r in fla}), (18, 1, {None}, {1.0}))
-        page = build_nhl.lineups_for_page({"77": {"posted": "x", "BUF": {"lines": [["A", "B"]], "goalie": "9", "scratched": [], "injured": ["C"]}}}, {"9": {"name": "The Goalie"}})
+        page = nhl_lineups.lineups_for_page({"77": {"posted": "x", "BUF": {"lines": [["A", "B"]], "goalie": "9", "scratched": [], "injured": ["C"]}}}, {"9": {"name": "The Goalie"}})
         self.assertEqual(page, {"77": {"posted": "x", "BUF": {"lines": [["A", "B"]], "goalie": "The Goalie", "scratched": [], "injured": ["C"]}}})
 
 
 class Record(unittest.TestCase):
     def test_the_play_is_the_side_with_the_bigger_edge(self):
-        over = build_nhl.shots_play(0.6, 2.5, -120, 100)
+        over = shots_page.shots_play(0.6, 2.5, -120, 100)
         self.assertEqual((over["side"], over["price"], over["chance"]), ("over", -120, 0.6))
         self.assertAlmostEqual(over["edge"], 0.6 - 120 / 220)
-        under = build_nhl.shots_play(0.4, 2.5, 100, -110)
+        under = shots_page.shots_play(0.4, 2.5, 100, -110)
         self.assertEqual((under["side"], under["price"]), ("under", -110))
         self.assertAlmostEqual(under["edge"], 0.6 - 110 / 210)
         # One side priced: that side, even at a bad price. Neither: no play.
-        self.assertEqual(build_nhl.shots_play(0.3, 1.5, 150, None)["side"], "over")
-        self.assertIsNone(build_nhl.shots_play(0.3, 1.5, None, None))
+        self.assertEqual(shots_page.shots_play(0.3, 1.5, 150, None)["side"], "over")
+        self.assertIsNone(shots_page.shots_play(0.3, 1.5, None, None))
 
     def test_a_play_against_his_own_average_is_marked(self):
         """An under on a line he averages more than (or an over on one he averages less than)."""
-        fade = lambda chance, over, under, avg: build_nhl.shots_play(chance, 1.5, over, under, avg)["fade"]
+        fade = lambda chance, over, under, avg: shots_page.shots_play(chance, 1.5, over, under, avg)["fade"]
         self.assertTrue(fade(0.40, -122, 102, 1.8))    # under 1.5 for a player averaging 1.8
         self.assertFalse(fade(0.40, -122, 102, 1.2))   # under 1.5 for a player averaging 1.2
         self.assertTrue(fade(0.65, -110, -110, 1.0))   # over 1.5 for a player averaging 1.0
@@ -444,8 +448,8 @@ class Record(unittest.TestCase):
     def test_a_play_is_shown_or_left_out(self):
         """The owner, 2026-10-19 (after auditing every graded play): a Shots play is an edge of
         SHOTS_BAR (6 points) or more on a player NOT moved down a line tonight. No lean, no check."""
-        size = lambda chance, over, under, move: build_nhl.shots_play(chance, 1.5, over, under, None, move)["size"]
-        self.assertEqual(build_nhl.SHOTS_BAR, 0.06)
+        size = lambda chance, over, under, move: shots_page.shots_play(chance, 1.5, over, under, None, move)["size"]
+        self.assertEqual(shots_page.SHOTS_BAR, 0.06)
         self.assertEqual(size(0.40, -110, -110, None), "play")     # under, edge 7.6
         self.assertEqual(size(0.40, -110, -110, "up"), "play")     # an under on a player moved UP is a play now (45-23 in the audit)
         self.assertEqual(size(0.40, -110, -110, "down"), "none")   # moved down a line: left out, whichever side
@@ -454,9 +458,9 @@ class Record(unittest.TestCase):
         self.assertEqual(size(0.56, -110, -110, None), "none")     # edge 3.6: under the bar (no more "lean")
         self.assertEqual(size(0.25, -110, -110, None), "play")     # a gap of 22 points is no longer set apart
         # (Points has its own bar since 2026-10-22: points_play, test_nhl_points.py.)
-        self.assertEqual((build_nhl.line_move("F1", "F4"), build_nhl.line_move("D3", "D1"), build_nhl.line_move("F2", "F2")), ("up", "down", None))
-        self.assertEqual((build_nhl.line_move(None, "F2"), build_nhl.line_move("F1", None), build_nhl.line_move("F1", "D1")), (None, None, None))
-        self.assertEqual((build_nhl.break_even(-150), build_nhl.break_even(150), build_nhl.break_even(100)), (0.6, 0.4, 0.5))
+        self.assertEqual((shots_page.line_move("F1", "F4"), shots_page.line_move("D3", "D1"), shots_page.line_move("F2", "F2")), ("up", "down", None))
+        self.assertEqual((shots_page.line_move(None, "F2"), shots_page.line_move("F1", None), shots_page.line_move("F1", "D1")), (None, None, None))
+        self.assertEqual((nhl_prices.break_even(-150), nhl_prices.break_even(150), nhl_prices.break_even(100)), (0.6, 0.4, 0.5))
 
     def row(self, pid, mean, actual, avg=None):
         return {"id": pid, "name": pid.upper(), "team": "AAA", "mean": mean, "avg": avg, "chances": [round(shots_model.chance_at_least(mean, n), 3) for n in range(1, 9)], "actual": actual}
@@ -475,22 +479,22 @@ class Record(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             Path(tmp, "2026-10.json").write_text(json.dumps({"games": {"9": game(rows)}}))
-            clv = build_nhl.shots_record_summary(Path(tmp))["clv"]
+            clv = shots_page.shots_record_summary(Path(tmp))["clv"]
         self.assertEqual((clv["plays"], clv["priced"], clv["shortened"], clv["drifted"]), (3, 2, 2, 1))
-        nv = lambda a, b: build_nhl.break_even(a) / (build_nhl.break_even(a) + build_nhl.break_even(b))
+        nv = lambda a, b: nhl_prices.break_even(a) / (nhl_prices.break_even(a) + nhl_prices.break_even(b))
         self.assertAlmostEqual(clv["points"], ((nv(-110, -110) - nv(120, -140)) + (nv(-125, 105) - nv(-150, 100))) / 2, places=4)
         self.assertEqual((clv["since"], clv["book"]), ("2026-10-13", "novig"))
 
     def test_the_board_keeps_the_first_line_seen(self):
-        record = build_nhl.reduce_game(helpers.nhl_game())
-        model = build_nhl.shots_model_for([record])
-        lineups = build_nhl.lineup(build_nhl.compute_skaters([record], {}), Counter(BUF=1, FLA=1))
+        record = nhl_games.reduce_game(helpers.nhl_game())
+        model = shots_page.shots_model_for([record])
+        lineups = nhl_stats.lineup(nhl_stats.compute_skaters([record], {}), Counter(BUF=1, FLA=1))
         games = [{"game_id": "77", "date": "2026-10-13", "start_utc": "2026-10-13T23:00Z", "away": "BUF", "home": "FLA", "status": "scheduled", "away_rest": 2, "home_rest": 2}]
         now = datetime(2026, 10, 13, 14, 0)
-        first = build_nhl.shots_board(model, games, lineups, {}, [], None, now, player_odds={"77": {BENSON: {"sog": {"line": 2.5, "over": 120, "under": -150, "thin": False}}}})
+        first = shots_page.shots_board(model, games, lineups, {}, [], None, now, player_odds={"77": {BENSON: {"sog": {"line": 2.5, "over": 120, "under": -150, "thin": False}}}})
         row = lambda board: next(r for r in board["77"]["players"] if r["id"] == BENSON)
         self.assertEqual(row(first)["first_sog"], {"line": 2.5, "over": 120, "under": -150})
-        later = build_nhl.shots_board(model, games, lineups, {}, [], {"games": first}, now, player_odds={"77": {BENSON: {"sog": {"line": 3.5, "over": 110, "under": -130}}}})
+        later = shots_page.shots_board(model, games, lineups, {}, [], {"games": first}, now, player_odds={"77": {BENSON: {"sog": {"line": 3.5, "over": 110, "under": -130}}}})
         self.assertEqual(row(later)["first_sog"], {"line": 2.5, "over": 120, "under": -150})
         self.assertIsNone(next(r for r in first["77"]["players"] if r["id"] != BENSON)["first_sog"])
 
@@ -503,7 +507,7 @@ class Record(unittest.TestCase):
         odds = {"9": {"a": {"sog": {"line": 2.5, "over": -120, "under": 100}}, "b": {"sog": {"line": 1.5, "over": -140, "under": 115}}, "scratched": {"sog": {"line": 1.5, "over": 100, "under": -120}}, "noline": {"goal": {"odds": 300}}}}
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp) / "nhl_shots"
-            self.assertEqual(build_nhl.record_finished_games(folder, board, odds, games), 1)
+            self.assertEqual(shots_page.record_finished_games(folder, board, odds, games), 1)
             saved = json.loads((folder / "2026-10.json").read_text())
             self.assertEqual(list(saved["games"]), ["9"])
             self.assertEqual(saved["games"]["9"]["plays"], [
@@ -512,26 +516,26 @@ class Record(unittest.TestCase):
                 # ... and the first line and prices the site saw (none on these hand-made rows)
                 # ... and the parts behind his number (SHOTS_FACTORS; mostly empty on these hand-made rows)
                 # ... and Novig's own prices at the first look (none here) and the lock (CLV_COLS["ou"])
-                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2, None, None, None, None, build_nhl.shot_factors(board["9"]["players"][0]), [None, None, None, -120, 100]],
-                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5, "up", None, None, None, build_nhl.shot_factors(board["9"]["players"][1]), [None, None, None, -140, 115]],
+                ["a", "A", "AAA", 2.5, -120, 100, 2.8, round(shots_model.chance_at_least(2.8, 3), 3), 4, 3.2, None, None, None, None, shots_page.shot_factors(board["9"]["players"][0]), [None, None, None, -120, 100]],
+                ["b", "B", "AAA", 1.5, -140, 115, 1.9, round(shots_model.chance_at_least(1.9, 2), 3), 1, 2.5, "up", None, None, None, shots_page.shot_factors(board["9"]["players"][1]), [None, None, None, -140, 115]],
             ])
-            self.assertEqual((saved["cols"], saved["factors"]), (list(build_nhl.SHOTS_RECORD_COLS), list(build_nhl.SHOTS_FACTORS)))
-            self.assertEqual(saved["nv"], list(build_nhl.CLV_COLS["ou"]))
-            self.assertEqual(dict(zip(build_nhl.SHOTS_FACTORS, saved["games"]["9"]["plays"][0][-2]))["vs_avg"], -0.4)  # 2.8 tonight, 3.2 a game
+            self.assertEqual((saved["cols"], saved["factors"]), (list(shots_page.SHOTS_RECORD_COLS), list(shots_page.SHOTS_FACTORS)))
+            self.assertEqual(saved["nv"], list(nhl_prices.CLV_COLS["ou"]))
+            self.assertEqual(dict(zip(shots_page.SHOTS_FACTORS, saved["games"]["9"]["plays"][0][-2]))["vs_avg"], -0.4)  # 2.8 tonight, 3.2 a game
             # The next build sees the same finished game: nothing is added or rewritten.
             board["9"]["players"][0]["mean"] = 9.9
-            self.assertEqual(build_nhl.record_finished_games(folder, board, odds, games), 0)
+            self.assertEqual(shots_page.record_finished_games(folder, board, odds, games), 0)
             self.assertEqual(json.loads((folder / "2026-10.json").read_text()), saved)
 
     def test_the_record_keeps_the_parts_behind_each_number(self):
         """A real board row's factors: usage, tonight's line, home / rest, where he shoots and each matchup piece's lift."""
-        record = build_nhl.reduce_game(helpers.nhl_game())
-        model = build_nhl.shots_model_for([record])
-        lineups = build_nhl.lineup(build_nhl.compute_skaters([record], {}), Counter(BUF=1, FLA=1))
+        record = nhl_games.reduce_game(helpers.nhl_game())
+        model = shots_page.shots_model_for([record])
+        lineups = nhl_stats.lineup(nhl_stats.compute_skaters([record], {}), Counter(BUF=1, FLA=1))
         games = [{"game_id": "77", "date": "2026-10-13", "start_utc": "2026-10-13T23:00Z", "away": "BUF", "home": "FLA", "status": "scheduled", "away_rest": 1, "home_rest": 3}]
-        board = build_nhl.shots_board(model, games, lineups, {}, [], None, datetime(2026, 10, 13, 14, 0))
+        board = shots_page.shots_board(model, games, lineups, {}, [], None, datetime(2026, 10, 13, 14, 0))
         row = next(r for r in board["77"]["players"] if r["id"] == BENSON)
-        f = dict(zip(build_nhl.SHOTS_FACTORS, build_nhl.shot_factors(row)))
+        f = dict(zip(shots_page.SHOTS_FACTORS, shots_page.shot_factors(row)))
         self.assertEqual((f["pos"], f["games"], f["home"], f["rest"], f["opp_rest"], f["slot"], f["move"]), (row["pos"], 1, 0, 1, 3, None, None))
         self.assertEqual(f["vs_avg"], round(row["mean"] - row["avg"], 3))
         self.assertEqual({k: f[f"l_{k}"] for k in row["lift"]}, row["lift"])
@@ -553,10 +557,10 @@ class Record(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             folder = Path(tmp)
-            self.assertEqual(build_nhl.shots_record_summary(folder / "missing")["games"], 0)
+            self.assertEqual(shots_page.shots_record_summary(folder / "missing")["games"], 0)
             (folder / "2026-10.json").write_text(json.dumps({"games": {"9": {"date": "2026-10-13", "away": "AAA", "home": "BBB", "plays": plays[:3]}}}))
             (folder / "2026-11.json").write_text(json.dumps({"games": {"400": {"date": "2026-11-02", "away": "AAA", "home": "BBB", "plays": plays[3:]}}}))  # d to h
-            record = build_nhl.shots_record_summary(folder)
+            record = shots_page.shots_record_summary(folder)
         self.assertEqual((record["since"], record["through"], record["games"]), ("2026-10-13", "2026-11-02", 2))
         self.assertNotIn("check", record)
         self.assertEqual(record["play"], {"wins": 3, "losses": 1, "units": 1.65})   # a, b, c, h
@@ -589,10 +593,10 @@ class Record(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             games = {str(day): {"date": f"2026-11-{day:02d}", "away": "AAA", "home": "BBB", "plays": [play]} for day in range(1, 21)}
             (Path(tmp) / "2026-11.json").write_text(json.dumps({"games": games}))
-            record = build_nhl.shots_record_summary(Path(tmp))
+            record = shots_page.shots_record_summary(Path(tmp))
         self.assertEqual(record["play"]["wins"], 20)   # the tallies and the days cover every game
         self.assertEqual(len(record["days"]), 20)
-        self.assertEqual(len(record["plays"]), build_nhl.SHOTS_RECORD_DAYS)
+        self.assertEqual(len(record["plays"]), shots_page.SHOTS_RECORD_DAYS)
         # The short list Best Plays filters by days back and edge keeps every day.
         self.assertEqual(len(record["ledger"]), 20)
         self.assertEqual(record["ledger"][0], ["2026-11-01", round(record["plays"][0]["edge"], 3), 1, record["plays"][0]["units"], ["over", "play", "with"]])

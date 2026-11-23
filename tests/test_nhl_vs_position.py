@@ -1,4 +1,4 @@
-"""NHL Vs Position (build_nhl.compute_vs_position -> data.json vs_position; site/nhl/vs-position.js).
+"""NHL Vs Position (nhl_stats.compute_vs_position -> data.json vs_position; site/nhl/vs-position.js).
 
 Pinned (a member, 2026-11-13: "the shots that each team gives to each position. LW/C/RW/D"; the owner,
 2026-11-17: its own page, a Shots / Goals toggle, and a game shows the players in tonight's matchup):
@@ -20,7 +20,7 @@ from site_browser import SiteBrowser
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nhl"))
 sys.path.insert(0, str(ROOT / "nfl_tool"))
-import build_nhl  # noqa: E402
+import nhl_stats  # noqa: E402
 
 
 def skater(team, pos, sog, g, a=0):
@@ -39,7 +39,7 @@ class Build(unittest.TestCase):
             # AAA on the road: CCC's right wing 4 shots 2 goals; an "F" (no position) is left out
             record("2026-10-12", "CCC", "AAA", [skater("CCC", "R", 4, 2), skater("CCC", "F", 5, 1)]),
         ]
-        vp = build_nhl.compute_vs_position(recs)
+        vp = nhl_stats.compute_vs_position(recs)
         self.assertEqual(vp["positions"], ["C", "L", "R", "D"])
         aaa = vp["teams"]["AAA"]
         # shots and goals per position, then points (goals + assists) per position on the end
@@ -51,7 +51,7 @@ class Build(unittest.TestCase):
 
     def test_last_10_is_the_latest_ten(self):
         recs = [record(f"2026-10-{d:02d}", "AAA", "BBB", [skater("BBB", "C", d, 0)]) for d in range(1, 13)]
-        aaa = build_nhl.compute_vs_position(recs)["teams"]["AAA"]
+        aaa = nhl_stats.compute_vs_position(recs)["teams"]["AAA"]
         self.assertEqual(aaa["10"][:2], [10, sum(range(3, 13))])
         self.assertEqual(aaa["season"][:2], [12, sum(range(1, 13))])
 

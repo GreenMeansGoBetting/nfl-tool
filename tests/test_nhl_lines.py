@@ -1,4 +1,4 @@
-"""The line a skater played on each night (build_nhl.game_lines, the player
+"""The line a skater played on each night (nhl_games.game_lines, the player
 card's Line column).
 
 What is pinned: forwards who share the most ice form a line and lines are
@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "nfl_tool" / "nhl"))
-import build_nhl  # noqa: E402
+import nhl_games  # noqa: E402
 
 
 def game(shifts):
@@ -33,22 +33,22 @@ class GameLines(unittest.TestCase):
         for t in range(0, 1200, 120):  # 1-2-3 skate 60s of every 120s, 4-5-6 40s; pairs 11-12 and 13-14
             shifts += [shift(p, t, t + 60) for p in (1, 2, 3, 11, 12)]
             shifts += [shift(p, t + 60, t + 100) for p in (4, 5, 6, 13, 14)]
-        lines = build_nhl.game_lines(game(shifts))
+        lines = nhl_games.game_lines(game(shifts))
         self.assertEqual({p: lines[str(p)] for p in (1, 2, 3, 4, 5, 6)}, {1: "L1", 2: "L1", 3: "L1", 4: "L2", 5: "L2", 6: "L2"})
         self.assertEqual({p: lines[str(p)] for p in (11, 12, 13, 14)}, {11: "D1", 12: "D1", 13: "D2", 14: "D2"})
 
     def test_no_shift_chart_no_lines(self):
-        self.assertEqual(build_nhl.game_lines(game(None)), {})
+        self.assertEqual(nhl_games.game_lines(game(None)), {})
 
     def test_an_empty_chart_is_kept_only_once_the_game_is_old(self):
         today = datetime.now(timezone.utc).date()
         fresh = {"pbp": {"gameDate": today.isoformat()}}
-        old = {"pbp": {"gameDate": (today - timedelta(days=build_nhl.SHIFTS_GIVE_UP_DAYS)).isoformat()}}
-        self.assertFalse(build_nhl.keep_shifts(fresh, []))
+        old = {"pbp": {"gameDate": (today - timedelta(days=nhl_games.SHIFTS_GIVE_UP_DAYS)).isoformat()}}
+        self.assertFalse(nhl_games.keep_shifts(fresh, []))
         self.assertNotIn("shifts", fresh)
-        self.assertTrue(build_nhl.keep_shifts(old, []))
+        self.assertTrue(nhl_games.keep_shifts(old, []))
         self.assertEqual(old["shifts"], [])
-        self.assertFalse(build_nhl.keep_shifts(old, None))
+        self.assertFalse(nhl_games.keep_shifts(old, None))
 
 
 if __name__ == "__main__":

@@ -41,11 +41,11 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nhl"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import build_nhl as b  # noqa: E402
+import nhl_games  # noqa: E402
 import shots_model as sm  # noqa: E402
 from nhl_shots import DATA, deviance, game_slots, load_previews, poisson_fit  # noqa: E402
 
-AREAS = b.AREAS
+AREAS = nhl_games.AREAS
 TYPES = ("wrist", "snap", "slap", "backhand", "tip", "other")
 MIN_GAMES = 5          # his games this season before a projection is judged
 REFIT_DAYS = 7         # the expected-goals table is refitted this often
@@ -59,7 +59,7 @@ X_KEYS = ("opp", "goalie", "area", "finish", "pp", "line", "home", "b2b", "opp_b
 
 
 # ---- shots, one game: the build's reader (build_nhl.game_shots) ----
-game_shots = b.game_shots
+game_shots = nhl_games.game_shots
 
 
 def load_season(season: int) -> list:
@@ -68,7 +68,7 @@ def load_season(season: int) -> list:
     for path in sorted(folder.glob("*.json.gz")):
         with gzip.open(path, "rt", encoding="utf-8") as f:
             raw = json.load(f)
-        record = b.reduce_game(raw)
+        record = nhl_games.reduce_game(raw)
         record["shots"] = game_shots(raw)
         games.append(record)
     games.sort(key=lambda r: (r["date"], r["id"]))
@@ -485,12 +485,12 @@ def main():
     parser.add_argument("seasons", type=int, nargs="+", help="Seasons by the year they end (2026 = 2025-26)")
     args = parser.parse_args()
     for season in args.seasons:
-        print(f"Loading {b.season_label(season)}...", flush=True)
+        print(f"Loading {nhl_games.season_label(season)}...", flush=True)
         games = load_season(season)
         previews = load_previews(season, games) if (DATA / "previews" / str(season)).exists() else {}
         print(f"{len(games):,} games, projected lineups for {len(previews):,}.", flush=True)
-        report(replay(games, previews), b.season_label(season))
-        persistence(games, b.season_label(season))
+        report(replay(games, previews), nhl_games.season_label(season))
+        persistence(games, nhl_games.season_label(season))
 
 
 if __name__ == "__main__":

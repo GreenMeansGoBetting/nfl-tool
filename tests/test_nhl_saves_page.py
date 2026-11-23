@@ -18,7 +18,10 @@ from pathlib import Path
 
 from helpers import nhl_crease, nhl_saves  # first: puts the build's folders on the import path
 
-import build_nhl
+import goalie_pages
+import nhl_prices
+import shots_model
+import shots_page
 import saves_model
 
 
@@ -43,60 +46,60 @@ def days(*rows, date="2026-10-20"):
 
 class Row(unittest.TestCase):
     def test_the_chance_and_the_play(self):
-        r = build_nhl.saves_row(crease_row(), None)
+        r = goalie_pages.saves_row(crease_row(), None)
         self.assertEqual(r["chance_over"], round(saves_model.chance_over(25.4, 26.5), 3))
         self.assertEqual(r["side"], "under")
         self.assertEqual(r["price"], -110)
-        self.assertAlmostEqual(r["edge"], 1 - r["chance_over"] - build_nhl.break_even(-110), places=3)
-        self.assertEqual(r["size"], build_nhl.shots_play(r["chance_over"], 26.5, -110, -110, 26.0, None, build_nhl.SAVES_EDGES)["size"])
-        self.assertEqual(r["fair"], build_nhl.shots_model.fair_american(1 - r["chance_over"]))
+        self.assertAlmostEqual(r["edge"], 1 - r["chance_over"] - nhl_prices.break_even(-110), places=3)
+        self.assertEqual(r["size"], shots_page.shots_play(r["chance_over"], 26.5, -110, -110, 26.0, None, goalie_pages.SAVES_EDGES)["size"])
+        self.assertEqual(r["fair"], shots_model.fair_american(1 - r["chance_over"]))
         self.assertEqual(r["alts"], [[28.5, 150, round(saves_model.chance_over(25.4, 28.5), 3)]])
         self.assertEqual(r["gap"], -1.0)
         # King of the Crease's own numbers stay on crease.json.
-        for key in build_nhl.CREASE_ONLY_KEYS:
+        for key in goalie_pages.CREASE_ONLY_KEYS:
             self.assertNotIn(key, r)
 
     def test_a_model_far_from_the_line_is_check(self):
         # A steep under price, so the edge is only a lean's: the gap alone sets it apart.
         need = 1 - saves_model.chance_over(22.0, 26.5) - 0.05
         under = round(-100 * need / (1 - need))
-        r = build_nhl.saves_row(crease_row(mean=22.0, mkt_mean=26.4, over=None, under=under), None)
-        self.assertGreaterEqual(r["edge"], build_nhl.SAVES_EDGES["lean"])
-        self.assertLess(r["edge"], build_nhl.SAVES_EDGES["check"])
+        r = goalie_pages.saves_row(crease_row(mean=22.0, mkt_mean=26.4, over=None, under=under), None)
+        self.assertGreaterEqual(r["edge"], goalie_pages.SAVES_EDGES["lean"])
+        self.assertLess(r["edge"], goalie_pages.SAVES_EDGES["check"])
         self.assertEqual(r["size"], "check")
         # The same play without the gap is an ordinary bucket.
-        self.assertIn(build_nhl.saves_play(r["chance_over"], 26.5, None, under, 26.0, 22.0, 24.0)["size"], ("strong", "lean"))
+        self.assertIn(goalie_pages.saves_play(r["chance_over"], 26.5, None, under, 26.0, 22.0, 24.0)["size"], ("strong", "lean"))
 
     def test_no_line_no_play(self):
-        r = build_nhl.saves_row(crease_row(line=None, over=None, under=None, mkt_mean=None, alts=[]), None)
+        r = goalie_pages.saves_row(crease_row(line=None, over=None, under=None, mkt_mean=None, alts=[]), None)
         for key in ("chance_over", "side", "price", "edge", "size", "fair", "gap", "first"):
             self.assertIsNone(r[key], key)
 
     def test_a_line_with_no_price_has_a_chance_but_no_play(self):
-        r = build_nhl.saves_row(crease_row(over=None, under=None), None)
+        r = goalie_pages.saves_row(crease_row(over=None, under=None), None)
         self.assertIsNotNone(r["chance_over"])
         self.assertIsNone(r["side"])
 
     def test_someone_else_starting_is_void(self):
-        self.assertTrue(build_nhl.saves_row(crease_row(actual=30, started="Bo Backup"), None)["void"])
-        self.assertFalse(build_nhl.saves_row(crease_row(actual=30, started="Al Goalié"), None)["void"])
-        self.assertFalse(build_nhl.saves_row(crease_row(), None)["void"])
+        self.assertTrue(goalie_pages.saves_row(crease_row(actual=30, started="Bo Backup"), None)["void"])
+        self.assertFalse(goalie_pages.saves_row(crease_row(actual=30, started="Al Goalié"), None)["void"])
+        self.assertFalse(goalie_pages.saves_row(crease_row(), None)["void"])
 
 
 class Board(unittest.TestCase):
     def test_first_seen_is_carried_for_the_same_goalie_only(self):
-        board = build_nhl.saves_board(days(crease_row()), None, [])
+        board = goalie_pages.saves_board(days(crease_row()), None, [])
         self.assertEqual(board["9001"]["goalies"][0]["first"], {"line": 26.5, "over": -110, "under": -110})
         previous = {"games": {"9001": {"goalies": [{"team": "AAA", "name": "Al Goalie", "first": {"line": 25.5, "over": 120, "under": -150}}]}}}
-        moved = build_nhl.saves_board(days(crease_row()), previous, [])
+        moved = goalie_pages.saves_board(days(crease_row()), previous, [])
         self.assertEqual(moved["9001"]["goalies"][0]["first"], {"line": 25.5, "over": 120, "under": -150})
-        swapped = build_nhl.saves_board(days(crease_row(id="g2", name="Bo Backup")), previous, [])
+        swapped = goalie_pages.saves_board(days(crease_row(id="g2", name="Bo Backup")), previous, [])
         self.assertEqual(swapped["9001"]["goalies"][0]["first"], {"line": 26.5, "over": -110, "under": -110})
 
     def test_grouped_by_game_best_edge_first_and_final_from_the_records(self):
         rows = [crease_row(), crease_row(team="BBB", opp="AAA", home=False, id="g2", name="Bo Two", mean=30.0, mkt_mean=27.0),
                 crease_row(game_id="9002", team="CCC", line=None, over=None, under=None, mkt_mean=None, alts=[])]
-        board = build_nhl.saves_board(days(*rows), None, [{"id": 9002}])
+        board = goalie_pages.saves_board(days(*rows), None, [{"id": 9002}])
         self.assertEqual([r["team"] for r in board["9001"]["goalies"]], ["BBB", "AAA"])
         self.assertEqual(board["9001"]["date"], "2026-10-20")
         self.assertFalse(board["9001"]["final"])
@@ -110,18 +113,18 @@ class Record(unittest.TestCase):
             crease_row(team="BBB", opp="AAA", home=False, id="g2", name="Bo Two", mean=30.0, mkt_mean=29.5, line=27.5, locked=True, actual=31, started="Bo Two"),  # over: won
         ]
         void = crease_row(game_id="9002", team="CCC", id="g3", name="Cy Three", locked=True, actual=40, started="Dee Other")
-        board = build_nhl.saves_board(days(*played, void), None, [{"id": 9001}, {"id": 9002}])
+        board = goalie_pages.saves_board(days(*played, void), None, [{"id": 9001}, {"id": 9002}])
         games = [{"game_id": "9001", "date": "2026-10-20", "away": "BBB", "home": "AAA"}, {"game_id": "9002", "date": "2026-10-20", "away": "DDD", "home": "CCC"}]
         with tempfile.TemporaryDirectory() as folder:
             folder = Path(folder)
-            self.assertEqual(build_nhl.record_saves_games(folder, board, games), 1)  # the void game has nobody to grade
-            self.assertEqual(build_nhl.record_saves_games(folder, board, games), 0)
+            self.assertEqual(goalie_pages.record_saves_games(folder, board, games), 1)  # the void game has nobody to grade
+            self.assertEqual(goalie_pages.record_saves_games(folder, board, games), 0)
             saved = json.loads((folder / "2026-10.json").read_text(encoding="utf-8"))
-            self.assertEqual(saved["cols"], list(build_nhl.SAVES_RECORD_COLS))
+            self.assertEqual(saved["cols"], list(goalie_pages.SAVES_RECORD_COLS))
             plays = saved["games"]["9001"]["plays"]
             self.assertEqual(len(plays), 2)
-            self.assertEqual(len(plays[0][-2]), len(build_nhl.SAVES_FACTORS))  # [-1] = Novig's prices (nv)
-            summary = build_nhl.saves_record_summary(folder)
+            self.assertEqual(len(plays[0][-2]), len(goalie_pages.SAVES_FACTORS))  # [-1] = Novig's prices (nv)
+            summary = goalie_pages.saves_record_summary(folder)
         self.assertEqual((summary["games"], summary["goalies"]), (1, 2))
         rows = {r["id"]: r for r in board["9001"]["goalies"]}
         called = [r for r in rows.values() if r["size"] in ("strong", "lean")]
@@ -140,7 +143,7 @@ class Sample(unittest.TestCase):
         priced = [r for g in saves["games"].values() for r in g["goalies"] if r["side"]]
         self.assertTrue(priced)
         for r in priced:
-            self.assertEqual(r["size"], build_nhl.saves_play(r["chance_over"], r["line"], r["over"], r["under"], r["saves_avg"], r["mean"], r["mkt_mean"])["size"])
+            self.assertEqual(r["size"], goalie_pages.saves_play(r["chance_over"], r["line"], r["over"], r["under"], r["saves_avg"], r["mean"], r["mkt_mean"])["size"])
         self.assertEqual(saves["record"]["games"], 0)
 
 

@@ -33,7 +33,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "nfl_tool" / "nhl"))
-import build_nhl as b  # noqa: E402
+import goals_page  # noqa: E402
+import nhl_prices  # noqa: E402
+import points_page  # noqa: E402
+import shots_page  # noqa: E402
 
 LABELS = ("pos", "slot", "move", "home", "zone", "rest", "opp_rest", "side", "size")
 NEUTRAL = 0.02  # a lift inside +/-2% "barely moved it"
@@ -60,10 +63,10 @@ def factor_dict(names, values) -> dict:
 def shots_plays(folder: Path, since=None, every=False) -> list:
     out = []
     for saved, game in read_months(folder, since):
-        names = saved.get("factors") or b.SHOTS_FACTORS
+        names = saved.get("factors") or shots_page.SHOTS_FACTORS
         for pid, name, team, line, over, under, mean, chance_over, actual, *rest in game["plays"]:
             avg, move, _fl, _fo, _fu, factors = (*rest, None, None, None, None, None, None)[:6]
-            play = b.shots_play(chance_over, line, over, under, avg, move)
+            play = shots_page.shots_play(chance_over, line, over, under, avg, move)
             if play is None or actual == line or (play["size"] in ("none", "unsure") and not every):
                 continue
             won = (actual > line) == (play["side"] == "over")
@@ -76,9 +79,9 @@ def shots_plays(folder: Path, since=None, every=False) -> list:
 def goals_plays(folder: Path, since=None, every=False) -> list:
     out = []
     for saved, game in read_months(folder, since):
-        names = saved.get("factors") or b.GOALS_FACTORS
+        names = saved.get("factors") or goals_page.GOALS_FACTORS
         for pid, name, team, chance, mean, odds, first_odds, thin, zone, actual, move, *rest in game["plays"]:
-            play = b.goals_play(chance, odds, move)
+            play = goals_page.goals_play(chance, odds, move)
             if play is None or (play["size"] in ("none", "unsure") and not every):
                 continue
             won = actual > 0
@@ -91,11 +94,11 @@ def goals_plays(folder: Path, since=None, every=False) -> list:
 def points_plays(folder: Path, since=None, every=False) -> list:
     out = []
     for saved, game in read_months(folder, since):
-        names = saved.get("factors") or b.POINTS_FACTORS
+        names = saved.get("factors") or points_page.POINTS_FACTORS
         for pid, name, team, line, over, under, mean, chance, chance_over, actual, avg, move, _fl, _fo, _fu, factors, *_nv in game["plays"]:
             if line is None or chance_over is None:
                 continue
-            play = b.points_play(chance_over, line, over, under, avg, move)
+            play = points_page.points_play(chance_over, line, over, under, avg, move)
             if play is None or actual == line or (play["size"] in ("none", "unsure") and not every):
                 continue
             won = (actual > line) == (play["side"] == "over")
@@ -145,7 +148,7 @@ def tally(plays: list) -> dict:
     n = len(plays)
     wins = sum(p["won"] for p in plays)
     units = sum(p["units"] for p in plays)
-    need = sum(b.break_even(p["price"]) for p in plays) / n if n else None
+    need = sum(nhl_prices.break_even(p["price"]) for p in plays) / n if n else None
     return {"plays": n, "wins": wins, "losses": n - wins, "win_pct": round(wins / n, 3) if n else None,
             "need_pct": round(need, 3) if need is not None else None, "units": round(units, 2), "roi": round(units / n, 3) if n else None}
 

@@ -24,7 +24,12 @@ from pathlib import Path
 
 import helpers  # first: puts nfl_tool/nhl on the import path
 
-import build_nhl
+import goals_page
+import nhl_games
+import nhl_prices
+import nhl_stats
+import points_page
+import shots_page
 import points_model
 
 BENSON = "8484145"  # Zach Benson, BUF forward, in the saved game (FLA 3 @ BUF 5)
@@ -41,8 +46,8 @@ class TheGame(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.plain = build_nhl.reduce_game(helpers.nhl_game())
-        cls.game = build_nhl.reduce_game(charted_game())
+        cls.plain = nhl_games.reduce_game(helpers.nhl_game())
+        cls.game = nhl_games.reduce_game(charted_game())
 
     def test_every_goal_with_its_points(self):
         goals = self.game["goal_events"]
@@ -62,10 +67,10 @@ class TheGame(unittest.TestCase):
         self.assertTrue(all(s["on"] is None for s in self.plain["shots"]))
 
     def test_a_goal_belongs_to_the_shift_it_ended(self):
-        find = build_nhl.on_ice_finder({"shifts": [[1, "BUF", 1, "00:00", "01:00"], [2, "BUF", 1, "01:00", "02:00"]]})
+        find = nhl_games.on_ice_finder({"shifts": [[1, "BUF", 1, "00:00", "01:00"], [2, "BUF", 1, "01:00", "02:00"]]})
         self.assertEqual(find("BUF", 1, "01:00"), ["1"])
         self.assertEqual(find("BUF", 1, 61), ["2"])
-        self.assertIsNone(build_nhl.on_ice_finder({"shifts": []}))
+        self.assertIsNone(nhl_games.on_ice_finder({"shifts": []}))
 
 
 class Chances(unittest.TestCase):
@@ -87,13 +92,13 @@ class Projection(unittest.TestCase):
     def setUpClass(cls):
         cls.records = []
         for n in range(5):
-            r = build_nhl.reduce_game(charted_game())
+            r = nhl_games.reduce_game(charted_game())
             r["date"] = f"2026-10-0{n + 1}"
             r["id"] = 100 + n
             cls.records.append(r)
-        cls.shots = build_nhl.shots_model_for(cls.records)
-        cls.goals = build_nhl.goals_model_for(cls.records, cls.shots, {})
-        cls.model = build_nhl.points_model_for(cls.records, cls.goals)
+        cls.shots = shots_page.shots_model_for(cls.records)
+        cls.goals = goals_page.goals_model_for(cls.records, cls.shots, {})
+        cls.model = points_page.points_model_for(cls.records, cls.goals)
 
     def test_expected_points_are_goals_plus_assists(self):
         p = self.model.project(BENSON, "FLA", True)
@@ -117,7 +122,7 @@ class Projection(unittest.TestCase):
         self.assertGreater(self.model.project(assister, opp, True)["assists_mean"], self.model.project(quiet, opp, True)["assists_mean"])
 
     def test_a_game_with_no_shift_chart_adds_no_on_ice_numbers(self):
-        plain = build_nhl.reduce_game(helpers.nhl_game())
+        plain = nhl_games.reduce_game(helpers.nhl_game())
         model = points_model.PointsModel(self.goals)
         model.add_game(plain)
         p = model.players[BENSON]
@@ -134,25 +139,25 @@ class Projection(unittest.TestCase):
         self.assertIsNone(self.model.mates(BENSON, []))
 
     def test_the_site_never_gives_the_model_last_season(self):
-        self.assertEqual(list(inspect.signature(build_nhl.points_model_for).parameters), ["records", "goals"])
+        self.assertEqual(list(inspect.signature(points_page.points_model_for).parameters), ["records", "goals"])
         self.assertNotIn("prior", inspect.signature(points_model.PointsModel).parameters)
 
 
 class Board(unittest.TestCase):
-    """build_nhl.points_board with the saved game (and its shift chart) as the season so far."""
+    """points_page.points_board with the saved game (and its shift chart) as the season so far."""
 
     NOW = datetime(2026, 10, 13, 14, 0)
 
     @classmethod
     def setUpClass(cls):
-        cls.record = build_nhl.reduce_game(charted_game())
-        cls.shots = build_nhl.shots_model_for([cls.record])
-        cls.goals = build_nhl.goals_model_for([cls.record], cls.shots, {})
-        cls.model = build_nhl.points_model_for([cls.record], cls.goals)
-        cls.skaters = build_nhl.compute_skaters([cls.record], {})
-        cls.lineups = build_nhl.lineup(cls.skaters, Counter(BUF=1, FLA=1))
+        cls.record = nhl_games.reduce_game(charted_game())
+        cls.shots = shots_page.shots_model_for([cls.record])
+        cls.goals = goals_page.goals_model_for([cls.record], cls.shots, {})
+        cls.model = points_page.points_model_for([cls.record], cls.goals)
+        cls.skaters = nhl_stats.compute_skaters([cls.record], {})
+        cls.lineups = nhl_stats.lineup(cls.skaters, Counter(BUF=1, FLA=1))
         cls.goalies = {}
-        for g in build_nhl.compute_goalies([cls.record]).values():
+        for g in nhl_stats.compute_goalies([cls.record]).values():
             cls.goalies.setdefault(g["team"], []).append(g)
 
     def schedule(self, **changes):
@@ -160,7 +165,7 @@ class Board(unittest.TestCase):
 
     def board(self, games=None, records=(), previous=None, now=None, odds=None):
         odds = {"77": {BENSON: {"points": {"line": 0.5, "over": 150, "under": -190, "thin": False}}}} if odds is None else odds
-        return build_nhl.points_board(self.model, games or self.schedule(), self.lineups, {}, list(records), previous, now or self.NOW, None, self.skaters, self.goalies, odds)
+        return points_page.points_board(self.model, games or self.schedule(), self.lineups, {}, list(records), previous, now or self.NOW, None, self.skaters, self.goalies, odds)
 
     def test_every_skater_priced_or_not(self):
         entry = self.board()["77"]
@@ -171,7 +176,7 @@ class Board(unittest.TestCase):
         self.assertEqual((benson["line"], benson["over"], benson["under"], benson["first"]), (0.5, 150, -190, {"line": 0.5, "over": 150, "under": -190}))
         self.assertAlmostEqual(benson["mean"], benson["g_mean"] + benson["a_mean"], delta=0.002)
         # The play is the Shots page's better side filed by the Points bar, on the row's own rounded chance.
-        play = build_nhl.points_play(benson["chance_over"], 0.5, 150, -190, benson["avg"], benson["move"])
+        play = points_page.points_play(benson["chance_over"], 0.5, 150, -190, benson["avg"], benson["move"])
         self.assertEqual((benson["side"], benson["price"], benson["size"]), (play["side"], play["price"], play["size"]))
         self.assertAlmostEqual(benson["edge"], play["edge"], places=3)
         self.assertEqual(benson["chance_over"], benson["chance"])  # a 0.5 line is 1+ point
@@ -221,13 +226,13 @@ class Record(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             folder = Path(folder)
             rows = [self.row("1", 0.6, 0.5, 100, -120, 1), self.row("2", 0.3, None, None, None, 0), self.row("3", 0.4, 0.5, 120, -140, None)]
-            self.assertEqual(build_nhl.record_point_games(folder, self.entry(rows), self.games()), 1)
-            self.assertEqual(build_nhl.record_point_games(folder, self.entry([self.row("1", 0.9, 0.5, 100, -120, 0)]), self.games()), 0)
+            self.assertEqual(points_page.record_point_games(folder, self.entry(rows), self.games()), 1)
+            self.assertEqual(points_page.record_point_games(folder, self.entry([self.row("1", 0.9, 0.5, 100, -120, 0)]), self.games()), 0)
             saved = json.loads((folder / "2026-10.json").read_text(encoding="utf-8"))
-            self.assertEqual((saved["cols"], saved["factors"]), (list(build_nhl.POINTS_RECORD_COLS), list(build_nhl.POINTS_FACTORS)))
+            self.assertEqual((saved["cols"], saved["factors"]), (list(points_page.POINTS_RECORD_COLS), list(points_page.POINTS_FACTORS)))
             plays = saved["games"]["77"]["plays"]
             self.assertEqual([p[0] for p in plays], ["1", "2"])  # the scratch is left out, the unpriced player kept
-            factors = dict(zip(build_nhl.POINTS_FACTORS, plays[0][-2]))  # [-1] = Novig's prices (nv)
+            factors = dict(zip(points_page.POINTS_FACTORS, plays[0][-2]))  # [-1] = Novig's prices (nv)
             self.assertEqual((factors["pos"], factors["slot"], factors["mates"], factors["a_opp"], factors["g_low"], factors["home"]), ("C", "F1", 1.1, 1.05, 0.97, 0))
             self.assertEqual(plays[1][-2:], [None, None])  # no price: no factors, no Novig prices
 
@@ -242,8 +247,8 @@ class Record(unittest.TestCase):
                 self.row("5", 0.62, 0.5, 100, -120, 0, move="down"),  # over, edge 12, on a player moved DOWN a line: not a play
                 self.row("6", 0.25, 1.5, 120, -150, 1),            # under 1.5, edge 15: the 1.5 line is not a play
             ]
-            build_nhl.record_point_games(folder, self.entry(rows), self.games())
-            r = build_nhl.points_record_summary(folder)
+            points_page.record_point_games(folder, self.entry(rows), self.games())
+            r = points_page.points_record_summary(folder)
             self.assertEqual((r["games"], r["players"]), (1, 6))
             self.assertNotIn("strong", r)
             self.assertEqual(r["play"], {"wins": 2, "losses": 0, "units": 1.77})
@@ -251,7 +256,7 @@ class Record(unittest.TestCase):
             self.assertEqual((r["over"]["wins"], r["under"]["wins"], r["with"]["wins"], r["fade"]["wins"]), (1, 1, 1, 1))
             self.assertEqual((r["clv"]["plays"], r["clv"]["priced"], r["clv"]["shortened"]), (2, 2, 1))
             # Before BEST_PRICES_FROM the saved prices were Novig's: both sides, the cut taken out.
-            nv = lambda a, b: build_nhl.break_even(a) / (build_nhl.break_even(a) + build_nhl.break_even(b))
+            nv = lambda a, b: nhl_prices.break_even(a) / (nhl_prices.break_even(a) + nhl_prices.break_even(b))
             self.assertAlmostEqual(r["clv"]["points"], (nv(100, -120) - nv(120, -140)) / 2, places=4)
             self.assertEqual(sum(b["players"] for b in r["honest"]), 6)
             self.assertEqual(sum(b["got"] for b in r["honest"]), 3)
@@ -263,8 +268,8 @@ class Record(unittest.TestCase):
         """The owner, 2026-10-22, after the first six nights (Check 49-71, the 1.5 lines 8-20, edges of
         3-6 92-102): a Points play is the 0.5 line, an edge of POINTS_BAR (6) or more, never against
         tonight's line change. Everything else is "none"; 25+ is still "unsure"."""
-        size = lambda chance, line=0.5, move=None: build_nhl.points_play(chance, line, -110, -110, None, move)["size"]
-        self.assertEqual(build_nhl.POINTS_BAR, 0.06)
+        size = lambda chance, line=0.5, move=None: points_page.points_play(chance, line, -110, -110, None, move)["size"]
+        self.assertEqual(points_page.POINTS_BAR, 0.06)
         self.assertEqual(size(0.60), "play")                  # over, edge 7.6
         self.assertEqual(size(0.40), "play")                  # under, edge 7.6
         self.assertEqual(size(0.56), "none")                  # edge 3.6: under the bar (no more "lean")

@@ -3,6 +3,7 @@ paths:
   - "nfl_tool/site/nhl/lines.*"
   - "nfl_tool/site/nhl/vs-position.*"
   - "nfl_tool/nhl/lines_model.py"
+  - "nfl_tool/nhl/line_matchups_page.py"
   - "nfl_tool/nhl/stacks_model.py"
   - "tools/backtest/nhl_stacks.py"
 ---

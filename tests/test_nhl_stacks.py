@@ -15,7 +15,6 @@ from pathlib import Path
 
 import helpers  # first: puts nfl_tool/nhl on the import path
 
-import build_nhl
 import stacks_model as km
 
 

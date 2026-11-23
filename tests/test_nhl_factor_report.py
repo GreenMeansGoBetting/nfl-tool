@@ -8,14 +8,15 @@ from pathlib import Path
 
 import helpers  # noqa: F401  first: puts nfl_tool/nhl on the import path
 
-import build_nhl
+import goals_page
+import shots_page
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 import nhl_factor_report as report  # noqa: E402
 
 
 def shots_factors(**values):
-    return [values.get(k) for k in build_nhl.SHOTS_FACTORS]
+    return [values.get(k) for k in shots_page.SHOTS_FACTORS]
 
 
 class FactorReport(unittest.TestCase):
@@ -35,14 +36,14 @@ class FactorReport(unittest.TestCase):
             # No edge: left out unless --every.
             ["e", "E", "AAA", 2.5, -115, -105, 2.6, 0.55, 3, 2.5],
         ]
-        (root / "nhl_shots" / "2026-10.json").write_text(json.dumps({"factors": build_nhl.SHOTS_FACTORS, "games": {
+        (root / "nhl_shots" / "2026-10.json").write_text(json.dumps({"factors": shots_page.SHOTS_FACTORS, "games": {
             "9": {"date": "2026-10-13", "away": "AAA", "home": "BBB", "plays": shots}}}))
         goals = [
-            ["1", "P1", "BUF", 0.32, 0.386, 300, 350, False, "low_slot", 1, None, [None] * len(build_nhl.GOALS_FACTORS)],
+            ["1", "P1", "BUF", 0.32, 0.386, 300, 350, False, "low_slot", 1, None, [None] * len(goals_page.GOALS_FACTORS)],
             ["2", "P2", "BUF", 0.29, 0.342, 300, 250, False, None, 0, None],  # an old row
             ["3", "P3", "BUF", 0.10, 0.105, None, None, False, None, 0, None, None],  # unpriced: never a play
         ]
-        (root / "nhl_goals" / "2026-10.json").write_text(json.dumps({"factors": build_nhl.GOALS_FACTORS, "games": {
+        (root / "nhl_goals" / "2026-10.json").write_text(json.dumps({"factors": goals_page.GOALS_FACTORS, "games": {
             "77": {"date": "2026-10-13", "away": "BUF", "home": "FLA", "plays": goals}}}))
         return root
 

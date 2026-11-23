@@ -82,7 +82,7 @@ def nhl_game():
 
 
 def nhl_game_shifts():
-    """The saved NHL game's shift chart, as build_nhl.fetch_shifts keeps it on a game."""
+    """The saved NHL game's shift chart, as nhl_games.fetch_shifts keeps it on a game."""
     return json.loads(_fixture_bytes("nhl_game_shifts.json.gz"))
 
 
@@ -146,10 +146,10 @@ def nhl_saves():
     if "nhl_saves" not in _cache:
         import tempfile
 
-        import build_nhl
+        import goalie_pages
 
         with tempfile.TemporaryDirectory() as folder:
-            _cache["nhl_saves"] = build_nhl.saves_file(2027, "2026-10-13T14:12Z", nhl_crease(), [], nhl_data()["schedule"], None, Path(folder))
+            _cache["nhl_saves"] = goalie_pages.saves_file(2027, "2026-10-13T14:12Z", nhl_crease(), [], nhl_data()["schedule"], None, Path(folder))
     return _cache["nhl_saves"]
 
 
@@ -204,13 +204,15 @@ def nhl_lines():
     saved FLA @ BUF game with its shift chart. As of 10/13 14:12 UTC, so FLA and BUF show
     their usual lines from that game, the other teams none; no projected lineups."""
     if "nhl_lines" not in _cache:
-        import build_nhl
+        import line_matchups_page
+        import nhl_games
+        import nhl_stats
 
         raw = nhl_game()
         raw["shifts"] = nhl_game_shifts()
-        record = build_nhl.reduce_game(raw)
-        skaters = build_nhl.compute_skaters([record], {})
-        _cache["nhl_lines"] = build_nhl.lines_file(2027, "2026-10-13T14:12Z", [record], nhl_data()["schedule"], {}, skaters, None, datetime(2026, 10, 13, 14, 12))
+        record = nhl_games.reduce_game(raw)
+        skaters = nhl_stats.compute_skaters([record], {})
+        _cache["nhl_lines"] = line_matchups_page.lines_file(2027, "2026-10-13T14:12Z", [record], nhl_data()["schedule"], {}, skaters, None, datetime(2026, 10, 13, 14, 12))
     return _cache["nhl_lines"]
 
 
