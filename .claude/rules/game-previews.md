@@ -53,7 +53,8 @@ Stories and examples behind these rules: `docs/history.md`, "Game Previews".
 - Shows as a "Trenches" row under Red Zone in Team Grades (OL overall vs the other team's front
   overall), the same row on the Summary card, and a Trenches section in each Game Previews panel
   between Pass Rush and Team Grades (Pass Protection, Run Blocking, Discipline, Overall; letter +
-  0-100 score, colored by score; the defense's Discipline cell is intentionally blank). Any
+  0-100 score, colored by its letter's color (deeper with the score; the rounded score alone turned
+  a C at the cut red or green); the defense's Discipline cell is intentionally blank). Any
   Trenches grade opens the Trenches modal: all 32 teams, OL + defensive front, hover breakdowns,
   the two teams highlighted.
 - OL = Pass Pro 55% (pressure vs 4-man rush .30, vs blitz .15, sack rate minus FTN QB-fault sacks

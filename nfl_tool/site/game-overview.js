@@ -232,12 +232,16 @@ function trenchesZ(team, side, group = "overall") {
 }
 // Color for a 0-100 score, same cut points as the letters (A 88+, B 66-87,
 // C 35-65, D 12-34, F <12): green above, yellow middle, red below, deeper
-// toward the ends.
-function trenchesScoreStyle(score) {
+// toward the ends. With the letter given, the letter picks the color: the
+// score is rounded, so right at a cut a C could read 34 or 66 and turn red or
+// green beside its own letter (test_twin_rules.py, 2026-11-23).
+const TRENCHES_LETTER_KIND = { A: "good", B: "good", C: "mid", D: "bad", F: "bad" };
+function trenchesScoreStyle(score, grade) {
   if (score === null || score === undefined) return { cls: "", attr: "" };
+  const kind = TRENCHES_LETTER_KIND[grade] || (score >= 66 ? "good" : score >= 35 ? "mid" : "bad");
   let cls, t;
-  if (score >= 66) { cls = "tier-good"; t = (score - 66) / 33; }
-  else if (score >= 35) { cls = "tier-mid"; t = 0; }
+  if (kind === "good") { cls = "tier-good"; t = (score - 66) / 33; }
+  else if (kind === "mid") { cls = "tier-mid"; t = 0; }
   else { cls = "tier-bad"; t = (35 - score) / 34; }
   const alpha = TIER_ALPHA_MIN + (TIER_ALPHA_MAX - TIER_ALPHA_MIN) * Math.min(Math.max(t, 0), 1);
   return { cls, attr: cls === "tier-mid" ? "" : ` style="--tier-a:${alpha.toFixed(2)}"` };
@@ -510,7 +514,7 @@ function renderTrenchesTable(offTeam, defTeam) {
   const cell = (team, side, group) => {
     if (!group) return `<td class="num trenches-cell trenches-blank"></td>`;
     const e = trenchesEntry(team, side, group);
-    const { cls, attr } = trenchesScoreStyle(e && e.score);
+    const { cls, attr } = trenchesScoreStyle(e && e.score, e && e.grade);
     const entry = encodeDataAttr({ off: offTeam, def: defTeam });
     return `<td class="num grade-cell trenches-cell trenches-click ${cls}"${attr} data-entry="${entry}" title="See every team's line grades">${trenchesCellInner(e)}</td>`;
   };
@@ -574,7 +578,7 @@ function openTrenchesModal(offTeam, defTeam) {
   );
   const gcell = (team, side, group) => {
     const e = trenchesEntry(team, side, group);
-    const { cls, attr } = trenchesScoreStyle(e && e.score);
+    const { cls, attr } = trenchesScoreStyle(e && e.score, e && e.grade);
     const tip = trenchesTip(team, side, group);
     return `<td class="num grade-cell trenches-cell ${cls}"${attr}${tip ? ` title="${tip.replace(/"/g, "&quot;")}"` : ""}>${trenchesCellInner(e)}</td>`;
   };

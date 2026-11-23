@@ -67,9 +67,12 @@ Ground rules:
   its own badges). Left for the owner to decide: NBA League Stats Chart / Matchup Keys cards show a
   final score, the NHL pages write "Final". Still copied: the NHL prop pages' `gameState`,
   `sortedRows`, `renderToolbar`, `edgeCell` (each differs a little per market).
-- Logic that exists twice (model weights and math in Python and in JavaScript, grade recipes):
-  keep the numbers in one shared file both sides read, or compute in the build and only display
-  in the browser.
+- Logic that exists twice (done 2026-11-23): the browser works these out again, so both copies stay
+  and a test pins each pair equal. GMG model weights, recipes, edge and scores: test_site_js.py;
+  the NBA books' main line: test_nba_research_site.py; NFL grade letters and their colors, the NBA
+  zone score, NFL run lanes and pass depths: test_twin_rules.py (it found a C tinted red or green at
+  the cut). NHL bars, edges and the "unsure" net come from each built file, not a copy. A new rule
+  written in both places gets its pair added to test_twin_rules.py.
 
 ## 6. Split data.json (first step done 2026-11-23)
 

@@ -3,7 +3,7 @@
 // shares with the Player Props page (moved here from player-props.js so
 // every page can draw them; player-props.js still uses them from here).
 
-// Same 7 lanes as build_stats.py's RUSH_ZONES, left to right the way a
+// Same 7 lanes as nfl_props.py's RUSH_ZONES (test_twin_rules.py), left to right the way a
 // broadcast angle actually reads them (defense's own left is the offense's
 // right, but this follows the OFFENSE's perspective site-wide, same as
 // "left"/"right" in run_location itself).
@@ -206,8 +206,8 @@ function renderPlayerRushLanesContent(team, name, oppTeam) {
 // above -- uses only standard pbp columns nflverse publishes every week
 // during the season, so this stays live all year instead of getting
 // stuck on last season's data.
-// Yardage ranges instead of words -- matches build_stats.py's
-// PASS_DEPTH_BUCKETS boundaries exactly (deep=20+, intermediate=10-19,
+// Yardage ranges instead of words -- matches nfl_common.py's
+// PASS_DEPTH_BUCKETS boundaries exactly (test_twin_rules.py) (deep=20+, intermediate=10-19,
 // short=0-9, screen=behind the LOS). Spelled out now that each grid gets
 // a real row-label box instead of a cramped narrow column (see
 // .pass-zone-row-label) -- there's room.
