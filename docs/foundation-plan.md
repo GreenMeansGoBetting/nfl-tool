@@ -55,10 +55,11 @@ Ground rules:
   the split can be proven to change nothing (compare the built `data.json` before and after).
 - `nfl_tool/site/style.css` is 4,400 lines (and growing) of layers stacked on layers: one file per page plus a
   shared file for the building blocks (tiles, chips, the shared-label "tape", rank colors).
-- The NBA / NHL day and game picker (`days`, `gamesOn`, `renderSchedule`, `selectDay`,
-  `currentGame`) is copied into 11 page files and has drifted into 11 slightly different versions:
-  one shared copy in a suite-wide file (2026-11-23 count). Same for the NHL prop pages' shared
-  helpers (`gameState`, `sortedRows`, `renderToolbar`, `edgeCell`).
+- The NBA / NHL day picker (done 2026-11-23): the day bar and the day label are one copy in
+  sync.js (`gmgDayBar`, `gmgDayLabel`). The game cards under it stay per page on purpose (each shows
+  its own badges). Left for the owner to decide: NBA League Stats Chart / Matchup Keys cards show a
+  final score, the NHL pages write "Final". Still copied: the NHL prop pages' `gameState`,
+  `sortedRows`, `renderToolbar`, `edgeCell` (each differs a little per market).
 - Logic that exists twice (model weights and math in Python and in JavaScript, grade recipes):
   keep the numbers in one shared file both sides read, or compute in the build and only display
   in the browser.

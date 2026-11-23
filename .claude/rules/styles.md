@@ -110,6 +110,9 @@ or tile follows this, unasked:
   `{date, time}`; "7:00 PM CT", abbr false drops the letters) and any other clock time through
   `gmgClock(at)`; each sport's `fmtTime(g)` / NFL `fmtGameTime(time, date)` call it. Dates stay
   the Eastern game day. A new place that shows a time must use them. Tests: `tests/test_time_zone_site.py`.
+- **Every game day label goes through `gmgDayLabel(date)`** ("Mon, Nov 23") and the NBA / NHL day bar
+  over the games (`#day-label`, `#day-prev` / `#day-next`) through `gmgDayBar(all, index)` (sync.js, 2026-11-23:
+  it had been pasted into 14 pages). Each page still draws its own game cards. Test: `tests/test_day_bar_site.py`.
 - Never mention a state for bet links (the owner: the "Links open for New Jersey" note confused
   members, and the links opened fine in their own state).
 - Tests: `tests/test_settings_site.py`.

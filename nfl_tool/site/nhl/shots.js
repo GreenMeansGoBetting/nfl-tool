@@ -184,10 +184,7 @@ function sortedRows(date, lineup = shotsView.lineup, every = shotsView.every) {
 function renderSchedule() {
   const all = days();
   const date = all[dayIndex];
-  el("schedule-scroller").hidden = !all.length;
-  el("day-label").textContent = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
-  el("day-prev").disabled = dayIndex <= 0;
-  el("day-next").disabled = dayIndex >= all.length - 1;
+  gmgDayBar(all, dayIndex);
   el("matchup-row").innerHTML = gamesOn(date)
     .map((g) => {
       const final = g.status === "final";
@@ -508,7 +505,7 @@ function recordPlays(record) {
   shown.forEach((play) => {
     if (play.date !== day) {
       day = play.date;
-      body += `<tr class="shots-record-day"><td colspan="7">${new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
+      body += `<tr class="shots-record-day"><td colspan="7">${gmgDayLabel(day)} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
     }
     const who = playerClick(play.id, `<b>${play.name}</b>`);
     body += `<tr>

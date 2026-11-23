@@ -135,10 +135,7 @@ function sortedRows(date, lineup = pointsView.lineup) {
 function renderSchedule() {
   const all = days();
   const date = all[dayIndex];
-  el("schedule-scroller").hidden = !all.length;
-  el("day-label").textContent = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
-  el("day-prev").disabled = dayIndex <= 0;
-  el("day-next").disabled = dayIndex >= all.length - 1;
+  gmgDayBar(all, dayIndex);
   el("matchup-row").innerHTML = gamesOn(date)
     .map((g) => {
       const final = g.status === "final";
@@ -443,7 +440,7 @@ function recordPlays(record) {
   shown.forEach((play) => {
     if (play.date !== day) {
       day = play.date;
-      body += `<tr class="shots-record-day"><td colspan="6">${new Date(`${day}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
+      body += `<tr class="shots-record-day"><td colspan="6">${gmgDayLabel(day)} <span class="muted-label">${line(sum(shown.filter((x) => x.date === day)))}</span></td></tr>`;
     }
     body += `<tr>
         <td class="nba-player shots-player">${playerClick(play.id, `<b>${play.name}</b>`)}<span class="shots-vs">${logo(play.team, 30)}<span class="at">${play.home ? "vs" : "@"}</span>${logo(play.opp, 30)}</span></td>

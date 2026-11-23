@@ -450,7 +450,7 @@ function zmSlate() {
   zmEl("matchup-row").hidden = ZM.view !== "matchup" || !today;
   zmEl("day-prev").disabled = ZM.day <= 0;
   zmEl("day-next").disabled = ZM.day >= days.length - 1;
-  zmEl("day-label").textContent = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  zmEl("day-label").textContent = gmgDayLabel(date);
   zmEl("matchup-row").innerHTML = m.games
     .map((g) => `<button type="button" class="matchup-card${g.game_id === ZM.game ? " selected" : ""}" data-game="${g.game_id}">
         <span class="matchup-teams-row">${zmLogo(g.away, 28)}<span class="at">@</span>${zmLogo(g.home, 28)}</span>

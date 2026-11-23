@@ -1148,7 +1148,7 @@ function renderPropsSummaryCard(away, home) {
   }
   const { game, week, gameKey } = propsSummaryContext();
   const linesByTeam = { [away]: propTeamLines(away, home, week, game), [home]: propTeamLines(home, away, week, game) };
-  const when = game?.date ? new Date(game.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
+  const when = game?.date ? gmgDayLabel(game.date) : "";
   const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
   const lines = [
     game && game.home_team_spread !== null && game.home_team_spread !== undefined ? `${home} ${signed(game.home_team_spread)}` : null,

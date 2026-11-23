@@ -1899,9 +1899,7 @@ function dayPicker(all) {
 function render() {
   const all = days();
   const date = all[dayIndex];
-  el("day-label").textContent = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "No games";
-  el("day-prev").disabled = dayIndex <= 0;
-  el("day-next").disabled = dayIndex >= all.length - 1;
+  gmgDayBar(all, dayIndex, { empty: "No games", scroller: false });
   dayPicker(all);
   renderGamePicker();
   renderList();

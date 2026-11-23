@@ -748,7 +748,7 @@ function renderGameSummaryCard(game) {
   const card = document.getElementById("summary-card");
   if (!card || !game) return;
   const { away, home } = game;
-  const when = game.date ? new Date(game.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
+  const when = game.date ? gmgDayLabel(game.date) : "";
   const railHidden = summaryRailHidden("game");
   syncSummaryRailButton("game", "My Picks");
   card.dataset.kind = "game";

@@ -1662,7 +1662,7 @@ function renderSummaryCard(away, home) {
     || (DATA.schedule || []).find((g) => g.away === away && g.home === home);
   const week = game ? game.week : DATA.current_week;
   const pAway = firstTdTeamChance(away, home);
-  const when = game?.date ? new Date(game.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
+  const when = game?.date ? gmgDayLabel(game.date) : "";
   const line = (n) => (n > 0 ? `+${n}` : `${n}`);
   const lines = [
     game && game.home_team_spread !== null && game.home_team_spread !== undefined ? `${home} ${line(game.home_team_spread)}` : null,

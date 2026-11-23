@@ -61,7 +61,7 @@ function scRenderSlate() {
   scEl("schedule-scroller").hidden = !all.length;
   if (!all.length) return;
   const off = SC.player && SC_FILE.who[SC.player] ? SC_FILE.who[SC.player][1] : null;
-  scEl("day-label").textContent = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  scEl("day-label").textContent = gmgDayLabel(date);
   scEl("day-prev").disabled = scDayIndex <= 0;
   scEl("day-next").disabled = scDayIndex >= all.length - 1;
   const side = (abbr, opp) =>

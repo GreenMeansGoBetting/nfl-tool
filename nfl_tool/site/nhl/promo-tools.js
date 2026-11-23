@@ -44,7 +44,7 @@ function gamesOn(date) {
   return DATA.schedule.filter((g) => g.date === date);
 }
 const dayBoard = (date) => ((CREASE || {}).days || {})[date] || null;
-const longDate = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+const longDate = gmgDayLabel;
 
 // ---- the columns ----
 // `rank` = a league rank to color by (1 = the most shots = green);
@@ -88,10 +88,7 @@ function slateStep(value, pool) {
 function renderSchedule() {
   const all = days();
   const date = all[dayIndex];
-  el("schedule-scroller").hidden = !all.length;
-  el("day-label").textContent = date ? longDate(date) : "";
-  el("day-prev").disabled = dayIndex <= 0;
-  el("day-next").disabled = dayIndex >= all.length - 1;
+  gmgDayBar(all, dayIndex);
   const board = dayBoard(date);
   el("matchup-row").innerHTML = gamesOn(date)
     .map((g) => {

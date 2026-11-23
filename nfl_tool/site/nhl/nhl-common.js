@@ -1190,9 +1190,7 @@ function nhlRenderPast(cfg) {
   });
   if (gameId && !games[gameId]) gameId = null;
   el("schedule-scroller").hidden = false;
-  el("day-label").textContent = new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-  el("day-prev").disabled = dayIndex <= 0;
-  el("day-next").disabled = dayIndex >= all.length - 1;
+  gmgDayBar(all, dayIndex, { scroller: false });
   nhlDayPicker(all, dayIndex);
   el("matchup-row").innerHTML = Object.values(games).map((g) => `<button type="button" class="matchup-card matchup-card-final${g.id === gameId ? " selected" : ""}" data-game="${g.id}" data-away="${g.away}" data-home="${g.home}" title="Show only this game (click again for the whole day)">
       <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>

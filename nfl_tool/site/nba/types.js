@@ -241,7 +241,7 @@ function ptTnRank(stick, type, k, def) {
 function ptSchedule(date) {
   const games = (DATA.schedule || []).filter((g) => g.date === date);
   const logo = (abbr) => `<img src="${ptTeam(abbr).logo}" alt="${abbr}" class="team-logo" style="width:28px;height:28px" loading="lazy">`;
-  const label = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
+  const label = date ? gmgDayLabel(date) : "";
   return `<div class="schedule-scroller pt-sched"><div class="week-picker"><button type="button" id="pt-day-prev" class="week-nav-btn"${ptDay <= 0 ? " disabled" : ""}>&lsaquo;</button><span class="week-label">${label}</span><button type="button" id="pt-day-next" class="week-nav-btn"${ptDay >= ptDays().length - 1 ? " disabled" : ""}>&rsaquo;</button></div>
     <div class="matchup-row">${games.map((g) => `<button type="button" class="matchup-card${String(g.game_id) === ptView.game ? " selected" : ""}" data-pt-game="${g.game_id}" title="Show only this game (click again for every game)">
       <span class="matchup-teams-row">${logo(g.away)}<span class="at">@</span>${logo(g.home)}</span><span class="matchup-date">${typeof gmgGameTime === "function" ? gmgGameTime(g, false) : g.time || ""}</span></button>`).join("")}</div></div>`;

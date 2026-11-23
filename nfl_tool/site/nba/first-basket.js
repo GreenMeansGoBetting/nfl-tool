@@ -202,10 +202,7 @@ function setSeason(s, remember) {
 function renderSchedule() {
   const all = days();
   const date = all[dayIndex];
-  el("schedule-scroller").hidden = !all.length;
-  el("day-label").textContent = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
-  el("day-prev").disabled = dayIndex <= 0;
-  el("day-next").disabled = dayIndex >= all.length - 1;
+  gmgDayBar(all, dayIndex);
   el("matchup-row").innerHTML = gamesOn(date)
     .map((g) => `<button type="button" class="matchup-card${g.game_id === gameId ? " selected" : ""}" data-game="${g.game_id}">
         <span class="matchup-teams-row">${logo(g.away, 28)}<span class="at">@</span>${logo(g.home, 28)}</span>

@@ -79,10 +79,7 @@ const sideTag = (key) => (key.startsWith("o_") ? `<span class="mk-side mk-o">OFF
 function renderSchedule() {
   const all = days();
   const date = all[dayIndex];
-  el("schedule-scroller").hidden = !all.length;
-  el("day-label").textContent = date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
-  el("day-prev").disabled = dayIndex <= 0;
-  el("day-next").disabled = dayIndex >= all.length - 1;
+  gmgDayBar(all, dayIndex);
   el("matchup-row").innerHTML = gamesOn(date)
     .map((g) => {
       const final = g.status === "final";

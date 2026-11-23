@@ -102,6 +102,24 @@ function gmgEasternToDate(date, hhmm) {
   t += want - wall(t);
   return new Date(t);
 }
+// A game day as every page writes it: "Mon, Nov 23" ("" without a date). Dates
+// are the Eastern game day, so no time zone is applied.
+function gmgDayLabel(date) {
+  return date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) : "";
+}
+// The day bar over an NBA / NHL page's games (#schedule-scroller, #day-label,
+// #day-prev / #day-next), for day `index` of the sorted dates `all`: one copy
+// (2026-11-23; it had been pasted into 14 pages). `empty` = the label with no
+// days; `scroller: false` leaves #schedule-scroller to the page. Returns the date.
+function gmgDayBar(all, index, { empty = "", scroller = true } = {}) {
+  const $ = (id) => document.getElementById(id);
+  const date = all[index];
+  if (scroller) $("schedule-scroller").hidden = !all.length;
+  $("day-label").textContent = date ? gmgDayLabel(date) : empty;
+  $("day-prev").disabled = index <= 0;
+  $("day-next").disabled = index >= all.length - 1;
+  return date;
+}
 // A game's start as the member reads it: "7:00 PM CT" (abbr = false: "7:00 PM").
 // g = {start_utc} (true UTC, NBA / NHL) or {date, time} (Eastern, every sport).
 function gmgGameTime(g, abbr = true) {
