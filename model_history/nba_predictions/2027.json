@@ -5479,7 +5479,7 @@ null
 "away": "DET",
 "book": {
 "ml": [
--135,
+-138,
 117
 ],
 "spread": [
@@ -5617,8 +5617,8 @@ null
 "away": "BOS",
 "book": {
 "ml": [
--413,
-344
+-344,
+270
 ],
 "spread": [
 null,
@@ -5755,8 +5755,8 @@ null
 "away": "DAL",
 "book": {
 "ml": [
-285,
--335
+277,
+-344
 ],
 "spread": [
 null,
@@ -26453,13 +26453,13 @@ null
 8.5
 ],
 "spread_odds": [
-104,
+102,
 -106
 ],
-"total": 209.5,
+"total": 210.5,
 "total_odds": [
--113,
-108
+-115,
+111
 ]
 },
 "date": "2026-11-22",
@@ -26473,8 +26473,8 @@ null
 0.6476
 ],
 "total": [
-0.6777,
-0.3223
+0.6575,
+0.3425
 ]
 },
 "fair_spread": 4.0,
@@ -26589,21 +26589,21 @@ null
 "away": "MEM",
 "book": {
 "ml": [
--144,
-130
+-141,
+138
 ],
 "spread": [
-null,
-null
+-2.5,
+2.5
 ],
 "spread_odds": [
-null,
-null
+-120,
+-102
 ],
-"total": null,
+"total": 218.5,
 "total_odds": [
-null,
-null
+102,
+-122
 ]
 },
 "date": "2026-11-23",
@@ -26612,8 +26612,14 @@ null
 0.7264,
 0.2736
 ],
-"spread": null,
-"total": null
+"spread": [
+0.6531,
+0.3469
+],
+"total": [
+0.4601,
+0.5399
+]
 },
 "fair_spread": 7.2,
 "home": "CHA",
@@ -26736,12 +26742,12 @@ null
 ],
 "spread_odds": [
 -111,
--104
+106
 ],
 "total": 229.5,
 "total_odds": [
-106,
--125
+104,
+-130
 ]
 },
 "date": "2026-11-23",
@@ -26871,7 +26877,7 @@ null
 "away": "OKC",
 "book": {
 "ml": [
--172,
+-170,
 163
 ],
 "spread": [
@@ -27013,14 +27019,14 @@ null
 -400
 ],
 "spread": [
-null,
-null
+11.5,
+-11.5
 ],
 "spread_odds": [
-null,
-null
+-117,
+-111
 ],
-"total": null,
+"total": 225.5,
 "total_odds": [
 null,
 null
@@ -27032,8 +27038,14 @@ null
 0.1766,
 0.8234
 ],
-"spread": null,
-"total": null
+"spread": [
+0.5119,
+0.4881
+],
+"total": [
+0.5427,
+0.4573
+]
 },
 "fair_spread": -11.1,
 "home": "TOR",
@@ -27147,21 +27159,21 @@ null
 "away": "BKN",
 "book": {
 "ml": [
-456,
+488,
 -506
 ],
 "spread": [
-null,
-null
+12.5,
+-12.5
 ],
 "spread_odds": [
-null,
-null
+-111,
+-111
 ],
-"total": null,
+"total": 226.5,
 "total_odds": [
-null,
-null
+-133,
+-130
 ]
 },
 "date": "2026-11-23",
@@ -27170,8 +27182,14 @@ null
 0.1415,
 0.8585
 ],
-"spread": null,
-"total": null
+"spread": [
+0.4873,
+0.5127
+],
+"total": [
+0.4896,
+0.5104
+]
 },
 "fair_spread": -12.9,
 "home": "MIN",
@@ -27285,8 +27303,8 @@ null
 "away": "CLE",
 "book": {
 "ml": [
--317,
-270
+-308,
+285
 ],
 "spread": [
 null,
@@ -27562,20 +27580,20 @@ null
 "book": {
 "ml": [
 471,
--488
+-506
 ],
 "spread": [
 12.5,
 -12.5
 ],
 "spread_odds": [
--110,
+-111,
 -116
 ],
-"total": 226.5,
+"total": 225.5,
 "total_odds": [
--115,
--125
+-120,
+-120
 ]
 },
 "date": "2026-11-23",
@@ -27589,8 +27607,8 @@ null
 0.4363
 ],
 "total": [
-0.5205,
-0.4795
+0.5426,
+0.4574
 ]
 },
 "fair_spread": -10.6,
@@ -27705,8 +27723,8 @@ null
 "away": "UTAH",
 "book": {
 "ml": [
-567,
--700
+506,
+-590
 ],
 "spread": [
 null,
@@ -27843,8 +27861,8 @@ null
 "away": "SA",
 "book": {
 "ml": [
--770,
-641
+-471,
+426
 ],
 "spread": [
 null,
