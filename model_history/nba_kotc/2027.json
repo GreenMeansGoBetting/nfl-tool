@@ -13048,7 +13048,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.3489,
+    "lead": 0.349,
     "name": "Luka Doncic",
     "proj": 52.7,
     "team": "LAL"
@@ -13138,18 +13138,18 @@
     "team": "PHI"
    },
    {
-    "id": "4065733",
-    "lead": 0.0094,
-    "name": "Ty Jerome",
-    "proj": 31.9,
-    "team": "MEM"
-   },
-   {
     "id": "3149673",
     "lead": 0.0093,
     "name": "Pascal Siakam",
     "proj": 32.5,
     "team": "IND"
+   },
+   {
+    "id": "4065733",
+    "lead": 0.0092,
+    "name": "Ty Jerome",
+    "proj": 31.8,
+    "team": "MEM"
    },
    {
     "id": "3992",
