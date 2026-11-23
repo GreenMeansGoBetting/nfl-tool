@@ -22581,9 +22581,9 @@
   "players": {
    "3133603": [
     "Kelly Oubre Jr.",
-    0.11,
+    0.1,
     1000,
-    true,
+    false,
     "fanduel"
    ],
    "3133626": [
@@ -22595,14 +22595,14 @@
    ],
    "3149673": [
     "Pascal Siakam",
-    0.125,
+    0.113,
     700,
     false,
     "fanduel"
    ],
    "4017837": [
     "Ivica Zubac",
-    0.103,
+    0.093,
     800,
     false,
     "bet365"
@@ -22623,17 +22623,17 @@
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.095,
+    0.091,
     1000,
     false,
     "bet365"
    ],
-   "4396909": [
-    "Aaron Nesmith",
-    0.087,
-    1220,
-    true,
-    "draftkings"
+   "4592829": [
+    "Quenton Jackson",
+    0.123,
+    null,
+    false,
+    null
    ],
    "4683778": [
     "Jared McCain",
