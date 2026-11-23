@@ -3887,91 +3887,88 @@
  "401909317": {
   "away": "MIA",
   "date": "2026-11-25",
-  "first_home": 0.481,
+  "first_home": 0.5,
   "home": "PHI",
   "jumpers": [
    [
     "4066261",
     "Bam Adebayo"
    ],
-   [
-    "3059318",
-    "Joel Embiid"
-   ]
+   null
   ],
   "players": {
    "1966": [
     "LeBron James",
-    0.09,
+    0.098,
     null,
     false,
     null
    ],
    "3032977": [
     "Giannis Antetokounmpo",
-    0.125,
-    null,
-    false,
-    null
-   ],
-   "3059318": [
-    "Joel Embiid",
-    0.089,
+    0.121,
     null,
     false,
     null
    ],
    "3059319": [
     "Andrew Wiggins",
-    0.082,
+    0.079,
+    null,
+    false,
+    null
+   ],
+   "3912848": [
+    "Dean Wade",
+    0.073,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.107,
+    0.116,
     null,
     false,
     null
    ],
    "4066261": [
     "Bam Adebayo",
-    0.113,
+    0.109,
     null,
     false,
     null
    ],
    "4278053": [
     "Davion Mitchell",
-    0.096,
+    0.093,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.099,
+    0.109,
     null,
     false,
     null
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.076,
+    0.084,
     null,
     false,
     null
    ],
    "6475": [
     "Klay Thompson",
-    0.081,
+    0.078,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.443
+  "tip_home": 0.5
  },
  "401909318": {
   "away": "CHI",
@@ -22477,91 +22474,88 @@
  "401910037": {
   "away": "POR",
   "date": "2026-11-23",
-  "first_home": 0.462,
+  "first_home": 0.5,
   "home": "PHI",
   "jumpers": [
    [
     "5105565",
     "Donovan Clingan"
    ],
-   [
-    "3059318",
-    "Joel Embiid"
-   ]
+   null
   ],
   "players": {
    "1966": [
     "LeBron James",
-    0.087,
+    0.098,
     890,
     false,
     "draftkings"
    ],
-   "3059318": [
-    "Joel Embiid",
-    0.085,
-    800,
+   "3912848": [
+    "Dean Wade",
+    0.073,
+    null,
     false,
-    "fanduel"
+    null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.103,
+    0.116,
     700,
     false,
     "bet365"
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.095,
+    0.109,
     710,
     false,
     "draftkings"
    ],
    "4431736": [
     "Toumani Camara",
-    0.084,
+    0.078,
     1100,
     false,
     "fanduel"
    ],
    "4683021": [
     "Deni Avdija",
-    0.138,
+    0.128,
     700,
-    true,
+    false,
     "fanduel"
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.092,
+    0.085,
     1300,
     true,
     "fanduel"
    ],
    "5105565": [
     "Donovan Clingan",
-    0.081,
+    0.075,
     720,
     false,
     "draftkings"
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.073,
+    0.084,
     1000,
     false,
     "bet365"
    ],
    "6606": [
     "Damian Lillard",
-    0.123,
+    0.114,
     750,
     false,
     "bet365"
    ]
   },
-  "tip_home": 0.385
+  "tip_home": 0.5
  },
  "401910038": {
   "away": "OKC",
