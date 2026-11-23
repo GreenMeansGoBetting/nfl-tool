@@ -212,25 +212,6 @@ function setManualResult(id, result) {
 
 const RESULT_LABELS = { win: "Win", loss: "Loss", push: "Push", void: "Void" };
 
-// ---- Bet-type grouping (Results modal filters) ----
-// Three buckets for the shows-content workflow: Main Lines (game-level),
-// TDs (the site's original bread and butter), Props (everything else --
-// every player O/U market). Deliberately a lookup for the two small,
-// fixed-size categories rather than listing every prop category by name,
-// so a new PLAYER_OU_MARKETS entry added in build_stats.py automatically
-// falls into Props with no matching frontend change needed.
-const BET_TYPE_GROUPS = {
-  Spread: "Main Lines",
-  Total: "Main Lines",
-  Moneyline: "Main Lines",
-  "Anytime TD": "TDs",
-  "First TD": "TDs",
-};
-const BET_TYPES = ["Main Lines", "TDs", "Props"];
-function betTypeGroup(category) {
-  return BET_TYPE_GROUPS[category] || "Props";
-}
-
 // ---- Units ----
 // Stake size scales down as the odds get longer, per a fixed house rule:
 // 1u up through +500, 0.5u from +501-+1000, 0.25u beyond +1000 -- so one

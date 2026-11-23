@@ -96,7 +96,7 @@ its prop pages get the box from day one).
   Grading, logos and wheel colors for NBA still need adding then (`gradeNhlPlay`'s twin, `WHEEL_LOOK`).
 - Tests: `tests/test_my_plays_site.py`.
 
-- **NBA plays** (2026-10-21): saved from NBA First Basket's every-book window (nba.md, "Saving a
+- **NBA plays** (2026-10-21): saved from NBA First Basket's every-book window (nba-first-basket.md, "Saving a
   play"), `loadNbaPlays` in sync.js, graded from nba/data.json `first_basket.results`
   (`loadNbaForGrading`); each play carries its own `logo` and `color` for the list and the wheel.
 

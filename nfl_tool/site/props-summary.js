@@ -699,21 +699,6 @@ function propDisplayName(rows, r) {
   return clash ? r.name : short;
 }
 
-// Share of a receiver's targets at each depth (short <10 air yds, 10-19, 20+).
-function propDepthShares(team, name) {
-  const byTeam = (DATA.player_pass_zones || {})[team] || {};
-  const logName = propGameLogs(team, name)?.name || name;
-  const zones = (byTeam[logName] || byTeam[name] || {}).zones;
-  if (!zones) return null;
-  const n = { short: 0, int: 0, deep: 0 };
-  Object.entries(zones).forEach(([k, z]) => {
-    const d = k.startsWith("deep") ? "deep" : k.startsWith("intermediate") ? "int" : "short";
-    n[d] += z.targets || 0;
-  });
-  const total = n.short + n.int + n.deep;
-  return total >= 3 ? { short: n.short / total, int: n.int / total, deep: n.deep / total } : null;
-}
-
 // ---- Card rendering ----
 // Clicking a player opens the shared player popup (player-props.js).
 function propClickEntry(r) {

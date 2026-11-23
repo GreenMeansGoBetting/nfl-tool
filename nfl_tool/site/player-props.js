@@ -332,26 +332,6 @@ function passStatPool(statKey) {
     .filter((v) => v !== null && v !== undefined);
 }
 
-// One season-total passing stat, tiered against every other qualifying QB
-// and clickable into openPlayerStatRankModal's full QB leaderboard for
-// that exact stat -- same "every colored cell opens its own leaderboard"
-// convention as the Coverage & Pressure panel above, just for the
-// season-long numbers instead of a zone/man/pressure/clean split.
-function passStatCell(player, statKey, opts = {}) {
-  const value = player[statKey];
-  if (value === null || value === undefined) return `<td class="num">--</td>`;
-  const pool = passStatPool(statKey);
-  const invert = !!opts.invert;
-  const cls = percentileTier(value, pool, invert);
-  const alpha = tierAlphaAttr(value, pool, invert);
-  const display = opts.percent ? `${Math.round(value * 100)}%` : fmt(value, opts.digits ?? 1);
-  const payload = {
-    team: player.team, name: player.name, statKey, label: opts.label,
-    invert, percent: !!opts.percent, digits: opts.digits,
-  };
-  return `<td class="num ${cls} player-stat-rank-click"${alpha} data-entry="${encodeDataAttr(payload)}">${display}</td>`;
-}
-
 // Every qualifying QB's value for one season-total Player Props stat,
 // sorted best to worst (invert=true sorts ascending -- e.g. INT/g, where
 // lower is better). Same shell/highlight convention as

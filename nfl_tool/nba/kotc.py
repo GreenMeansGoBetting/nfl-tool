@@ -45,7 +45,7 @@ MIN_MINUTES = 15
 SIMULATIONS = 6000
 
 # Fitted on 2025-26 (tools/backtest/nba_kotc.py, each night projected only
-# from the games before it, 150 nights). See nba.md "King of the Court".
+# from the games before it, 150 nights). See nba-kotc.md.
 WEIGHTS = {
     "l10": 0.5,  # share of the last 10 games in the base (the rest is the season average)
     "opp": 1.0,  # exponent on the other defense's PRA allowed to his position vs the league (fit: 0.99)

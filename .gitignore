@@ -32,3 +32,10 @@ nfl_tool/site/nhl/past_shots.json
 nfl_tool/site/nhl/past_goals.json
 nfl_tool/site/nhl/past_points.json
 nfl_tool/site/nhl/past_saves.json
+
+# Screenshots, mockups and working notes (kept locally, never committed).
+# Save new ones in scratch/; loose images in the top folder are ignored too.
+/scratch/
+/mockups/
+/*.png
+/*.jpg

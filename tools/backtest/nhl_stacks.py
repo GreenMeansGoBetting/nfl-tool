@@ -117,7 +117,7 @@ Step 1 found (2026-10-16, first run):
 What it can NOT say: whether any stack beats the price. There is no free
 history of same-game parlay prices (and each book prices its own
 correlation into its builder), so the record will grade that live. Nor can
-it test tonight's real power-play units (nhl.md, "Power-play units").
+it test tonight's real power-play units (nhl-shots.md, "Power-play units").
 
     python tools/backtest/nhl_stacks.py                  (about 6 minutes)
     python tools/backtest/nhl_stacks.py --rows <folder>  (keeps the replay's rows there; a second run reads them)

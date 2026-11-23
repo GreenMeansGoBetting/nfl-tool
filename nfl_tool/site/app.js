@@ -5,17 +5,6 @@ const LENGTH_BUCKETS = [
   { key: "41_plus", label: "41+ yd" },
 ];
 
-// For the Matchup Snapshot only (the detailed Touchdown Distance table
-// below keeps all 4 buckets) -- rolling up into short/big-play tells the
-// same "explosive or not" story on a more solid count.
-const MACRO_LENGTH_BUCKETS = [
-  { key: "short", keys: ["10_or_less", "11_20"], label: "short TDs" },
-  { key: "bigplay", keys: ["21_40", "41_plus"], label: "big plays" },
-];
-function sumBucketKeys(dict, keys) {
-  return keys.reduce((sum, k) => sum + (dict[k] || 0), 0);
-}
-
 // Every row in the combined offense/defense stat table -- each side shows
 // BOTH the season total and the per-game rate, so nothing needs a second
 // row. offKey/rateOffKey read off the offense-side team, the Def variants
@@ -27,72 +16,6 @@ const STAT_ROWS = [
   { label: "DST TD", totalOffKey: "dst_td", rateOffKey: "dst_td_per_g", totalDefKey: "dst_td_allowed", rateDefKey: "dst_td_allowed_per_g" },
   { label: "First TD", special: "first" },
 ];
-
-function topOpportunity(candidates) {
-  const valid = candidates.filter(Boolean);
-  if (valid.length === 0) return null;
-  return valid.reduce((best, c) => (c.magnitude > best.magnitude ? c : best));
-}
-
-// One direction (offTeam's offense against defTeam's defense) worth of
-// targetable opportunities across every category on this page. Called
-// twice (away-vs-home and home-vs-away) and combined for the full
-// snapshot. Each entry is tagged with a category/subject so
-// renderMatchupSnapshot can merge same-subject opportunities that show up
-// in both directions (e.g. both teams leaning on TEs) into one line.
-function directionInsights(offTeam, defTeam) {
-  const insights = [];
-
-  const firstTd = checkOpportunity(offTeam, defTeam, (t) => DATA.team_stats[t].first_td_rate, (t) => firstTdAllowedRate(t), false, true);
-  if (firstTd) insights.push({ ...firstTd, category: "first_td", subject: null, team: offTeam, label: "for the first TD" });
-
-  const posOpp = topOpportunity(
-    POSITIONS.map((pos) => {
-      const r = checkOpportunity(
-        offTeam,
-        defTeam,
-        (t) => (DATA.team_stats[t].total_td ? DATA.team_stats[t].off_position_td[pos] / DATA.team_stats[t].total_td : null),
-        (t) => (DATA.team_stats[t].total_td_allowed ? DATA.team_stats[t].def_position_td_allowed[pos] / DATA.team_stats[t].total_td_allowed : null),
-        false,
-        true
-      );
-      return r && { ...r, category: "position", subject: pos, team: offTeam, label: `${pos}s` };
-    })
-  );
-  if (posOpp) insights.push(posOpp);
-
-  const distOpp = topOpportunity(
-    MACRO_LENGTH_BUCKETS.map(({ key, keys, label }) => {
-      const r = checkOpportunity(
-        offTeam,
-        defTeam,
-        (t) => {
-          const s = DATA.team_stats[t];
-          const count = sumBucketKeys(s.td_by_length, keys);
-          return s.total_td && count >= 3 ? count / s.total_td : null;
-        },
-        (t) => {
-          const s = DATA.team_stats[t];
-          const count = sumBucketKeys(s.td_by_length_allowed, keys);
-          return s.total_td_allowed && count >= 3 ? count / s.total_td_allowed : null;
-        },
-        false,
-        true
-      );
-      return r && { ...r, category: "distance", subject: key, team: offTeam, label: label };
-    })
-  );
-  if (distOpp) insights.push(distOpp);
-
-  const rzOpp = checkOpportunity(offTeam, defTeam, (t) => DATA.team_stats[t].rz_td_per_g, (t) => DATA.team_stats[t].rz_td_allowed_per_g, false, true);
-  if (rzOpp) insights.push({ ...rzOpp, category: "redzone", subject: "td", team: offTeam, label: "red zone TDs" });
-
-  return insights;
-}
-
-function computeMatchupInsights(awayTeam, homeTeam) {
-  return [...directionInsights(awayTeam, homeTeam), ...directionInsights(homeTeam, awayTeam)];
-}
 
 function renderStatTable(offTeam, defTeam) {
   const off = DATA.team_stats[offTeam];

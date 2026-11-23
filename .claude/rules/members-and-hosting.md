@@ -237,7 +237,7 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
   `refresh-stamp` refuses a folder with a live data file missing. `version.json` keeps the
   full rebuild's `sha` / `run` / `built`; `nhl` and `nhl_refresh` change.
 - **`.github/workflows/nba-refresh.yml`: the NBA injury refresh (2026-10-25).** Pressed by the
-  same Worker's every-minute NBA watch (nba.md, "The injury watch") with `source: watch`, never
+  same Worker's every-minute NBA watch (nba-sim.md, "The injury watch") with `source: watch`, never
   while a refresh is running, a full rebuild is queued or running, or within 4 minutes of the last
   one. The same rules as the hockey refresh (`refresh-check --sport nba` twice, `refresh-stamp
   --sport nba`, the NFL / NHL data put back with `--only nfl nhl --strict`, the live check), with

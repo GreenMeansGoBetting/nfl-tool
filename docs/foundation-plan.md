@@ -34,23 +34,31 @@ Ground rules:
     its test changed in the same commit. `test_buf_at_la_score` holds the model's exact answer
     for one game, which is the proof item 4's split changes nothing.
 
+- **Monday clean-up (2026-11-23).** Claude's notes for NBA and NHL were split into one file per tool
+  (`.claude/rules/nba-*.md`, `nhl-*.md`): opening an NBA file used to load all 90 KB of NBA notes,
+  now a 9 KB core plus that tool's file (NHL: 57 KB to a 22 KB core plus one tool). About 250 lines
+  of code nothing called were removed (the old TD Data "Matchup Snapshot" finder, among others).
+  Screenshots and mockups live in `scratch/`, which git ignores.
+
+- **Design pushes publish fast (item 5, mostly done by 2026-11).** A push that touches only pages,
+  the login code, tools, tests or notes skips the data rebuild and is live in about 5 minutes; the
+  deploy rebuilds only the sport a push changed. A shared file (common.js, style.css, ...) still
+  rebuilds everything (about 23 minutes).
+
 ## 4. Smaller files, one source of truth (next)
 
-- `nfl_tool/build_stats.py` is 5,100 lines: split by feature (odds, injuries, TD data, props,
+- `nfl_tool/build_stats.py` is 4,700 lines (2026-11-23; `nhl/build_nhl.py` 4,000): split by feature (odds, injuries, TD data, props,
   team stats, schedule) into modules, keeping one entry script. Tests from item 3 come first so
   the split can be proven to change nothing (compare the built `data.json` before and after).
-- `nfl_tool/site/style.css` is 3,800 lines of layers stacked on layers: one file per page plus a
+- `nfl_tool/site/style.css` is 4,400 lines (and growing) of layers stacked on layers: one file per page plus a
   shared file for the building blocks (tiles, chips, the shared-label "tape", rank colors).
+- The NBA / NHL day and game picker (`days`, `gamesOn`, `renderSchedule`, `selectDay`,
+  `currentGame`) is copied into 11 page files and has drifted into 11 slightly different versions:
+  one shared copy in a suite-wide file (2026-11-23 count). Same for the NHL prop pages' shared
+  helpers (`gameState`, `sortedRows`, `renderToolbar`, `edgeCell`).
 - Logic that exists twice (model weights and math in Python and in JavaScript, grade recipes):
   keep the numbers in one shared file both sides read, or compute in the build and only display
   in the browser.
-
-## 5. Separate data updates from design changes
-
-Every push, even a color change, re-downloads the season and rebuilds everything. Keep the last
-good `data.json` between runs and let pushes that don't touch the build code publish with it;
-rebuild data on the 6-hour schedule and on "Update Odds". Target: a design push live in about a
-minute.
 
 ## 6. Split data.json
 

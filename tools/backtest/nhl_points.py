@@ -56,7 +56,7 @@ idea yes"), each judged by the same bar a-c, added to 6 (= 5 + spread):
      a second assist counted as half, scaled back to the league's assists.
      In the assists half only, as log(primary-weighted / plain).
   (Power-play unit 1 tonight: not testable. The NHL's story has no units
-  and the sites that list them are paid products: nhl.md, "Power-play units".)
+  and the sites that list them are paid products: nhl-shots.md, "Power-play units".)
 
 What it can NOT say: whether it beats the price (no free history of points
 prices). The live record will grade that from launch.

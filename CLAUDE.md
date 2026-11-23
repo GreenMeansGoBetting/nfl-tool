@@ -47,7 +47,7 @@ message, so every line costs usage); detail belongs in a rules file.
   Locally, test only the area touched: `run_tests.py --only <sport>`; the full set only for a
   site-wide UI change or a shared file (common.js, sync.js, style.css, suite.css, ytd.js,
   book-odds.js, my-plays, the login code, tools/, workflows). No local `check_site.py` run; a
-  visual change gets at most ONE small screenshot of that one thing. Batch related small fixes into one push.
+  visual change gets at most ONE small screenshot of that one thing (save it in `scratch/`, git ignores it). Batch related small fixes into one push.
 - **Tests** (`tests/`, on saved samples in `tests/fixtures/`) pin the math and every past bug. When a
   rule they pin changes on purpose, change its test in the same commit; a bug fix gets a test that
   fails without it. Runs (public): `api.github.com/repos/GreenMeansGoBetting/nfl-tool/actions/runs`.
@@ -136,6 +136,5 @@ Area rules in `.claude/rules/` (each loads when you open a file it lists): `game
 Zone Targets, player card), `plays-and-promos.md` (My Plays, Photo Export, Pick Tracker, King of the
 Endzone), `members-and-hosting.md` (login, Stripe, Cloudflare, deploy), `data-pipeline.md` (sources,
 SmartStake / Novig odds, odds lock, injuries, usage), `styles.md` (site-wide look, phone, card fit),
-`nba.md`, `nhl.md` (the NHL's own feed; never MoneyPuck).
-
-Clean-up plan: `docs/foundation-plan.md` (one item per session). Why rules exist: `docs/history.md` (search it; not loaded automatically).
+`nba.md`, `nhl.md` (the NHL's own feed; never MoneyPuck), each plus one file per tool (`nba-*.md`, `nhl-*.md`;
+a new tool's rules get their own file). Clean-up plan: `docs/foundation-plan.md` (one item per session). Why rules exist: `docs/history.md` (search it; not loaded automatically).

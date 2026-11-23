@@ -213,9 +213,6 @@ def _clock(display: str):
     return 0, float(text)
 
 
-def _period_secs(period: int) -> int:
-    return 720 if period <= 4 else 300
-
 
 def pbp(s: dict) -> pd.DataFrame:
     plays = s.get("plays") or []

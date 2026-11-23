@@ -429,95 +429,6 @@ function initScheduleScroller(onPick, options = {}) {
   refresh();
 }
 
-// ---- Matchup Snapshot: automated mismatch finder ----
-// Surfaces places where one team's own tendency (a real, z-scored outlier
-// league-wide) lines up with the other team's own tendency on the exact
-// same stat -- e.g. a team that feeds a position a lot meeting a defense
-// that leaks to that position a lot. Every insight is stated as a plain
-// fact pair (both raw numbers, both percentile context), never a pick or
-// a "target this" recommendation -- consistent with this site's color
-// coding being a magnitude signal, not a verdict.
-
-// 0 (both sides sit at the league mean, least interesting) and up from
-// there (both sides further from the pack, more interesting) -- same
-// z-score scale as every tier color on the site, not a fixed 0-1 range, so
-// this is only ever compared relatively (sorting candidate insights
-// against each other), never against an absolute cutoff.
-function insightMagnitude(offZ, defZ) {
-  return Math.abs(offZ) + Math.abs(defZ);
-}
-
-// offGetter/defGetter: (team) => raw value for that stat. offInvert/
-// defInvert: same meaning as percentileTier's invert. Returns
-// {magnitude, offVal, defVal} ONLY when offTeam's own value is a real
-// z-scored outlier on the good side AND defTeam's own (allowed-side) value
-// is an outlier on the bad side, on the exact same stat -- a real "good
-// offense meets bad defense" opportunity, using the same TIER_Z_THRESHOLD
-// every colored cell on the site uses (was its own raw percentile-rank cutoff
-// before, which could flip on a fractional difference the same way the old
-// tier coloring used to). Deliberately one-directional: this summary
-// surfaces angles that ARE likely, never the inverse "both sides weak,
-// unlikely to happen" case.
-function checkOpportunity(offTeam, defTeam, offGetter, defGetter, offInvert, defInvert) {
-  const pool = teamsWithGames();
-  if (pool.length < 3) return null;
-  const offVal = offGetter(offTeam);
-  const defVal = defGetter(defTeam);
-  if (offVal === null || offVal === undefined || defVal === null || defVal === undefined) return null;
-
-  const offZ = zScore(offVal, pool.map(offGetter), offInvert);
-  const defZ = zScore(defVal, pool.map(defGetter), defInvert);
-  if (offZ === null || defZ === null) return null;
-
-  if (offZ >= TIER_Z_THRESHOLD && defZ <= -TIER_Z_THRESHOLD) {
-    return { magnitude: insightMagnitude(offZ, defZ), offVal, defVal };
-  }
-  return null;
-}
-
-// Each opportunity carries {category, subject, team, magnitude, label}.
-// subject is the shared thing being targeted (a position, a distance
-// bucket, etc.) -- when BOTH matchup directions produce an opportunity
-// with the same category+subject (e.g. both teams lean on TEs against
-// each other), they're merged into one "both teams" line instead of two
-// near-duplicate ones. category "first_td" never merges since its
-// subject is inherently which team, not a shared thing.
-function renderMatchupSnapshot(opportunities) {
-  const valid = opportunities.filter(Boolean);
-  if (valid.length === 0) {
-    return `<p class="no-data-note">No standout opportunities turned up between these two teams this time.</p>`;
-  }
-
-  const merged = [];
-  const used = new Set();
-  valid.forEach((o, i) => {
-    if (used.has(i)) return;
-    if (o.subject) {
-      const partnerIdx = valid.findIndex(
-        (other, j) => j !== i && !used.has(j) && other.category === o.category && other.subject === o.subject
-      );
-      if (partnerIdx !== -1) {
-        used.add(i);
-        used.add(partnerIdx);
-        merged.push({
-          magnitude: Math.max(o.magnitude, valid[partnerIdx].magnitude),
-          text: `Target ${o.label} &mdash; both teams lean on it.`,
-        });
-        return;
-      }
-    }
-    used.add(i);
-    merged.push({ magnitude: o.magnitude, text: `Target ${o.team} ${o.label}.` });
-  });
-
-  const items = merged
-    .sort((a, b) => b.magnitude - a.magnitude)
-    .slice(0, 8)
-    .map((i) => `<li>${i.text}</li>`)
-    .join("");
-  return `<ul class="snapshot-list">${items}</ul>`;
-}
-
 // Every headerRow()-based table (label + 4 data columns + ADV, 6 total)
 // needs this immediately before its <thead> to actually get narrow columns.
 // table-layout:fixed's column-width algorithm doesn't reliably honor
@@ -1168,14 +1079,6 @@ document.addEventListener("click", (e) => {
 // content into the fixed card, and the Save image export.
 function normName(n) {
   return (n || "").toLowerCase().replace(/\b(jr|sr|ii|iii|iv|v)\b\.?/g, "").replace(/[^a-z]/g, "");
-}
-
-function summaryTeamBanner(team) {
-  const rgb = teamAccentRgb(team);
-  return `<div class="sc-team" style="background:rgba(${rgb.join(",")},0.22);border-left:4px solid rgb(${rgb.join(",")})">
-    <img src="${teamLogoUrl(team)}" crossorigin="anonymous" class="sc-team-logo" alt="">
-    <span class="sc-team-name">${TEAM_NAMES[team] || team}</span>
-  </div>`;
 }
 
 function shortName(name) {

@@ -5,7 +5,7 @@ the shots they take: "not all PGs or PFs play the same style". Letters, never na
 (the owner disliked named archetypes; "1a / 1b" would say a PG does one of two things).
 A = the deepest shooters ... L = rim runners.
 
-How (every step audited with the owner, 2026-11-11; .claude/rules/nba.md "Player Types"):
+How (every step audited with the owner, 2026-11-11; .claude/rules/nba-types.md):
 - Each player's shot mix this season (`F`): average distance and his share of threes,
   catch-and-shoot, pull-ups / step-backs, fades / turnarounds, floaters, post / hooks,
   drives, cuts, lobs / putbacks and fast-break shots. Every ESPN shot label sits in

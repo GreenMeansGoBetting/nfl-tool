@@ -345,14 +345,6 @@ function fbtStats(before) {
   });
   return { teams: out, league };
 }
-// 1 = allows the least of the defenses, colored green .. red (30th = allows the most)
-function fbtShade(def, L, rate, all) {
-  const vals = all.filter((v) => v !== null);
-  if (rate === null || vals.length < 2) return "";
-  const rank = 1 + vals.filter((v) => v < rate).length;
-  const hue = Math.round((120 * (vals.length - rank)) / (vals.length - 1));
-  return ` style="background:${scaleHsla(hue, 70, 45, 0.32)}"`;
-}
 // Two places (the owner, 2026-11-11, after a first table that mixed both directions in a row and three
 // versions to pick from): B, inside each Starters table, a purple block per starter: what tonight's defense
 // allowed to HIS letter; C, at the bottom, each defense against EVERY letter with tonight's other starters

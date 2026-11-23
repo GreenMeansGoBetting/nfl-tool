@@ -980,11 +980,6 @@ const joinOpen = (env, session) => STRIPE_JOIN_OPEN && membersReady(env) && pric
 const cleanEmail = (e) => String(e || "").trim().toLowerCase();
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-async function sha256Hex(text) {
-  const d = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(text)));
-  return [...d].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 // Stripe REST call (form-encoded). Throws with Stripe's own message on error.
 async function stripeApi(env, method, path, params) {
   let url = `https://api.stripe.com/v1/${path}`;

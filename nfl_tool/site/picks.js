@@ -115,15 +115,6 @@ function tallyPicks(list) {
   return { win, loss, push, winPct: decided ? Math.round((win / decided) * 100) : null, units };
 }
 
-function pickSummary(picks) {
-  return {
-    overall: tallyPicks(picks),
-    green: tallyPicks(picks.filter((p) => p.color === "green")),
-    yellow: tallyPicks(picks.filter((p) => p.color === "yellow")),
-    red: tallyPicks(picks.filter((p) => p.color === "red")),
-  };
-}
-
 // Record broken out by market AND color/confidence at once -- a 3x3 grid
 // (Spread/Total/Moneyline x Green/Yellow/Red) plus a totals row and column,
 // so a 4x4 table. Answers both "how do my Green picks do" and "how do my
