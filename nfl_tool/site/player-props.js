@@ -2098,8 +2098,9 @@ function populateSelects() {
 
 fetch("data.json")
   .then((r) => r.json())
-  .then((data) => {
+  .then(async (data) => {
     DATA = data;
+    await loadDataPart("pass_plays");
     populateSelects();
     initScheduleScroller(render);
     setActivePropsView(loadSavedPropsView());

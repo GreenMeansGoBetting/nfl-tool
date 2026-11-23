@@ -4,6 +4,46 @@
 // calling any of these.
 let DATA = null;
 
+// Two big parts of the NFL data live in their own files (build_stats.py
+// split_page_parts, 2026-11-23), so pages that never show them don't read them:
+// "box_scores" (Game Previews) and "pass_plays" (every pass play behind the pass
+// charts: Player Props and the player card). loadDataPart puts a part back where
+// the page code has always read it (DATA.player_box_scores, each pass chart
+// zone's .plays) and resolves when it's there. A data.json that still carries the
+// part (an older build) is used as it is. A failed load leaves the part empty,
+// never the page broken.
+const DATA_PARTS = {
+  box_scores: {
+    have: (d) => !!d.player_box_scores,
+    put: (d, part) => { d.player_box_scores = part.player_box_scores || {}; },
+  },
+  pass_plays: {
+    have: (d) => Object.values(d.pass_shot_charts || {}).some((sides) =>
+      Object.values(sides || {}).some((chart) => Object.values(chart?.zones || {}).some((z) => Array.isArray(z?.plays)))),
+    put: (d, part) => {
+      Object.entries(part.pass_plays || {}).forEach(([team, sides]) => Object.entries(sides).forEach(([side, zones]) =>
+        Object.entries(zones).forEach(([key, plays]) => {
+          const zone = d.pass_shot_charts?.[team]?.[side]?.zones?.[key];
+          if (zone) zone.plays = plays;
+        })));
+    },
+  },
+};
+const dataPartLoads = {};
+function loadDataPart(name) {
+  const spec = DATA_PARTS[name];
+  if (!DATA || !spec) return Promise.resolve(false);
+  if (spec.have(DATA)) return Promise.resolve(true);
+  if (!dataPartLoads[name]) {
+    const data = DATA;
+    dataPartLoads[name] = fetch(`${name}.json`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((part) => { spec.put(data, part); return true; })
+      .catch((err) => { console.warn(`${name}.json didn't load:`, err); delete dataPartLoads[name]; return false; });
+  }
+  return dataPartLoads[name];
+}
+
 // Light/dark theme -- dark is the default; the choice is remembered per
 // browser. Every page's <head> applies the saved theme before first paint
 // (no flash); this just wires the header button.

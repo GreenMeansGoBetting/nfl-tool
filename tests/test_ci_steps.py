@@ -433,6 +433,8 @@ class LiveData(unittest.TestCase):
             "data.json": {"teams": ["BUF"]},
             "koe_weeks.json": {"boards": {}, "results": {}},
             "best_plays_record.json": {"ledger": {}, "plays": []},
+            "box_scores.json": {"player_box_scores": {}},
+            "pass_plays.json": {"pass_plays": {}},
             "nba/data.json": {"teams": {}},
             "nba/props.json": {"seasons": {}},
             "nba/shots.json": {"players": {}},
@@ -488,15 +490,15 @@ class LiveData(unittest.TestCase):
 
     def test_the_hockey_refresh_takes_the_other_suites_only(self):
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/ladders.json", "nba/props.json", "nba/shots.json"])
-        self.assertEqual(self.asked, ["data.json", "koe_weeks.json", "best_plays_record.json", "nba/data.json", "nba/props.json", "nba/shots.json", "nba/ladders.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "box_scores.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/ladders.json", "nba/props.json", "nba/shots.json", "pass_plays.json"])
+        self.assertEqual(self.asked, ["data.json", "koe_weeks.json", "best_plays_record.json", "box_scores.json", "pass_plays.json", "nba/data.json", "nba/props.json", "nba/shots.json", "nba/ladders.json"])
 
     def test_nba_props_not_live_yet_is_not_an_error(self):
         """The first deploy after nba/props.json was added: a refresh before it
         must still put the rest back, and a reused deploy builds instead."""
         del self.live["nba/props.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/ladders.json", "nba/shots.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "box_scores.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/ladders.json", "nba/shots.json", "pass_plays.json"])
         self.assertEqual(fetch_live_data.main(["--only", "nba", "--need", "nba"]), 1)
 
     def test_nba_shots_not_live_yet_is_not_an_error(self):
@@ -504,7 +506,7 @@ class LiveData(unittest.TestCase):
         before it must still put the rest back, and a reused deploy builds instead."""
         del self.live["nba/shots.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/ladders.json", "nba/props.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "box_scores.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/ladders.json", "nba/props.json", "pass_plays.json"])
         self.assertEqual(fetch_live_data.main(["--only", "nba", "--need", "nba"]), 1)
 
     def test_nba_ladders_not_live_yet_is_not_an_error(self):
@@ -513,7 +515,7 @@ class LiveData(unittest.TestCase):
         the rest back, and a reused deploy builds instead."""
         del self.live["nba/ladders.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/props.json", "nba/shots.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "box_scores.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/props.json", "nba/shots.json", "pass_plays.json"])
         self.assertEqual(fetch_live_data.main(["--only", "nba", "--need", "nba"]), 1)
 
     def test_king_of_the_endzones_weeks_not_live_yet_is_not_an_error(self):
@@ -521,8 +523,18 @@ class LiveData(unittest.TestCase):
         must still put the NFL data back."""
         del self.live["koe_weeks.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "nba/data.json", "nba/ladders.json", "nba/props.json", "nba/shots.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "box_scores.json", "data.json", "nba/data.json", "nba/ladders.json", "nba/props.json", "nba/shots.json", "pass_plays.json"])
         # A reused deploy needs every NFL file, so it builds instead.
+        self.assertEqual(fetch_live_data.main(["--only", "nfl", "--need", "nfl"]), 1)
+
+    def test_the_split_nfl_parts_not_live_yet_is_not_an_error(self):
+        """The first deploy after box_scores.json and pass_plays.json were split out of
+        data.json (2026-11-23): a refresh before it must still put the NFL data back
+        (the pages use a data.json that still carries them), and a reused deploy builds."""
+        del self.live["box_scores.json"]
+        del self.live["pass_plays.json"]
+        self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
+        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json", "nba/data.json", "nba/ladders.json", "nba/props.json", "nba/shots.json"])
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--need", "nfl"]), 1)
 
     def test_a_suite_that_is_not_live_is_not_an_error(self):
@@ -531,7 +543,7 @@ class LiveData(unittest.TestCase):
         del self.live["nba/shots.json"]
         del self.live["nba/ladders.json"]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "nba", "--strict"]), 0)
-        self.assertEqual(self.here(), ["best_plays_record.json", "data.json", "koe_weeks.json"])
+        self.assertEqual(self.here(), ["best_plays_record.json", "box_scores.json", "data.json", "koe_weeks.json", "pass_plays.json"])
 
     def test_strict_stops_when_a_live_file_cannot_be_downloaded(self):
         self.live["nba/data.json"] = 503
@@ -543,7 +555,7 @@ class LiveData(unittest.TestCase):
     def test_a_hiccup_is_tried_again(self):
         self.live["data.json"] = [urllib.error.URLError("timed out"), 502, {"teams": ["BUF"]}]
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--strict"]), 0)
-        self.assertEqual(self.asked, ["data.json"] * 3 + ["koe_weeks.json", "best_plays_record.json"])
+        self.assertEqual(self.asked, ["data.json"] * 3 + ["koe_weeks.json", "best_plays_record.json", "box_scores.json", "pass_plays.json"])
         self.assertEqual(json.loads((self.site / "data.json").read_text()), {"teams": ["BUF"]})
 
     def test_the_login_page_is_never_saved_as_data(self):
@@ -602,7 +614,7 @@ class LiveData(unittest.TestCase):
     def test_a_file_already_here_is_left_alone(self):
         self.site.joinpath("data.json").write_text('{"local": true}', encoding="utf-8")
         self.assertEqual(fetch_live_data.main(["--only", "nfl", "--strict"]), 0)
-        self.assertEqual(self.asked, ["koe_weeks.json", "best_plays_record.json"])
+        self.assertEqual(self.asked, ["koe_weeks.json", "best_plays_record.json", "box_scores.json", "pass_plays.json"])
         self.assertEqual(json.loads((self.site / "data.json").read_text()), {"local": True})
 
     def test_it_only_runs_with_the_build_key(self):

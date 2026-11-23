@@ -1964,8 +1964,9 @@ document.getElementById("grades-info-btn").addEventListener("click", () => {
 
 fetch("data.json")
   .then((r) => r.json())
-  .then((data) => {
+  .then(async (data) => {
     DATA = data;
+    await loadDataPart("box_scores");
     initStatsMode();
     resetDraftPicks();
     initFlipper();

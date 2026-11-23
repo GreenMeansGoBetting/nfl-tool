@@ -63,7 +63,10 @@ Ground rules:
   keep the numbers in one shared file both sides read, or compute in the build and only display
   in the browser.
 
-## 6. Split data.json
+## 6. Split data.json (first step done 2026-11-23)
 
-It is 9.6 MB and every page loads all of it. Split it so each page loads what it needs (player
-game logs and pass charts on demand). Faster for members on phones and for the checks.
+It was 9.6 MB (October), about 1 MB over the wire (Cloudflare compresses it) and reused between
+pages until it changes, so the cost is each phone reading the whole file. Done: box scores and
+every pass play moved to `box_scores.json` / `pass_plays.json` (about 40%), loaded only by Game
+Previews / Player Props. Next candidates if pages still feel slow: `player_game_logs` (0.9 MB,
+used almost everywhere, so only on demand per player) and `injuries` (0.5 MB).

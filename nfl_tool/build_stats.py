@@ -4657,12 +4657,17 @@ def main():
     save_gmg_history(blob["gmg_model"])
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    # Two big parts only a few pages show go in their own files (after everything
+    # above has used them); common.js loadDataPart puts them back where the pages read them.
+    parts = split_page_parts(blob)
     # compact (2026-10-28): indented it was 18.2 MB in week 8 and growing, and Cloudflare Pages
     # takes at most 25 MB a file (ci_steps.py sizes); compact is about 40% smaller
     with open(args.out, "w") as f:
         json.dump(blob, f, separators=(",", ":"))
+    for name, part in parts.items():
+        (args.out.parent / name).write_text(json.dumps(part, separators=(",", ":")), encoding="utf-8")
 
-    print(f"Wrote {args.out} -- season {season}, through week {max_week}, {len(teams)} teams")
+    print(f"Wrote {args.out} -- season {season}, through week {max_week}, {len(teams)} teams (+ {', '.join(parts)})")
 
     # King of the Endzone's past weeks and results (its own file: only the
     # Promo Tools page loads it). A failure here must never cost the NFL build.
@@ -4673,6 +4678,28 @@ def main():
         koe_weeks = {"season": season, "boards": {}, "results": {}, "error": str(e)[:200]}
     (args.out.parent / "koe_weeks.json").write_text(json.dumps(koe_weeks, separators=(",", ":")), encoding="utf-8")
     print(f"Wrote koe_weeks.json -- {len(koe_weeks['boards'])} past boards, {len(koe_weeks['results'])} games")
+
+
+def split_page_parts(blob: dict) -> dict:
+    """Take the two big parts only a few pages show out of data.json (2026-11-23:
+    about 40% of the file, which every NFL page used to read):
+
+    - box_scores.json: `player_box_scores` (only Game Previews shows them).
+    - pass_plays.json: every pass play behind the pass charts, by team, side and
+      zone (Player Props and the player card's pass chart). Each zone's counts stay
+      in data.json, which pages rank teams by; only the `plays` list moves.
+
+    Returns {file name: contents} and changes `blob` in place."""
+    plays = {}
+    for team, sides in (blob.get("pass_shot_charts") or {}).items():
+        for side, chart in (sides or {}).items():
+            for key, zone in ((chart or {}).get("zones") or {}).items():
+                if isinstance(zone, dict) and "plays" in zone:
+                    plays.setdefault(team, {}).setdefault(side, {})[key] = zone.pop("plays")
+    return {
+        "box_scores.json": {"season": blob.get("season"), "player_box_scores": blob.pop("player_box_scores", {})},
+        "pass_plays.json": {"season": blob.get("season"), "pass_plays": plays},
+    }
 
 
 if __name__ == "__main__":

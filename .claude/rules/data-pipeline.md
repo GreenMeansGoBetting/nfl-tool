@@ -35,6 +35,12 @@ imported by it (rules in game-previews.md).
   (`GARBAGE_WP`), with `s` for play success (used by the zone grades in player-props.md).
 - `compute_koe` -> `DATA.koe` (King of the Endzone; promos.md). `koe_week_boards` +
   `koe_game_results` -> `site/koe_weeks.json` (past weeks' boards, each game's longest TD).
+- **Two parts live in their own files** (`split_page_parts`, 2026-11-23; about 40% of data.json, which
+  every NFL page reads): `site/box_scores.json` (`player_box_scores`, Game Previews) and
+  `site/pass_plays.json` (each pass chart zone's `plays`; the zone counts stay in data.json; Player Props).
+  A page that shows one calls `loadDataPart(name)` (common.js) before it draws; it puts the part back
+  where the code reads it. A new generated file goes in `.gitignore` AND fetch_live_data.py's list.
+  Test: `tests/test_data_parts.py`.
 
 ## Lineup-aware player usage (important)
 
