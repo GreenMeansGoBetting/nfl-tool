@@ -407,6 +407,26 @@ class ThreePicks(unittest.TestCase):
         self.assertEqual(sent["games"][0]["players"][0]["odds"], 110)  # anytime: FanDuel
         page.close()
 
+    def test_after_last_weeks_contest_the_owner_gets_this_weeks_preview(self):
+        # 2026-11-24: the owner saw only last week's (locked) contest and had no way to start the next.
+        api = {"contest": {**CONTEST, "lock_at": EARLIER}, "locked": True, "entries": [], "live": {}, "marks": {}}
+        page, posts = open_page(api, owner=True, data=WEEK12)
+        page.wait_for_selector(".ct-chip")
+        self.assertEqual(page.locator(".ct-row").count(), 3)  # this week's Wed-Fri games
+        self.assertEqual(page.locator(".ct-title").inner_text(), "$100 Thanksgiving Contest")
+        page.locator("[data-act=old]").click()
+        self.assertEqual(page.locator(".ct-row").count(), 2)  # last week's, as members see it
+        self.assertEqual(page.locator(".ct-title").inner_text(), "$100 CONTEST")
+        page.locator("[data-act=new]").click()
+        page.on("dialog", lambda d: d.accept())
+        page.locator("[data-act=open]").click()
+        page.wait_for_function("() => true")
+        self.assertEqual((posts[0]["contest"]["id"], posts[0]["clear"]), ("2026_12", False))
+        page.close()
+        member, _ = open_page(api, data=WEEK12)
+        self.assertEqual(member.locator(".ct-row").count(), 2)  # members keep last week's until the lock
+        member.close()
+
     def test_no_fanduel_first_td_for_a_game_refuses_the_lock(self):
         # 2026-11-24: SmartStake had DraftKings' First TD but not FanDuel's yet. The owner: FanDuel only.
         data = json.loads(json.dumps(WEEK12))

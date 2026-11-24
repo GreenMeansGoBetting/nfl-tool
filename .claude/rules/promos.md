@@ -33,6 +33,11 @@ price, a miss loses $10, a player with no snaps that week gets the $10 back.
   `book_odds[game].props.first_td`; team / position from the anytime list). Never Novig's. On
   2026-11-24 the probe (`PROBE=first_td`) found DraftKings, Fanatics, Fliff, Stake and others on it
   but not FanDuel yet; a game with no FanDuel First TD blocks the lock and is named.
+- **The next contest** (2026-11-24, the owner: "i see last week only"): `/api/contest` serves the
+  latest saved contest. Once it has fully locked and this week's games make a different id, the
+  owner gets this week's preview (`wantNew`), with "Last Contest's Results" / "Start This Week's
+  Contest" to flip; members keep the saved one until the lock. Locking over a finished contest
+  with the same id clears its entries.
 - **Each game locks on its own** (`g.lock_at`; the contest's `lock_at` = the last one). Three
   format: the first day's games at that day's first kickoff, every later game at the next kickoff
   (Wednesday alone, Thursday + Friday at DET's kickoff). One format: Sunday 1:00 PM ET for all. A

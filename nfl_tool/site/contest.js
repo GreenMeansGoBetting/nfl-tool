@@ -93,11 +93,24 @@
   const gameSlots = (c, g) => slotsOf(c).filter((s) => s.g === g);
   const playerOf = (s, k) => s.list.find((p) => p.k === k);
   const lockOf = (c, g) => (Number.isFinite(g.lock_at) ? g.lock_at : c.lock_at);
-  const contest = () => (API && API.contest) || (API && API.owner && !API.contest ? draftContest() : null);
-  const isPreview = () => API && API.owner && !API.contest;
-  const gameLocked = (c, g) => !!(API && API.contest && Date.now() >= lockOf(c, g));
-  const isLocked = () => !!(API && API.contest && Date.now() >= API.contest.lock_at);
-  const anyLocked = () => !!(API && API.contest && API.contest.games.some((g) => gameLocked(API.contest, g)));
+  // The owner's next contest (2026-11-24: the owner saw only last week's, the page had no way to
+  // start another). Once the saved contest has fully locked and this week's games make a different
+  // one, the owner gets this week's preview; "Last Contest's Results" flips back. Members keep
+  // seeing the saved contest until the owner locks the new one.
+  let newDraft = null; // null = automatic, true / false = the owner's button
+  function wantNew() {
+    if (!API || !API.owner || !API.contest) return false;
+    if (newDraft !== null) return newDraft;
+    if (Date.now() < API.contest.lock_at) return false;
+    const d = draftContest();
+    return !!d && d.id !== API.contest.id;
+  }
+  const isPreview = () => !!(API && API.owner && (!API.contest || wantNew()));
+  const saved = () => (isPreview() ? null : API && API.contest); // the contest members are in, unless previewing
+  const contest = () => (isPreview() ? draftContest() : (API && API.contest) || null);
+  const gameLocked = (c, g) => !!(saved() && Date.now() >= lockOf(c, g));
+  const isLocked = () => !!(saved() && Date.now() >= saved().lock_at);
+  const anyLocked = () => !!(saved() && saved().games.some((g) => gameLocked(saved(), g)));
   // Lock times in order, each with its games ("Wed", "Thu / Fri").
   function lockGroups(c) {
     const by = new Map();
@@ -349,10 +362,10 @@
     const n = slots.filter((s) => picks[s.id]).length;
     const start = STAKE * slots.length;
     const best = slots.reduce((sum, s) => { const p = playerOf(s, picks[s.id]); return sum + (p ? profit(p.odds) : 0); }, 0);
-    const priced = API.contest ? `Locked ${etLabel(API.contest.priced_at, { weekday: "short", hour: "numeric", minute: "2-digit" })}` : "Not Locked Yet";
+    const priced = saved() ? `Locked ${etLabel(saved().priced_at, { weekday: "short", hour: "numeric", minute: "2-digit" })}` : "Not Locked Yet";
     const groups = lockGroups(c);
     const locks = groups.map((grp) => {
-      const done = API.contest && Date.now() >= grp.at;
+      const done = saved() && Date.now() >= grp.at;
       return `<div class="od-tile ct-lock"><small>${groups.length > 1 ? `${esc(grp.days)} Picks Lock` : "Picks Lock"}</small><b>${done ? "Locked" : lockLabel(grp.at)}</b></div>`;
     }).join("");
     return `<div class="ct-strip">
@@ -379,9 +392,11 @@
           <button type="button" class="ct-chip${isThree ? "" : " on"}" data-act="format" data-three="0">One Pick A Game</button>
           <button type="button" class="ct-chip${isThree ? " on" : ""}" data-act="format" data-three="1">Three A Game: First TD + One Per Team</button></div>
         ${thin.length ? `<span class="ct-warn">Few Prices Yet: ${esc(thin.join(", "))}</span>` : ""}
-        <button type="button" class="ct-go" data-act="open">Lock FanDuel Prices &amp; Open Contest</button></div>`;
+        <button type="button" class="ct-go" data-act="open">Lock FanDuel Prices &amp; Open Contest</button>
+        ${API.contest ? `<button type="button" class="ct-sm" data-act="old">Show Last Contest's Results (Members Still See It)</button>` : ""}</div>`;
     }
     return `<div class="ct-ownerbar"><b>Only You See This.</b> Prices locked ${esc(etLabel(c.priced_at, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))} ET, ${API.entries.length} ${API.entries.length === 1 ? "entry" : "entries"}.
+      ${isLocked() ? `<button type="button" class="ct-sm" data-act="new">Start This Week's Contest</button>` : ""}
       ${anyLocked() ? "" : `<button type="button" class="ct-sm" data-act="relock">Re-Lock Prices Now (Keeps Entries)</button><button type="button" class="ct-sm ct-danger" data-act="clear">Re-Lock And Clear All Entries</button>`}</div>`;
   }
 
@@ -442,7 +457,7 @@
     const d = API.defaults || {};
     const changed = !me || slots.some((s) => !gameLocked(c, s.g) && (me.picks || {})[s.id] !== picks[s.id]);
     const open = slots.filter((s) => !gameLocked(c, s.g));
-    const nextLock = groups.find((grp) => !API.contest || Date.now() < grp.at);
+    const nextLock = groups.find((grp) => !saved() || Date.now() < grp.at);
     let submit = "";
     if (isPreview()) submit = `<div class="ct-submit"><span class="ct-saved ct-info">Preview: entries open once you lock prices.</span></div>`;
     else if (isLocked()) submit = me ? `<div class="ct-submit"><span class="ct-saved">&#128274; Your Entry Is Locked In As &ldquo;${esc(me.name)}&rdquo;.</span></div>` : `<div class="ct-submit"><span class="ct-saved ct-info">&#128274; Picks Locked At ${lockLabel(c.lock_at)}. You Did Not Enter This Week.</span></div>`;
@@ -780,6 +795,13 @@
         }
         return r.ok ? load() : render();
       }
+      if (what === "new" || what === "old") {
+        newDraft = what === "new";
+        tab = "picks";
+        openEntry = null;
+        loadPicks();
+        return render();
+      }
       if (what === "game") {
         const id = act.dataset.id;
         if (draftOpts.off.has(id)) draftOpts.off.delete(id);
@@ -811,8 +833,11 @@
         if (what === "open" && !confirm(`Lock prices now and open the contest to members? ${fresh.games.length} games, ${slotsOf(fresh).length} picks; ${locks}.`)) return;
         if (what === "relock" && !confirm("Replace every price with FanDuel's price right now? Entries stay, but their prices change.")) return;
         if (what === "clear" && !confirm("Re-lock prices AND delete every entry? This can't be undone.")) return;
-        const r = await post({ action: "open", contest: fresh, clear: what === "clear" });
+        // A new contest saved over a finished one with the same id starts with no entries.
+        const reused = what === "open" && API.contest && API.contest.id === fresh.id;
+        const r = await post({ action: "open", contest: fresh, clear: what === "clear" || !!reused });
         if (!r.ok) alert(`Couldn't lock prices (${r.error || "error"}).`);
+        else newDraft = null; // the new contest is the saved one now
         return load();
       }
       if (what === "mark") {
