@@ -25,7 +25,7 @@ jobs:
       - name: Ask SmartStake what it has
         env:
           SMARTSTAKE_API_KEY: ${{ secrets.SMARTSTAKE_API_KEY }}
-          PROBE: first_basket  # 2026-10-21: only the NBA First Basket look (clear it for the full probe)
+          PROBE: first_td  # 2026-11-24: only the NFL First TD look (first_basket = NBA First Basket; clear it for the full probe)
         run: python tools/smartstake_probe.py
       - name: Commit the result
         run: |

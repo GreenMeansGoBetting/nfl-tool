@@ -137,9 +137,58 @@ def first_basket_look():
     }
 
 
+def first_td_look():
+    """NFL First TD (2026-11-24, the owner: "smartstake most certainly has FIRST TD market"),
+    for the $100 CONTEST's First TD picks at FanDuel's price. The 2026-10-21 market list had no
+    NFL first-scorer key, but the NBA's 1st Points Scorer only showed the big books as alternate
+    quotes. Today's market list, every market whose key or name says first / 1st / scorer, which
+    books quote it and how (side, alternate), with and without the alternate filter. Names and
+    counts only, never prices."""
+    out = {}
+    listed = get("/v1/markets", league="nfl")
+    keys = [m.get("key") for m in (listed.get("data") or []) if isinstance(m, dict)]
+    out["market_list_count"] = len(keys)
+    out["market_list_first"] = [k for k in keys if k and ("first" in k or "1st" in k or "scorer" in k)
+                                and "first_downs" not in k]
+    def scan(**params):
+        seen = collections.defaultdict(collections.Counter)
+        names = {}
+        quotes, cursor, pages = 0, None, 0
+        while pages < 30:
+            page = get("/v1/odds", league="nfl", cursor=cursor, **params)
+            pages += 1
+            if "http_error" in page:
+                return {"error": page}
+            for q in page.get("data") or []:
+                key = str(q.get("market_key") or "")
+                name = str(q.get("market_name") or "")
+                low = f"{key} {name}".lower()
+                if ("first" in low or "1st" in low or "scorer" in low) and "first_downs" not in key and "first downs" not in low                         and "half_1" not in key and "quarter_1" not in key:
+                    quotes += 1
+                    names[key] = name
+                    seen[key][f"{q.get('book')}|{q.get('side')}|alt={q.get('alternate')}"] += 1
+            cursor = page.get("next_cursor")
+            if not cursor:
+                break
+            time.sleep(7)
+        return {"pages": pages, "more_pages": bool(cursor), "quotes": quotes,
+                "markets": {k: {"name": names[k], "books": dict(c)} for k, c in seen.items()}}
+    out["alternate_only"] = scan(alternate="true", live="false", state="NJ")
+    out["main_only"] = scan(alternate="false", live="false", state="NJ")
+    for key in out["market_list_first"][:4]:
+        out[f"market={key}"] = scan(market=key, live="false", state="NJ")
+    return out
+
+
 def main():
     if not os.environ.get("SMARTSTAKE_API_KEY"):
         sys.exit("SMARTSTAKE_API_KEY is not set")
+    if os.environ.get("PROBE") == "first_td":
+        result = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
+        result["nfl_first_td"] = {"generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **first_td_look()}
+        OUT.write_text(json.dumps(result, indent=1, default=str), encoding="utf-8")
+        print(f"wrote {OUT.name}: NFL First TD markets {result['nfl_first_td'].get('market_list_first')}")
+        return
     if os.environ.get("PROBE") == "first_basket":
         # Only the First Basket look; the rest of the saved result stays as it was.
         result = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
