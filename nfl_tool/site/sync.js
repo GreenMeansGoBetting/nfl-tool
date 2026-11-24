@@ -397,6 +397,19 @@ window.GMGSettings = { open: openGmgSettings };
 // "only when people click into nhl today").
 const GMG_UPDATES = [
   {
+    id: "2026-11-24",
+    heading: "Tuesday Updates",
+    items: [
+      ["🏈", "<b>New NFL Tool: Vs Position</b>: what each defense gives up a game to QBs, RBs, WRs and TEs: receiving yards, catches, targets, rushing yards and TDs, for the season, home, away or the last 3, 5 or 8. Pick a game to see each team's players beside what the other defense allows. Red = a bad defense. It's under the Opening Drive Tool in the NFL menu. (Member request)"],
+      ["📈", "<b>Your Model Record</b>: Build Your Model now grades your own slider weights against real results, side by side with GMG's model on the same games, and keeps your scores after kickoff. It starts with this week's games. (Member request)"],
+      ["💰", "<b>Plus / Minus Money Filter</b>: every YTD Model Performance popup has a new Odds menu: Plus Money, Minus Money, +200 Or Longer, and Model Favorite, Plus Money (the model has it as a favorite, the book pays plus). NHL Best Plays has it too. (Member request)"],
+      ["🏒", "<b>Pick A Line</b>: the Skaters menu on NHL Shots, Goals and Points now filters to 1st, 2nd, 3rd or 4th Line, Top 6 or Bottom 6 Forwards, or a D pair, from tonight's projected lineup. (Member request)"],
+      ["🎩", "<b>All / None Buttons</b>: King of the Hat Trick and Icebreaker can now clear every game in one click, then pick the ones you want. (Member request)"],
+      ["🧭", "<b>NHL Vs Position Fix</b>: forwards are now listed where they really play this season, so wingers like Reinhart and Verhaeghe no longer show as centers. (Member request)"],
+      ["🔗", "<b>Pikkit Links</b>: every \"line shop with Pikkit\" reminder now opens Pikkit (code GMG). (Member request)"],
+    ],
+  },
+  {
     id: "2026-11-21",
     heading: "$100 CONTEST",
     until: "2026-11-22",
