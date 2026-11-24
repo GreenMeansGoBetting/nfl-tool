@@ -31,7 +31,7 @@ window.contestDB = () => {
       else if (sql.startsWith("DELETE FROM contest_entries")) for (const k of [...entries.keys()]) if (k.startsWith(`${a[0]}|`)) entries.delete(k);
       return {};
     },
-    first: async () => [...contests.values()].sort((x, y) => y.created - x.created)[0] || null,
+    first: async () => (sql.includes("FROM contest_entries") ? entries.get(`${a[0]}|${a[1]}`) || null : [...contests.values()].sort((x, y) => y.created - x.created)[0] || null),
     all: async () => ({ results: sql.includes("FROM contest_live") ? [...live.values()].filter((r) => r.contest === a[0]) : [...entries.values()].filter((r) => r.contest === a[0]).sort((x, y) => x.updated - y.updated) }),
   });
   return { prepare: (sql) => stmt(sql), live };
@@ -48,7 +48,12 @@ window.fetch = async (url) => {
     { id: "101", status: { type: { state: espnState, shortDetail: espnState === "post" ? "Final" : "5:32 - 2nd" } }, competitions: [{ competitors: [team("BUF", "home"), team("MIA", "away")] }] },
     { id: "102", status: { type: { state: "pre", shortDetail: "11/23 - 8:15 PM EST" } }, competitions: [{ competitors: [team("WSH", "home"), team("CIN", "away")] }] },
   ] });
-  if (url.includes("event=101")) return ok({ boxscore: { players: [
+  // Scoring plays out of order on purpose: a BUF field goal first, then Achane's TD, then a BUF TD.
+  if (url.includes("event=101")) return ok({ scoringPlays: [
+    { type: { abbreviation: "TD", text: "Passing Touchdown" }, text: "Dalton Kincaid 8 Yd pass from Josh Allen (Tyler Bass Kick)", team: { abbreviation: "BUF" }, period: { number: 2 }, clock: { value: 400 } },
+    { type: { abbreviation: "FG", text: "Field Goal" }, text: "Tyler Bass 40 Yd Field Goal", team: { abbreviation: "BUF" }, period: { number: 1 }, clock: { value: 600 } },
+    { type: { abbreviation: "TD", text: "Rushing Touchdown" }, text: "De'Von Achane 5 Yd Run (Jason Sanders Kick)", team: { abbreviation: "MIA" }, period: { number: 1 }, clock: { value: 120 } },
+  ], boxscore: { players: [
     { team: { abbreviation: "MIA" }, statistics: [{ name: "rushing", keys: ["rushingAttempts", "rushingYards", "rushingTouchdowns"], athletes: [{ athlete: { displayName: "De'Von Achane" }, stats: ["12", "60", "1"] }] }] },
     { team: { abbreviation: "BUF" }, statistics: [
       { name: "passing", keys: ["passingYards", "passingTouchdowns"], athletes: [{ athlete: { displayName: "Josh Allen" }, stats: ["200", "1"] }] },
@@ -227,6 +232,12 @@ class Contest(unittest.TestCase):
         mark = {"action": "mark", "g": "2026_11_CIN_WAS", "k": "CIN|Ja'Marr Chase", "result": "hit"}
         self.assertEqual(api(uid=OWNER, method="POST", body=mark)["status"], 409)
 
+    def test_espn_first_td_is_the_earliest_scoring_play_that_is_a_td(self):
+        self.locked()
+        buf = api(uid="456")["body"]["live"]["games"]["2026_11_MIA_BUF"]
+        self.assertEqual((buf["first"]["team"], buf["first"]["name"]), ("MIA", "De'Von Achane"))
+        self.assertIsNone(api(uid="456")["body"]["live"]["games"]["2026_11_CIN_WAS"]["first"])
+
     def test_bad_contest_refused(self):
         bad = contest()
         bad["games"][0]["players"][0]["odds"] = 50  # not American odds
@@ -235,6 +246,84 @@ class Contest(unittest.TestCase):
         bad["games"][0]["players"][0]["team"] = "KC"  # not in this game
         self.assertEqual(api(uid=OWNER, method="POST", body={"action": "open", "contest": bad})["status"], 400)
         self.assertIsNone(api(uid=OWNER)["body"]["contest"])
+        bad = three_contest(60, 120)
+        bad["games"][0]["first"][0]["team"] = "KC"  # a First TD pick from another game
+        self.assertEqual(api(uid=OWNER, method="POST", body={"action": "open", "contest": bad})["status"], 400)
+        bad = three_contest(60, 120)
+        bad["games"][0]["lock_at"] = bad["lock_at"] + 1  # a game locking after the contest closes
+        self.assertEqual(api(uid=OWNER, method="POST", body={"action": "open", "contest": bad})["status"], 400)
+
+
+# Three picks a game (2026-11-24): the game's First TD + one anytime per team; Wednesday locks alone.
+WED, THU = "2026_12_GB_LA", "2026_12_CHI_DET"
+
+
+def three_contest(wed_in_s, thu_in_s):
+    now = time.time()
+    wed, thu = int((now + wed_in_s) * 1000), int((now + thu_in_s) * 1000)
+    p = lambda team, name, odds: {"k": f"{team}|{name}", "name": name, "pos": "RB", "team": team, "odds": odds}
+    return {
+        "id": "2026_12", "season": 2026, "week": 12, "lock_at": max(wed, thu), "book": "FanDuel", "first_book": "FanDuel", "title": "$100 Thanksgiving Contest",
+        "games": [
+            {"id": WED, "away": "GB", "home": "LA", "day": "Wednesday", "time": "20:00", "lock_at": wed,
+             "players": [p("GB", "Josh Jacobs", -120), p("GB", "Tucker Kraft", 250), p("LA", "Kyren Williams", -150)],
+             "first": [p("GB", "Josh Jacobs", 550), p("LA", "Kyren Williams", 450)]},
+            {"id": THU, "away": "CHI", "home": "DET", "day": "Thursday", "time": "13:00", "lock_at": thu,
+             "players": [p("CHI", "D'Andre Swift", 120), p("DET", "Jahmyr Gibbs", -200)],
+             "first": [p("CHI", "D'Andre Swift", 800), p("DET", "Jahmyr Gibbs", 350)]},
+        ],
+    }
+
+
+WED_PICKS = {f"{WED}:F": "LA|Kyren Williams", f"{WED}:A": "GB|Josh Jacobs", f"{WED}:H": "LA|Kyren Williams"}
+THU_PICKS = {f"{THU}:F": "DET|Jahmyr Gibbs", f"{THU}:A": "CHI|D'Andre Swift", f"{THU}:H": "DET|Jahmyr Gibbs"}
+
+
+class ThreePicks(unittest.TestCase):
+    def setUp(self):
+        base.PAGE.evaluate("() => { window.DB = contestDB(); espnCalls.length = 0; espnState = 'in'; }")
+
+    def open(self, wed_in_s, thu_in_s):
+        return api(uid=OWNER, method="POST", body={"action": "open", "contest": three_contest(wed_in_s, thu_in_s)})
+
+    def test_every_open_pick_needed(self):
+        self.assertEqual(self.open(3600, 7200)["status"], 200)
+        self.assertEqual(api(uid="123")["body"]["contest"]["title"], "$100 Thanksgiving Contest")
+        five = {**WED_PICKS, **THU_PICKS}
+        del five[f"{THU}:H"]
+        self.assertEqual(enter("123", picks=five)["body"]["error"], "picks")
+        self.assertEqual(enter("123", picks={**WED_PICKS, **THU_PICKS, f"{THU}:A": "DET|Jahmyr Gibbs"})["body"]["error"], "picks")  # a DET player in CHI's pick
+        self.assertEqual(enter("123", picks={**WED_PICKS, **THU_PICKS})["status"], 200)
+        self.assertEqual(api(uid="123")["body"]["me"]["picks"], {**WED_PICKS, **THU_PICKS})
+
+    def test_wednesday_locks_alone_late_entries_and_the_picks_that_show(self):
+        self.open(3600, 7200)
+        enter("123", picks={**WED_PICKS, **THU_PICKS})
+        self.open(-60, 7200)  # Wednesday's game has kicked off
+        changed = {**WED_PICKS, f"{WED}:F": "GB|Josh Jacobs", **THU_PICKS, f"{THU}:F": "CHI|D'Andre Swift"}
+        self.assertEqual(enter("123", picks=changed)["status"], 200)
+        mine = api(uid="123")["body"]["me"]["picks"]
+        self.assertEqual(mine[f"{WED}:F"], "LA|Kyren Williams")  # locked: the change is ignored
+        self.assertEqual(mine[f"{THU}:F"], "CHI|D'Andre Swift")  # still open: changed
+        # A member entering Thursday morning: only the open games' picks.
+        self.assertEqual(enter("789", picks=THU_PICKS)["status"], 200)
+        self.assertEqual(api(uid="789")["body"]["me"]["picks"], THU_PICKS)
+        # Everyone sees Wednesday's picks, nobody else's Thursday ones; the owner sees everything.
+        got = api(uid="456")["body"]
+        self.assertFalse(got["locked"])
+        by = {e["name"]: e for e in got["entries"]}
+        self.assertEqual(by["Bet Wizard"]["picks"], {})  # 789 made no Wednesday picks (same name: newest last)
+        self.assertIn("live", got)  # the live feed starts with the first lock
+        first = got["entries"][0]
+        self.assertEqual(first["picks"], WED_PICKS)
+        self.assertEqual(len(api(uid=OWNER)["body"]["entries"][0]["picks"]), 6)
+        # Hand results: by pick, only for a locked game.
+        mark = {"action": "mark", "g": f"{WED}:F", "k": "LA|Kyren Williams", "result": "hit"}
+        self.assertEqual(api(uid=OWNER, method="POST", body=mark)["status"], 200)
+        self.assertEqual(api(uid=OWNER, method="POST", body={**mark, "g": f"{THU}:F", "k": "DET|Jahmyr Gibbs"})["status"], 409)
+        # Thursday's kickoff: entries close.
+        self.open(-120, -60)
+        self.assertEqual(enter("999", picks={})["body"]["error"], "locked")
 
 
 if __name__ == "__main__":

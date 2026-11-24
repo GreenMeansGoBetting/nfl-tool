@@ -24,6 +24,9 @@ NFL_PROP_MARKETS = {
     "football_player_passing_rushing_yards": "passing+rushing_yards",
 }
 NFL_TD_MARKET = "football_player_touchdowns"  # Anytime TD, quoted as Over 0.5
+# First TD (2026-11-24, the $100 CONTEST's First TD picks at FanDuel's price): a Yes / No market,
+# kept as book_odds[game].props.first_td (Yes as "o"). Not on SmartStake's NFL list in October.
+NFL_FIRST_TD_MARKET = "football_player_first_touchdown_scorer_yes_no"
 NFL_LINE_MARKETS = {"football_moneyline": "ml", "football_points_handicap": "spread", "football_points": "total"}
 
 NFL_TEAMS = {
@@ -40,8 +43,8 @@ NFL_TEAMS = {
 
 def build_nfl_book_odds(quotes: list, roster_names=()) -> dict:
     """SmartStake quotes -> the NFL's book_odds (smartstake.build_book_odds with the NFL's markets)."""
-    return ss.build_book_odds(quotes, NFL_TEAMS, roster_names, prop_markets=NFL_PROP_MARKETS, td_market=NFL_TD_MARKET,
-                              line_markets=NFL_LINE_MARKETS, yes_markets=(NFL_TD_MARKET,))
+    return ss.build_book_odds(quotes, NFL_TEAMS, roster_names, prop_markets={**NFL_PROP_MARKETS, NFL_FIRST_TD_MARKET: "first_td"},
+                              td_market=NFL_TD_MARKET, line_markets=NFL_LINE_MARKETS, yes_markets=(NFL_TD_MARKET, NFL_FIRST_TD_MARKET))
 
 
 def fetch_nfl_book_odds(api_key: str | None, roster_names, previous: dict | None, now_iso: str, keep=None) -> tuple:
@@ -63,12 +66,22 @@ def fetch_nfl_book_odds(api_key: str | None, roster_names, previous: dict | None
         except Exception as e:
             print(f"WARNING: SmartStake anytime TD fetch failed ({e}) -- TD prices left out this run.", file=sys.stderr)
             td_debug = str(e)[:200]
+        # First TD on its own call too (alternate quotes kept, like the anytime TD): a failure costs only First TD.
+        first_debug = None
+        try:
+            quotes += ss.fetch_quotes(api_key, "nfl", [NFL_FIRST_TD_MARKET], max_pages=30, alternate=True)
+        except Exception as e:
+            print(f"WARNING: SmartStake First TD fetch failed ({e}) -- First TD prices left out this run.", file=sys.stderr)
+            first_debug = str(e)[:200]
         games = build_nfl_book_odds(quotes, roster_names)
         books = sorted({q["book"] for q in quotes})
         td_books = sorted({q["book"] for q in quotes if q.get("market_key") == NFL_TD_MARKET})
-        debug = {"quotes": len(quotes), "games": len(games), "books": books, "td_books": td_books}
+        first_books = sorted({q["book"] for q in quotes if q.get("market_key") == NFL_FIRST_TD_MARKET})
+        debug = {"quotes": len(quotes), "games": len(games), "books": books, "td_books": td_books, "first_td_books": first_books}
         if td_debug:
             debug["td_error"] = td_debug
+        if first_debug:
+            debug["first_td_error"] = first_debug
         return ss.only_games(ss.lock_started(games, previous, now_iso), keep), debug
     except Exception as e:
         print(f"WARNING: SmartStake fetch failed ({e}) -- book odds left out this run.", file=sys.stderr)

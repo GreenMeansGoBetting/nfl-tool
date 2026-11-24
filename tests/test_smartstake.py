@@ -91,6 +91,42 @@ class BookOdds(unittest.TestCase):
         self.assertEqual(odds["CIN_PIT"]["lines"]["ml"][0][0], "betmgm")
         self.assertIn("td down", debug["td_error"])
 
+    def test_first_td_is_its_own_call_and_a_failure_costs_only_first_td(self):
+        # 2026-11-24: the $100 CONTEST's First TD picks at FanDuel's price.
+        calls = []
+
+        def fetch(key, league, markets, max_pages=30, alternate=False):
+            calls.append((tuple(markets), alternate))
+            if markets == [nfl_odds.NFL_FIRST_TD_MARKET]:
+                return [quote("fanduel", nfl_odds.NFL_FIRST_TD_MARKET, "yes", None, 750, "Chase Brown", 9, alternate=True),
+                        quote("stake", nfl_odds.NFL_FIRST_TD_MARKET, "no", None, -2000, "Chase Brown", 9)]
+            if markets == [nfl_odds.NFL_TD_MARKET]:
+                return [quote("fanduel", nfl_odds.NFL_TD_MARKET, "yes", 0.5, 165, "Chase Brown", 9, alternate=True)]
+            return []
+
+        original = smartstake.fetch_quotes
+        smartstake.fetch_quotes = fetch
+        try:
+            odds, debug = nfl_odds.fetch_nfl_book_odds("key", ["Chase Brown"], None, "2026-10-18T00:00:00Z")
+        finally:
+            smartstake.fetch_quotes = original
+        self.assertIn(((nfl_odds.NFL_FIRST_TD_MARKET,), True), calls)
+        self.assertEqual(odds["CIN_PIT"]["props"]["first_td"]["chasebrown"]["q"], [["fanduel", "o", None, 750, "https://fanduel.test/x"]])  # No left out
+        self.assertEqual(debug["first_td_books"], ["fanduel", "stake"])
+
+        def first_down(key, league, markets, max_pages=30, alternate=False):
+            if markets == [nfl_odds.NFL_FIRST_TD_MARKET]:
+                raise OSError("first td down")
+            return fetch(key, league, markets, max_pages, alternate)
+
+        smartstake.fetch_quotes = first_down
+        try:
+            odds, debug = nfl_odds.fetch_nfl_book_odds("key", ["Chase Brown"], None, "2026-10-18T00:00:00Z")
+        finally:
+            smartstake.fetch_quotes = original
+        self.assertIn("first td down", debug["first_td_error"])
+        self.assertEqual(odds["CIN_PIT"]["td"]["chasebrown"]["q"][0][3], 165)  # the anytime TD still came in
+
     def test_game_lines_use_away_and_home(self):
         games = nfl_odds.build_nfl_book_odds([
             quote("betmgm", "football_moneyline", "awayteam", None, 140),

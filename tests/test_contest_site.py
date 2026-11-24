@@ -63,6 +63,7 @@ def open_page(api, owner=False, data=None):
     posts = []
     page = SITE.context.new_page()
     page.on("pageerror", lambda err: SITE.errors.append(str(err)))
+    page.add_init_script("try { localStorage.removeItem('nfl-tool.contest-draft.v1'); } catch (e) {}")  # each test starts with no draft
 
     def handle(route):
         if route.request.method == "POST":
@@ -111,11 +112,13 @@ class Page(unittest.TestCase):
         page, posts = open_page({"contest": None}, owner=True)
         page.wait_for_selector(".ct-row")
         self.assertEqual(page.locator(".ct-row").count(), 2)  # the finished Thursday game left out
+        page.locator("[data-act=format][data-three='0']").click()  # two games default to three picks a game
         page.on("dialog", lambda d: d.accept())
         page.locator("[data-act=open]").click()
         page.wait_for_function("() => true")
         sent = posts[0]["contest"]
         self.assertEqual(sent["id"], "2026_11")
+        self.assertEqual(sent["title"], "$100 CONTEST")  # a normal week keeps the usual name
         buf = [p for p in sent["games"][0]["players"] if p["team"] == "BUF"]
         self.assertEqual([(p["name"], p["odds"]) for p in buf], [("James Cook", -150)])  # no FanDuel price, not listed
         # Sunday 1:00 PM Eastern on the Sunday game's date (EST: 18:00 UTC).
@@ -132,6 +135,7 @@ class Page(unittest.TestCase):
         try:
             page, posts = open_page({"contest": None}, owner=True)
             page.wait_for_selector(".ct-row")
+            page.locator("[data-act=format][data-three='0']").click()
             said = []
             page.on("dialog", lambda d: (said.append(d.message), d.accept()))
             page.locator("[data-act=open]").click()
@@ -151,6 +155,7 @@ class Page(unittest.TestCase):
         try:
             page, posts = open_page({"contest": None}, owner=True)
             page.wait_for_selector(".ct-row")
+            page.locator("[data-act=format][data-three='0']").click()
             slots = page.locator(".ct-slot").all_inner_texts()
             self.assertEqual(slots, ["Sunday 1:00 PM ET", "Sunday 4:25 PM ET"])
             page.on("dialog", lambda d: d.accept())
@@ -214,9 +219,10 @@ class Page(unittest.TestCase):
         page, _ = open_page({"contest": {**CONTEST, "lock_at": EARLIER}, "locked": True, "live": live, "marks": {"2026_11_CIN_WAS": {"CIN|Ja'Marr Chase": "hit"}}}, data={**DATA, "player_td_results": {}, "player_snaps": {}})
         got = page.evaluate("""() => {
           const c = """ + json.dumps({**CONTEST, "week": 11}) + """;
-          const p = (g, k) => c.games[g].players.find((x) => x.k === k);
+          const S = window.GMGContest.slotsOf(c);
+          const p = (g, k) => S[g].list.find((x) => x.k === k);
           const G = window.GMGContest.gradePick;
-          return [G(c, c.games[0], p(0, "MIA|De'Von Achane")), G(c, c.games[0], p(0, "BUF|James Cook")), G(c, c.games[1], p(1, "CIN|Ja'Marr Chase")), G(c, c.games[1], p(1, "WAS|Terry McLaurin"))];
+          return [G(c, S[0], p(0, "MIA|De'Von Achane")), G(c, S[0], p(0, "BUF|James Cook")), G(c, S[1], p(1, "CIN|Ja'Marr Chase")), G(c, S[1], p(1, "WAS|Terry McLaurin"))];
         }""")
         # Final with no TD = miss; "J. Cook" on his team = James Cook; the owner's mark wins; not started = pending.
         self.assertEqual(got, ["miss", "hit", "hit", "pending"])
@@ -259,6 +265,161 @@ class Page(unittest.TestCase):
           return list.sort(window.GMGContest.compareEntries).map((x) => x.name);
         }""")
         self.assertEqual(order, ["Top", "One Hit Longer", "One Hit", "Two Hits"])
+        page.close()
+
+
+# Three picks a game (2026-11-24, Thanksgiving week): the game's First TD scorer (either team) plus
+# one anytime TD per team; the Wednesday game locks at its kickoff, Thursday / Friday together.
+WED, THU = "2026_12_GB_LA", "2026_12_CHI_DET"
+THREE = {
+    "id": "2026_12", "season": 2026, "week": 12, "book": "FanDuel", "first_book": "Novig", "priced_at": 1795000000000,
+    "games": [
+        {"id": WED, "away": "GB", "home": "LA", "day": "Wednesday", "time": "20:00", "kickoff": "2099-11-26T01:00:00.000Z", "players": [
+            {"k": "GB|Josh Jacobs", "name": "Josh Jacobs", "pos": "RB", "team": "GB", "odds": -120},
+            {"k": "GB|Tucker Kraft", "name": "Tucker Kraft", "pos": "TE", "team": "GB", "odds": 250},
+            {"k": "LA|Kyren Williams", "name": "Kyren Williams", "pos": "RB", "team": "LA", "odds": -150},
+            {"k": "LA|Puka Nacua", "name": "Puka Nacua", "pos": "WR", "team": "LA", "odds": 110}],
+         "first": [
+            {"k": "GB|Josh Jacobs", "name": "Josh Jacobs", "pos": "RB", "team": "GB", "odds": 550},
+            {"k": "LA|Kyren Williams", "name": "Kyren Williams", "pos": "RB", "team": "LA", "odds": 450},
+            {"k": "LA|Puka Nacua", "name": "Puka Nacua", "pos": "WR", "team": "LA", "odds": 650}]},
+        {"id": THU, "away": "CHI", "home": "DET", "day": "Thursday", "time": "13:00", "kickoff": "2099-11-26T18:00:00.000Z", "players": [
+            {"k": "CHI|D'Andre Swift", "name": "D'Andre Swift", "pos": "RB", "team": "CHI", "odds": 120},
+            {"k": "DET|Jahmyr Gibbs", "name": "Jahmyr Gibbs", "pos": "RB", "team": "DET", "odds": -200}],
+         "first": [
+            {"k": "CHI|D'Andre Swift", "name": "D'Andre Swift", "pos": "RB", "team": "CHI", "odds": 800},
+            {"k": "DET|Jahmyr Gibbs", "name": "Jahmyr Gibbs", "pos": "RB", "team": "DET", "odds": 350}]},
+    ],
+}
+
+
+def three(wed_lock, thu_lock):
+    c = json.loads(json.dumps(THREE))
+    c["games"][0]["lock_at"], c["games"][1]["lock_at"] = wed_lock, thu_lock
+    c["lock_at"] = max(wed_lock, thu_lock)
+    return c
+
+
+WEEK12 = {
+    "season": 2026, "current_week": 12,
+    "schedule": [
+        {"game_id": "2026_12_GB_LA", "week": 12, "date": "2099-11-25", "time": "20:00", "away": "GB", "home": "LA"},
+        {"game_id": "2026_12_CHI_DET", "week": 12, "date": "2099-11-26", "time": "13:00", "away": "CHI", "home": "DET"},
+        {"game_id": "2026_12_DEN_PIT", "week": 12, "date": "2099-11-27", "time": "15:00", "away": "DEN", "home": "PIT"},
+        {"game_id": "2026_12_SF_SEA", "week": 12, "date": "2099-11-29", "time": "13:00", "away": "SF", "home": "SEA"},
+    ],
+    "player_td_odds": {t: [{"name": f"{t} Back", "position": "RB", "best_odds": 100, "fd": 110}] for t in ("GB", "LA", "CHI", "DET", "DEN", "PIT", "SF", "SEA")},
+    # SmartStake's First TD market: FanDuel's Yes as "o" (Novig's First TD in player_first_td_odds is never used).
+    "book_odds": {f"{a}_{h}": {"props": {"first_td": {
+        f"{t.lower()}back": {"name": f"{t} Back", "q": [["draftkings", "o", None, 650, ""], ["fanduel", "o", None, 700, ""]]} for t in (a, h)}}}
+        for a, h in (("GB", "LA"), ("CHI", "DET"), ("DEN", "PIT"), ("SF", "SEA"))},
+    "player_first_td_odds": {t: [{"name": f"{t} Back", "position": "RB", "best_odds": 600}] for t in ("GB", "LA", "CHI", "DET", "DEN", "PIT", "SF", "SEA")},
+}
+
+
+class ThreePicks(unittest.TestCase):
+    def setUp(self):
+        SITE.errors.clear()
+        SITE.user = None
+
+    def tearDown(self):
+        self.assertEqual(SITE.errors, [])
+
+    def test_three_picks_a_game_first_td_from_either_team_then_one_per_team(self):
+        page, posts = open_page({"contest": three(LATER, LATER)})
+        self.assertIn("Pick 6 More", page.locator(".ct-go").inner_text())
+        # The First TD pick opens first, with both teams' First TD prices.
+        self.assertEqual(page.locator(".ct-drop .ct-team").count(), 2)
+        self.assertIn("+450", page.locator(".ct-p", has_text="Kyren Williams").inner_text())
+        page.locator(".ct-p", has_text="Kyren Williams").click()
+        self.assertEqual(page.locator(".ct-drop .ct-team").count(), 1)  # then GB's anytime list alone
+        page.locator(".ct-p", has_text="Josh Jacobs").click()
+        page.locator(".ct-p", has_text="Kyren Williams").click()  # the same player again is fine
+        page.locator(".ct-p", has_text="Jahmyr Gibbs").click()
+        page.locator(".ct-p", has_text="D'Andre Swift").click()
+        page.locator(".ct-p", has_text="Jahmyr Gibbs").click()
+        self.assertEqual(page.locator(".ct-go").inner_text(), "Submit Entry")
+        self.assertIn("6 of 6", page.locator(".ct-strip").inner_text())
+        page.locator(".ct-go").click()
+        page.wait_for_function("() => true")
+        self.assertEqual(posts[0]["picks"], {
+            f"{WED}:F": "LA|Kyren Williams", f"{WED}:A": "GB|Josh Jacobs", f"{WED}:H": "LA|Kyren Williams",
+            f"{THU}:F": "DET|Jahmyr Gibbs", f"{THU}:A": "CHI|D'Andre Swift", f"{THU}:H": "DET|Jahmyr Gibbs"})
+        page.close()
+
+    def test_a_late_entry_skips_the_locked_game_and_is_told_it_costs_30(self):
+        page, posts = open_page({"contest": three(EARLIER, LATER)})
+        wed = page.locator(".ct-row").nth(0)
+        self.assertIn("Locked", wed.inner_text())
+        self.assertEqual(wed.locator(".ct-pickbtn", has_text="No Pick").count(), 3)
+        self.assertIn("Pick 3 More", page.locator(".ct-go").inner_text())
+        self.assertIn("Count As Losses", page.locator(".ct-submit").inner_text())
+        self.assertIn("$30", page.locator(".ct-submit").inner_text())
+        for name in ("Jahmyr Gibbs", "D'Andre Swift", "Jahmyr Gibbs"):
+            page.locator(".ct-p", has_text=name).click()
+        page.locator(".ct-go").click()
+        page.wait_for_function("() => true")
+        self.assertEqual(sorted(posts[0]["picks"]), [f"{THU}:A", f"{THU}:F", f"{THU}:H"])
+        page.close()
+
+    def test_first_td_grades_from_espn_and_a_missed_pick_loses_10(self):
+        live = {"fetched": 1, "games": {WED: {"state": "post", "final": True, "detail": "Final", "first": {"team": "LA", "name": "Kyren Williams"}, "teams": {
+            "LA": {"tds": {"Kyren Williams": 1, "Puka Nacua": 1}, "played": ["Kyren Williams", "Puka Nacua"]},
+            "GB": {"tds": {}, "played": ["Josh Jacobs"]}}}}}
+        a = {"name": "Early", "updated": 1, "picks": {f"{WED}:F": "LA|Kyren Williams", f"{WED}:A": "GB|Josh Jacobs", f"{WED}:H": "LA|Puka Nacua",
+                                                      f"{THU}:F": "DET|Jahmyr Gibbs", f"{THU}:A": "CHI|D'Andre Swift", f"{THU}:H": "DET|Jahmyr Gibbs"}}
+        b = {"name": "Stacker", "updated": 2, "picks": {f"{WED}:F": "LA|Puka Nacua", f"{WED}:A": "GB|Tucker Kraft", f"{WED}:H": "LA|Kyren Williams",
+                                                        f"{THU}:F": "DET|Jahmyr Gibbs", f"{THU}:A": "CHI|D'Andre Swift", f"{THU}:H": "DET|Jahmyr Gibbs"}}
+        late = {"name": "Late", "updated": 3, "picks": {f"{THU}:F": "DET|Jahmyr Gibbs", f"{THU}:A": "CHI|D'Andre Swift", f"{THU}:H": "DET|Jahmyr Gibbs"}}
+        data = {**DATA, "current_week": 12, "player_td_results": {}, "player_snaps": {}}
+        page, _ = open_page({"contest": three(EARLIER, EARLIER), "locked": True, "entries": [late, b, a], "live": live, "marks": {}}, data=data)
+        page.locator("[data-tab=board]").click()
+        rows = page.locator(".ct-lbrow")
+        self.assertEqual([rows.nth(i).locator(".ct-name").inner_text() for i in range(3)], ["Early", "Stacker", "Late"])
+        self.assertIn("$106", rows.nth(0).inner_text())  # $60 + $45 (Kyren first, +450) - $10 (Jacobs) + $11 (Puka)
+        self.assertIn("$56.67", rows.nth(1).inner_text())  # - $10 (Puka not first), Kraft not in the box: back, + $6.67
+        self.assertIn("$30", rows.nth(2).inner_text())  # three missed Wednesday picks
+        page.locator("[data-tab=track]").click()
+        track = page.locator(".ct-track").inner_text()
+        self.assertIn("1st TD: Kyren Williams", track)
+        self.assertIn("Scored First", track)
+        self.assertIn("Not First", track)
+        page.close()
+
+    def test_owner_preview_three_a_game_wed_alone_then_thu_fri_together(self):
+        page, posts = open_page({"contest": None}, owner=True, data=WEEK12)
+        page.wait_for_selector(".ct-row")
+        self.assertEqual(page.locator(".ct-row").count(), 3)  # Sunday left out by default
+        self.assertEqual(page.locator(".ct-chip.on[data-act=game]").count(), 3)
+        self.assertEqual(page.locator(".ct-chip.on[data-act=format]").inner_text(), "Three A Game: First TD + One Per Team")
+        page.on("dialog", lambda d: d.accept())
+        page.locator("[data-act=open]").click()
+        page.wait_for_function("() => true")
+        sent = posts[0]["contest"]
+        wed = page.evaluate("() => window.GMGContest.easternToUtc('2099-11-25', '20:00')")
+        thu = page.evaluate("() => window.GMGContest.easternToUtc('2099-11-26', '13:00')")
+        self.assertEqual([g["lock_at"] for g in sent["games"]], [wed, thu, thu])
+        self.assertEqual(sent["lock_at"], thu)
+        self.assertEqual(sent["title"], "$100 Thanksgiving Contest")  # Thanksgiving week's own name
+        self.assertEqual(page.locator(".ct-title").inner_text(), "$100 Thanksgiving Contest")
+        self.assertEqual(sent["first_book"], "FanDuel")
+        self.assertEqual(sent["games"][0]["first"][0]["odds"], 700)  # FanDuel's, not DraftKings' or Novig's
+        self.assertEqual(sent["games"][0]["players"][0]["odds"], 110)  # anytime: FanDuel
+        page.close()
+
+    def test_no_fanduel_first_td_for_a_game_refuses_the_lock(self):
+        # 2026-11-24: SmartStake had DraftKings' First TD but not FanDuel's yet. The owner: FanDuel only.
+        data = json.loads(json.dumps(WEEK12))
+        for row in data["book_odds"]["CHI_DET"]["props"]["first_td"].values():
+            row["q"] = [q for q in row["q"] if q[0] != "fanduel"]
+        page, posts = open_page({"contest": None}, owner=True, data=data)
+        page.wait_for_selector(".ct-row")
+        said = []
+        page.on("dialog", lambda d: (said.append(d.message), d.accept()))
+        page.locator("[data-act=open]").click()
+        page.wait_for_function("() => true")
+        self.assertEqual(posts, [])
+        self.assertIn("CHI @ DET (First TD)", said[0])
         page.close()
 
 

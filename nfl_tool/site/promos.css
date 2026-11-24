@@ -178,6 +178,28 @@ table.ct-track { width: auto; }
 .ct-marks { display: flex; gap: 3px; }
 .ct-marks .ct-sm { padding: 4px 7px; }
 .ct-marks .ct-sm.on { background: rgba(150, 100, 220, 0.3); border-color: rgba(150, 100, 220, 0.8); }
+/* Three picks a game (2026-11-24): First TD + one anytime per team, each game locks on its own */
+.ct-pickbtn { cursor: pointer; border: 1px solid transparent; }
+.ct-pickbtn.open { outline: 2px solid var(--accent); outline-offset: -2px; }
+.ct-row { cursor: default; }
+.ct-three .ct-pickbtn { width: 186px; font-size: 0.9rem; padding: 5px 6px; }
+.ct-games .od-tile small { display: block; font-size: 0.62rem; }
+.ct-locktile { min-width: 96px !important; text-align: center; background: rgba(var(--bad-rgb), 0.16); border: 1px solid rgba(var(--bad-rgb), 0.5); }
+.ct-locktile b { font-size: 0.82rem; }
+.ct-locktile.done { background: var(--panel-2); border-color: var(--border-strong); }
+.ct-kind { margin-left: auto; font-size: 0.72rem; padding: 1px 6px; border-radius: 5px; background: rgba(150, 100, 220, 0.3); border: 1px solid rgba(150, 100, 220, 0.7); }
+.ct-ownerrow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; width: 100%; }
+.ct-olabel { font-weight: 800; min-width: 56px; }
+#ct-cname { font: inherit; font-weight: 700; font-size: 0.85rem; padding: 3px 8px; width: 260px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); }
+.ct-chip { font: inherit; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; color: var(--text); background: var(--panel-2); border: 1px dashed var(--border-strong); opacity: 0.6; }
+.ct-chip small { font-size: 0.68rem; }
+.ct-chip.on { opacity: 1; border-style: solid; border-color: var(--accent); background: rgba(var(--accent-rgb), 0.18); }
+.ct-slottag { flex: none; font-size: 0.66rem; font-weight: 800; padding: 1px 5px; border-radius: 4px; background: rgba(var(--accent-rgb), 0.16); border: 1px solid rgba(var(--accent-rgb), 0.5); }
+.ct-slottag.first { background: rgba(150, 100, 220, 0.3); border-color: rgba(150, 100, 220, 0.75); }
+.ct-first { margin-top: 3px; font-size: 0.74rem; font-weight: 800; padding: 3px 6px; border-radius: 6px; background: rgba(150, 100, 220, 0.2); border: 1px solid rgba(150, 100, 220, 0.55); }
+.ct-picks-grid.three { grid-template-columns: repeat(3, 160px); }
+.ct-pk .g i, .ct-mp .g i { font-style: normal; margin-left: auto; padding: 0 4px; border-radius: 4px; background: rgba(150, 100, 220, 0.25); }
+.ct-mp { grid-template-columns: 136px 150px 48px; }
 @media (max-width: 760px) {
   /* $100 CONTEST: the game list and leaderboard scroll in their own box; both teams stack */
   #ct-view { overflow-x: auto; }
@@ -186,4 +208,6 @@ table.ct-track { width: auto; }
   .ct-pickbtn { width: 170px; }
   .ct-picks-grid { grid-template-columns: repeat(2, 140px); }
   .ct-diff { overflow-x: auto; }
+  .ct-three .ct-pickbtn { width: 140px; }
+  .ct-picks-grid.three { grid-template-columns: repeat(3, 120px); }
 }

@@ -429,10 +429,29 @@ async function handlePromoPayouts(request, env, session, json, promo) {
 // after it nothing changes. Before the lock a member sees who entered but not
 // their picks; the contact (email / Discord name) is only ever sent to the
 // owner. The page grades from data.json. Tables are made on first use.
+// Three picks a game (2026-11-24, Thanksgiving week): a game with a `first` list takes the
+// game's First TD scorer plus one anytime TD per team (ids "<game>:F" / ":A" / ":H", like
+// contest.js slotsOf). Each game can lock at its own time (`lock_at`; the contest's lock_at is the
+// last one): a locked game's picks can't change, a member can still enter for the games left (a
+// missed pick is a $10 loss on the page), and a locked game's picks show to every member.
 const CONTEST_ID = /^\d{4}_\d{2}$/;
 const CONTEST_TEAM = /^[A-Z]{2,3}$/;
 const CONTEST_MAX_GAMES = 20;
 const CONTEST_MAX_PLAYERS = 80; // a game, both teams
+
+function cleanContestPlayers(list, g) {
+  if (!Array.isArray(list) || !list.length || list.length > CONTEST_MAX_PLAYERS) return null;
+  const players = [];
+  const keys = new Set();
+  for (const p of list) {
+    const k = String((p && p.k) || "").slice(0, 80);
+    const name = String((p && p.name) || "").trim().slice(0, 60);
+    if (!k || !name || keys.has(k) || ![g.away, g.home].includes(p.team) || !americanOdds(p.odds)) return null;
+    keys.add(k);
+    players.push({ k, name, pos: String(p.pos || "").slice(0, 4), team: p.team, odds: p.odds });
+  }
+  return players;
+}
 
 function cleanContest(c) {
   if (!c || !CONTEST_ID.test(c.id || "") || !Number.isInteger(c.week) || !Number.isFinite(c.lock_at)) return null;
@@ -440,20 +459,40 @@ function cleanContest(c) {
   const games = [];
   for (const g of c.games) {
     if (!g || typeof g.id !== "string" || g.id.length > 40 || !CONTEST_TEAM.test(g.away || "") || !CONTEST_TEAM.test(g.home || "")) return null;
-    if (!Array.isArray(g.players) || !g.players.length || g.players.length > CONTEST_MAX_PLAYERS) return null;
-    const players = [];
-    const keys = new Set();
-    for (const p of g.players) {
-      const k = String((p && p.k) || "").slice(0, 80);
-      const name = String((p && p.name) || "").trim().slice(0, 60);
-      if (!k || !name || keys.has(k) || ![g.away, g.home].includes(p.team) || !americanOdds(p.odds)) return null;
-      keys.add(k);
-      players.push({ k, name, pos: String(p.pos || "").slice(0, 4), team: p.team, odds: p.odds });
+    const players = cleanContestPlayers(g.players, g);
+    if (!players) return null;
+    const game = { id: g.id, away: g.away, home: g.home, day: String(g.day || "").slice(0, 12), time: String(g.time || "").slice(0, 8), kickoff: String(g.kickoff || "").slice(0, 30), players };
+    if (g.first !== undefined) {
+      game.first = cleanContestPlayers(g.first, g);
+      if (!game.first || ![g.away, g.home].every((t) => players.some((p) => p.team === t))) return null;
     }
-    games.push({ id: g.id, away: g.away, home: g.home, day: String(g.day || "").slice(0, 12), time: String(g.time || "").slice(0, 8), kickoff: String(g.kickoff || "").slice(0, 30), players });
+    if (g.lock_at !== undefined) {
+      if (!Number.isFinite(g.lock_at) || g.lock_at > c.lock_at) return null;
+      game.lock_at = g.lock_at;
+    }
+    games.push(game);
   }
-  return { id: c.id, season: Number(c.season) || null, week: c.week, lock_at: c.lock_at, book: String(c.book || "FanDuel").slice(0, 20), priced_at: Date.now(), games };
+  const out = { id: c.id, season: Number(c.season) || null, week: c.week, lock_at: c.lock_at, book: String(c.book || "FanDuel").slice(0, 20), priced_at: Date.now(), games };
+  if (c.first_book) out.first_book = String(c.first_book).slice(0, 20);
+  if (c.title) out.title = String(c.title).trim().slice(0, 40); // "$100 Thanksgiving Contest" (2026-11-24)
+  return out;
 }
+
+// Every $10 pick an entry makes (same ids as contest.js slotsOf).
+function contestSlots(contest) {
+  const out = [];
+  for (const g of contest.games) {
+    if (Array.isArray(g.first)) {
+      out.push({ id: `${g.id}:F`, g, list: g.first });
+      out.push({ id: `${g.id}:A`, g, list: g.players.filter((p) => p.team === g.away) });
+      out.push({ id: `${g.id}:H`, g, list: g.players.filter((p) => p.team === g.home) });
+    } else {
+      out.push({ id: g.id, g, list: g.players });
+    }
+  }
+  return out;
+}
+const contestGameLocked = (contest, g, now) => now >= (Number.isFinite(g.lock_at) ? g.lock_at : contest.lock_at);
 
 // Live TDs (2026-11-22, the owner: "it would be more fun if we could do a semi live update").
 // After the lock, a GET reads ESPN's free scoreboard and each started game's box score at most
@@ -499,6 +538,23 @@ function espnBox(summary) {
   return teams;
 }
 
+// The game's first TD (2026-11-24, the contest's First TD picks): the earliest of ESPN's scoring
+// plays that is a touchdown, any kind (a defensive TD first = every player's First TD pick loses).
+// The scorer is the name before the yards: "Amon-Ra St. Brown 12 Yd pass from Jared Goff (...)".
+function espnFirstTd(summary) {
+  const plays = [...((summary && summary.scoringPlays) || [])];
+  const at = (p) => [Number((p.period || {}).number) || 0, -(Number((p.clock || {}).value) || 0)];
+  plays.sort((a, b) => at(a)[0] - at(b)[0] || at(a)[1] - at(b)[1]);
+  for (const p of plays) {
+    const type = p.type || {};
+    if (type.abbreviation !== "TD" && !/touchdown/i.test(`${type.text || ""} ${(p.scoringType || {}).name || ""}`)) continue;
+    const text = String(p.text || "");
+    const m = /^(.+?)\s+(?:\d+\s+(?:Yd|Yds|Yard|Yards)\b|Fumble|Blocked|Interception|Kickoff|Punt)/i.exec(text);
+    return { team: espnTeam(p.team && p.team.abbreviation), name: (m ? m[1] : text.split("(")[0]).trim().slice(0, 60), text: text.slice(0, 120) };
+  }
+  return null;
+}
+
 async function contestFeed(contest, old) {
   const games = { ...((old && old.games) || {}) };
   const board = await espnJson(`${ESPN_NFL}/scoreboard?seasontype=2&week=${contest.week}&dates=${contest.season || new Date().getFullYear()}`);
@@ -510,13 +566,15 @@ async function contestFeed(contest, old) {
     const g = contest.games.find((x) => [x.away, x.home].sort().join("|") === pair);
     if (!g || (games[g.id] && games[g.id].final)) continue;
     const st = (ev.status && ev.status.type) || {};
-    const entry = { state: st.state || "pre", detail: String(st.shortDetail || "").slice(0, 40), teams: (games[g.id] && games[g.id].teams) || null };
+    const was = games[g.id] || {};
+    const entry = { state: st.state || "pre", detail: String(st.shortDetail || "").slice(0, 40), teams: was.teams || null, first: was.first || null };
     games[g.id] = entry;
     if (entry.state === "pre") continue;
     jobs.push(
       espnJson(`${ESPN_NFL}/summary?event=${encodeURIComponent(ev.id)}`)
         .then((s) => {
           entry.teams = espnBox(s);
+          entry.first = espnFirstTd(s);
           entry.final = entry.state === "post";
         })
         .catch(() => null) // keep the last box score; tried again next time
@@ -578,7 +636,10 @@ async function handleContest(request, env, session, json) {
   } catch (e) {
     contest = null;
   }
-  const locked = !!contest && Date.now() >= contest.lock_at;
+  const now = Date.now();
+  const locked = !!contest && now >= contest.lock_at;
+  const slots = contest ? contestSlots(contest) : [];
+  const lockedSlots = new Set(slots.filter((s) => contestGameLocked(contest, s.g, now)).map((s) => s.id));
 
   if (request.method === "GET") {
     // A Discord name is a fine leaderboard name; an email login's "name" is the email, so it isn't.
@@ -597,12 +658,13 @@ async function handleContest(request, env, session, json) {
       const mine = r.uid === uid;
       if (mine) me = { name: r.name, contact: r.contact, picks, updated: r.updated };
       const e = { name: r.name, updated: r.updated, mine };
-      if (locked || owner || mine) e.picks = picks; // picks stay hidden until the lock
+      if (locked || owner || mine) e.picks = picks; // a game's picks stay hidden until it locks
+      else if (lockedSlots.size) e.picks = Object.fromEntries(Object.entries(picks).filter(([k]) => lockedSlots.has(k)));
       if (owner) Object.assign(e, { contact: r.contact, uid: r.uid });
       entries.push(e);
     }
     const out = { owner, defaults, contest, locked, entries, me, now: Date.now() };
-    if (locked) {
+    if (lockedSlots.size) {
       const { feed, marks } = await contestLive(env, contest);
       out.live = feed;
       out.marks = marks;
@@ -636,15 +698,17 @@ async function handleContest(request, env, session, json) {
   if (action === "mark") {
     // The owner's hand result for one picked player (Tracking tab): hit / miss / void, null = back to automatic.
     if (!owner) return json({ error: "owner only" }, 403);
-    if (!contest || !locked) return json({ error: "not locked" }, 409);
-    const g = contest.games.find((x) => x.id === body.g);
-    if (!g || !g.players.some((p) => p.k === body.k) || (body.result !== null && !CONTEST_MARKS.includes(body.result))) return json({ error: "bad item" }, 400);
+    // Keyed by pick (slot id; the game id in the one-pick format).
+    if (!contest || !lockedSlots.size) return json({ error: "not locked" }, 409);
+    const s = slots.find((x) => x.id === body.g);
+    if (!s || !s.list.some((p) => p.k === body.k) || (body.result !== null && !CONTEST_MARKS.includes(body.result))) return json({ error: "bad item" }, 400);
+    if (!lockedSlots.has(s.id)) return json({ error: "not locked" }, 409);
     const marks = (await contestLiveRows(env, contest.id)).marks || {};
-    const game = { ...(marks[g.id] || {}) };
+    const game = { ...(marks[s.id] || {}) };
     if (body.result === null) delete game[body.k];
     else game[body.k] = body.result;
-    if (Object.keys(game).length) marks[g.id] = game;
-    else delete marks[g.id];
+    if (Object.keys(game).length) marks[s.id] = game;
+    else delete marks[s.id];
     await contestSave(env, contest.id, "marks", marks);
     return json({ ok: true, marks });
   }
@@ -655,11 +719,23 @@ async function handleContest(request, env, session, json) {
   const contact = String(body.contact || "").trim().slice(0, 100);
   if (name.length < 2) return json({ error: "name" }, 400);
   if (contact.length < 3) return json({ error: "contact" }, 400);
+  // A locked game keeps the picks already saved (none for a member entering late); every open one needs a real pick.
+  const old = await env.DB.prepare("SELECT picks FROM contest_entries WHERE contest = ? AND uid = ?").bind(contest.id, uid).first();
+  let before = {};
+  try {
+    before = (old && JSON.parse(old.picks)) || {};
+  } catch (e) {
+    before = {};
+  }
   const picks = {};
-  for (const g of contest.games) {
-    const k = body.picks && body.picks[g.id];
-    if (!g.players.some((p) => p.k === k)) return json({ error: "picks" }, 400);
-    picks[g.id] = k;
+  for (const s of slots) {
+    if (lockedSlots.has(s.id)) {
+      if (before[s.id]) picks[s.id] = before[s.id];
+      continue;
+    }
+    const k = body.picks && body.picks[s.id];
+    if (!s.list.some((p) => p.k === k)) return json({ error: "picks" }, 400);
+    picks[s.id] = k;
   }
   await env.DB.prepare(
     "INSERT INTO contest_entries (contest, uid, name, contact, picks, updated) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(contest, uid) DO UPDATE SET name = excluded.name, contact = excluded.contact, picks = excluded.picks, updated = excluded.updated"

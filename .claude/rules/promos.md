@@ -22,9 +22,30 @@ price, a miss loses $10, a player with no snaps that week gets the $10 back.
   no FanDuel prices and names the games.
 - **Kickoffs come from the books** (`book_odds[game].kickoff`) when they have one: flexed games
   (2026-11-21) were days behind in the schedule.
-- **Locks Sunday 1:00 PM ET** (the Sunday game's date): the server refuses saves after it. One
+- **Two formats, the owner's chips before the lock** (2026-11-24, Thanksgiving week): **One Pick A
+  Game** (above) or **Three A Game**: the game's First TD scorer (either team) plus one anytime TD
+  per team, so 5 games = 15 picks, $150. The same player may be a First TD and an anytime pick.
+  Each $10 pick is a "slot" (`slotsOf` / middleware `contestSlots`; ids `<game>:F` / `:A` / `:H`,
+  the game id in the one-pick format; marks are keyed by slot). Default: Three when 6 or fewer
+  games; when 3+ games come Tue-Fri only those are in (the owner's game chips change it).
+  **First TD prices: FanDuel's only** (the owner, 2026-11-24: "Keep FD"), from SmartStake's
+  `football_player_first_touchdown_scorer_yes_no` (nfl_odds.py, its own alternate-quotes call ->
+  `book_odds[game].props.first_td`; team / position from the anytime list). Never Novig's. On
+  2026-11-24 the probe (`PROBE=first_td`) found DraftKings, Fanatics, Fliff, Stake and others on it
+  but not FanDuel yet; a game with no FanDuel First TD blocks the lock and is named.
+- **Each game locks on its own** (`g.lock_at`; the contest's `lock_at` = the last one). Three
+  format: the first day's games at that day's first kickoff, every later game at the next kickoff
+  (Wednesday alone, Thursday + Friday at DET's kickoff). One format: Sunday 1:00 PM ET for all. A
+  locked game's picks can't change (the server keeps the saved ones); a member can still enter
+  until the last lock, and **a pick missing from a locked game is a $10 loss** (the owner:
+  "Counts as -$30"; the page warns). A locked game's picks show to every member; the rest stay
+  hidden. The live feed, Tracking tab and Leaderboard start with the first lock. One
   entry per account (replaced on save); leaderboard name + Discord/email contact (contact only ever
-  sent to the owner). Before the lock members see who entered, not their picks.
+  sent to the owner).
+- **First TD grading**: ESPN's earliest scoring play that is a TD (`espnFirstTd`, the name before
+  "N Yd"; a defensive TD first = every First TD pick loses), then data.json `first_td` (offense
+  only, under the scorer's team). Someone else first = a miss at once; money back only if he
+  isn't in the final box score.
 - **Graded live** (2026-11-22, the owner: "more fun if we could do a semi live update"). First
   that applies (`gradeInfo`): the owner's hand result; ESPN's final box score; data.json the morning
   after (`player_td_results` any_td, `player_snaps` for "didn't play") only for a game ESPN never
