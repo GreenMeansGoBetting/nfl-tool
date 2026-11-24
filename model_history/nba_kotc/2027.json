@@ -13473,24 +13473,31 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2717,
+    "lead": 0.2713,
     "name": "Nikola Jokic",
     "proj": 45.1,
     "team": "DEN"
    },
    {
     "id": "4566434",
-    "lead": 0.1892,
+    "lead": 0.1887,
     "name": "Franz Wagner",
     "proj": 42.0,
     "team": "ORL"
    },
    {
     "id": "4065648",
-    "lead": 0.1506,
+    "lead": 0.1504,
     "name": "Jayson Tatum",
     "proj": 40.7,
     "team": "BOS"
+   },
+   {
+    "id": "5041939",
+    "lead": 0.0901,
+    "name": "Cooper Flagg",
+    "proj": 37.5,
+    "team": "DAL"
    },
    {
     "id": "3936299",
@@ -13500,31 +13507,24 @@
     "team": "DEN"
    },
    {
-    "id": "5041939",
-    "lead": 0.0892,
-    "name": "Cooper Flagg",
-    "proj": 37.4,
-    "team": "DAL"
-   },
-   {
     "id": "6583",
-    "lead": 0.0813,
+    "lead": 0.0812,
     "name": "Anthony Davis",
     "proj": 36.6,
     "team": "WSH"
    },
    {
     "id": "4432166",
-    "lead": 0.0665,
+    "lead": 0.0664,
     "name": "Cade Cunningham",
     "proj": 35.7,
     "team": "DET"
    },
    {
     "id": "6442",
-    "lead": 0.0237,
+    "lead": 0.0241,
     "name": "Kyrie Irving",
-    "proj": 31.3,
+    "proj": 31.4,
     "team": "DAL"
    },
    {
@@ -13664,7 +13664,7 @@
     "id": "3138196",
     "lead": 0.0,
     "name": "Cameron Johnson",
-    "proj": 19.2,
+    "proj": 19.3,
     "team": "DEN"
    },
    {
