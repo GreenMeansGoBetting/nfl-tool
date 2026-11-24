@@ -31350,36 +31350,36 @@
     "Quentin Grimes",
     "LAL",
     "UTAH",
-    -0.0854,
+    -0.0857,
     "under",
     false,
     16.5,
-    -117,
-    "caesars"
+    -110,
+    "4cx"
    ],
    [
     "4433136",
     "Walker Kessler",
     "LAL",
     "UTAH",
-    -0.0593,
+    -0.0611,
     "under",
     false,
     13.5,
-    -105,
-    "betmgm"
+    -104,
+    "draftkings"
    ],
    [
     "4433137",
     "Ziaire Williams",
     "LAL",
     "UTAH",
-    -0.131,
+    -0.1317,
     "under",
     true,
     7.5,
-    109,
-    "4cx"
+    -110,
+    "pinnacle"
    ],
    [
     "4592691",
@@ -31390,7 +31390,7 @@
     "under",
     false,
     5.5,
-    102,
+    107,
     "pinnacle"
    ]
   ],
@@ -31400,7 +31400,7 @@
     "Svi Mykhailiuk",
     "UTAH",
     "LAL",
-    0.2404,
+    0.2394,
     "over",
     true,
     1.5,
@@ -31412,12 +31412,12 @@
     "Sandro Mamukelashvili",
     "LAL",
     "UTAH",
-    0.2795,
+    0.2831,
     "over",
     true,
     1.5,
-    148,
-    "4cx"
+    154,
+    "draftkings"
    ]
   ]
  },
@@ -31429,12 +31429,12 @@
     "Devin Vassell",
     "SA",
     "SAC",
-    0.0927,
+    0.0921,
     "over",
     false,
     16.5,
-    -104,
-    "prophetx"
+    -102,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -31443,7 +31443,7 @@
     "Zach LaVine",
     "SAC",
     "SA",
-    -0.0608,
+    -0.063,
     "under",
     false,
     2.5,
@@ -31455,24 +31455,12 @@
     "Domantas Sabonis",
     "SAC",
     "SA",
-    0.243,
+    0.2416,
     "over",
     true,
     0.5,
-    240,
+    230,
     "fliff"
-   ],
-   [
-    "5104157",
-    "Victor Wembanyama",
-    "SA",
-    "SAC",
-    -0.153,
-    "under",
-    true,
-    2.5,
-    -203,
-    "pinnacle"
    ]
   ]
  }
