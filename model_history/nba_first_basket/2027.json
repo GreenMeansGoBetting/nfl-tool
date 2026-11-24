@@ -3636,7 +3636,7 @@
    "3908845": [
     "John Collins",
     0.089,
-    850,
+    860,
     false,
     "draftkings"
    ],
@@ -3657,30 +3657,30 @@
    "4277847": [
     "Wendell Carter Jr.",
     0.101,
-    650,
+    750,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4432165": [
     "Jalen Suggs",
     0.083,
-    810,
+    850,
     false,
-    "fliff"
+    "bet365"
    ],
    "4432166": [
     "Cade Cunningham",
     0.093,
-    700,
+    750,
     false,
     "fanduel"
    ],
    "4566434": [
     "Franz Wagner",
     0.147,
-    510,
+    625,
     false,
-    "draftkings"
+    "bet365"
    ],
    "4684742": [
     "Ausar Thompson",
@@ -3692,7 +3692,7 @@
    "4712849": [
     "Anthony Black",
     0.084,
-    850,
+    800,
     false,
     "fanduel"
    ],
@@ -3725,16 +3725,16 @@
    "3078576": [
     "Derrick White",
     0.082,
-    950,
+    1000,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4065648": [
     "Jayson Tatum",
     0.13,
-    600,
+    650,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4251": [
     "Paul George",
@@ -3746,16 +3746,16 @@
    "4277905": [
     "Trae Young",
     0.093,
-    900,
-    false,
-    "fanduel"
+    1100,
+    true,
+    "bet365"
    ],
    "4397424": [
     "Neemias Queta",
     0.066,
-    650,
+    625,
     false,
-    "fanduel"
+    "bet365"
    ],
    "4683689": [
     "Jordan Walsh",
@@ -3767,16 +3767,16 @@
    "5142718": [
     "AJ Dybantsa",
     0.099,
-    850,
+    900,
     false,
-    "fanduel"
+    "bet365"
    ],
    "5160992": [
     "Alex Sarr",
     0.095,
-    745,
+    720,
     false,
-    "fliff"
+    "draftkings"
    ],
    "5174563": [
     "Kyshawn George",
@@ -3788,7 +3788,7 @@
    "6583": [
     "Anthony Davis",
     0.125,
-    650,
+    600,
     false,
     "fanduel"
    ]
@@ -3814,35 +3814,35 @@
    "3064290": [
     "Aaron Gordon",
     0.096,
-    750,
+    700,
     false,
-    "fanduel"
+    "thescore"
    ],
    "3112335": [
     "Nikola Jokic",
     0.112,
-    500,
+    525,
     false,
     "bet365"
    ],
    "3138160": [
     "Caleb Martin",
     0.066,
-    1750,
+    1700,
     true,
-    "hard_rock"
+    "fanduel"
    ],
    "3138196": [
     "Cameron Johnson",
     0.1,
-    960,
+    950,
     false,
-    "draftkings"
+    "fanduel"
    ],
    "3936299": [
     "Jamal Murray",
     0.111,
-    550,
+    525,
     false,
     "bet365"
    ],
@@ -3856,7 +3856,7 @@
    "4278078": [
     "P.J. Washington",
     0.09,
-    900,
+    950,
     false,
     "bet365"
    ],
@@ -3870,16 +3870,16 @@
    "5041939": [
     "Cooper Flagg",
     0.107,
-    720,
+    740,
     false,
     "draftkings"
    ],
    "6442": [
     "Kyrie Irving",
     0.095,
-    1000,
+    1020,
     false,
-    "caesars"
+    "draftkings"
    ]
   },
   "tip_home": 0.615
@@ -3931,9 +3931,9 @@
    "3917376": [
     "Jaylen Brown",
     0.105,
-    600,
+    650,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4066261": [
     "Bam Adebayo",
@@ -3954,7 +3954,7 @@
     0.103,
     600,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "5124612": [
     "VJ Edgecombe",
@@ -4130,9 +4130,9 @@
    "4066328": [
     "Jarrett Allen",
     0.103,
-    600,
+    650,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4576087": [
     "Peyton Watson",
@@ -4170,9 +4170,9 @@
    "3032976": [
     "Rudy Gobert",
     0.082,
-    700,
+    1100,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "3133626": [
     "Kenrich Williams",
@@ -4212,9 +4212,9 @@
    "4432816": [
     "LaMelo Ball",
     0.116,
-    600,
+    650,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4433247": [
     "Jonathan Kuminga",
@@ -4479,9 +4479,9 @@
    "4437244": [
     "Jalen Green",
     0.095,
-    700,
+    800,
     false,
-    "fanduel"
+    "hard_rock"
    ],
    "4601023": [
     "Oso Ighodaro",
@@ -4500,9 +4500,9 @@
    "4871144": [
     "Alperen Sengun",
     0.106,
-    430,
+    450,
     false,
-    "fanduel"
+    "hard_rock"
    ]
   },
   "tip_home": 0.6
