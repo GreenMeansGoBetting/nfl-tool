@@ -1945,6 +1945,28 @@
   "updated": "2026-11-22T07:01Z",
   "week": 11
  },
+ "2026_11_CIN_WAS": {
+  "away": "CIN",
+  "away_pts": 30.4,
+  "final": [
+   20,
+   22
+  ],
+  "frozen": true,
+  "home": "WAS",
+  "home_pts": 22.7,
+  "qb_out": [],
+  "spread": 5.5,
+  "spread_edge": 2.2,
+  "spread_pick": "away",
+  "spread_result": "loss",
+  "total": 54.5,
+  "total_edge": 1.4,
+  "total_pick": "under",
+  "total_result": "win",
+  "updated": "2026-11-23T19:57Z",
+  "week": 11
+ },
  "2026_11_IND_HOU": {
   "away": "IND",
   "away_pts": 18.6,
