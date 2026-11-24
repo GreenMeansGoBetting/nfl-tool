@@ -3635,7 +3635,7 @@
   "players": {
    "3908845": [
     "John Collins",
-    0.089,
+    0.09,
     860,
     false,
     "draftkings"
@@ -3649,7 +3649,7 @@
    ],
    "4066372": [
     "Kevin Huerter",
-    0.087,
+    0.09,
     1120,
     false,
     "draftkings"
@@ -3661,19 +3661,19 @@
     false,
     "bet365"
    ],
+   "4278562": [
+    "Paul Reed",
+    0.083,
+    null,
+    false,
+    null
+   ],
    "4432165": [
     "Jalen Suggs",
     0.083,
     810,
     false,
     "fliff"
-   ],
-   "4432166": [
-    "Cade Cunningham",
-    0.093,
-    750,
-    false,
-    "fanduel"
    ],
    "4566434": [
     "Franz Wagner",
@@ -3684,7 +3684,7 @@
    ],
    "4684742": [
     "Ausar Thompson",
-    0.086,
+    0.087,
     1000,
     false,
     "draftkings"
@@ -3698,9 +3698,9 @@
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.094,
+    0.098,
     1040,
-    false,
+    true,
     "draftkings"
    ]
   },
@@ -4806,14 +4806,21 @@
    ],
    "3908845": [
     "John Collins",
-    0.093,
+    0.095,
     null,
     false,
     null
    ],
    "4066372": [
     "Kevin Huerter",
-    0.092,
+    0.095,
+    null,
+    false,
+    null
+   ],
+   "4278562": [
+    "Paul Reed",
+    0.088,
     null,
     false,
     null
@@ -4821,13 +4828,6 @@
    "4395725": [
     "Tyler Herro",
     0.105,
-    null,
-    false,
-    null
-   ],
-   "4432166": [
-    "Cade Cunningham",
-    0.098,
     null,
     false,
     null
@@ -4848,14 +4848,14 @@
    ],
    "4684742": [
     "Ausar Thompson",
-    0.09,
+    0.092,
     null,
     false,
     null
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.099,
+    0.103,
     null,
     false,
     null
