@@ -5382,6 +5382,277 @@
    ]
   ]
  },
+ "401909314": {
+  "date": "2026-11-24",
+  "points": [
+   [
+    "3908845",
+    "John Collins",
+    "DET",
+    "ORL",
+    -0.092,
+    "under",
+    false,
+    10.5,
+    -115,
+    "caesars"
+   ],
+   [
+    "4066320",
+    "Desmond Bane",
+    "ORL",
+    "DET",
+    -0.1406,
+    "under",
+    true,
+    17.5,
+    -112,
+    "draftkings"
+   ],
+   [
+    "4395702",
+    "Isaiah Joe",
+    "DET",
+    "ORL",
+    0.0908,
+    "over",
+    false,
+    9.5,
+    -117,
+    "prophetx"
+   ],
+   [
+    "4432165",
+    "Jalen Suggs",
+    "ORL",
+    "DET",
+    -0.0895,
+    "under",
+    false,
+    11.5,
+    -129,
+    "caesars"
+   ],
+   [
+    "4702382",
+    "Tristan da Silva",
+    "ORL",
+    "DET",
+    -0.1143,
+    "under",
+    false,
+    10.5,
+    -108,
+    "draftkings"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "DET",
+    -0.0513,
+    "under",
+    false,
+    14.5,
+    -113,
+    "prophetx"
+   ]
+  ],
+  "threes": [
+   [
+    "3908845",
+    "John Collins",
+    "DET",
+    "ORL",
+    -0.3322,
+    "under",
+    true,
+    1.5,
+    -227,
+    "prophetx"
+   ],
+   [
+    "4066320",
+    "Desmond Bane",
+    "ORL",
+    "DET",
+    -0.2634,
+    "under",
+    true,
+    3.5,
+    -142,
+    "draftkings"
+   ],
+   [
+    "4066372",
+    "Kevin Huerter",
+    "DET",
+    "ORL",
+    0.1286,
+    "over",
+    true,
+    1.5,
+    -165,
+    "4cx"
+   ],
+   [
+    "4277847",
+    "Wendell Carter Jr.",
+    "ORL",
+    "DET",
+    -0.4326,
+    "under",
+    true,
+    0.5,
+    127,
+    "draftkings"
+   ],
+   [
+    "4395702",
+    "Isaiah Joe",
+    "DET",
+    "ORL",
+    0.0861,
+    "over",
+    false,
+    1.5,
+    -205,
+    "fliff"
+   ],
+   [
+    "4432166",
+    "Cade Cunningham",
+    "DET",
+    "ORL",
+    0.1574,
+    "over",
+    true,
+    2.5,
+    149,
+    "prophetx"
+   ],
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "DET",
+    -0.2593,
+    "under",
+    true,
+    1.5,
+    -151,
+    "4cx"
+   ],
+   [
+    "4702382",
+    "Tristan da Silva",
+    "ORL",
+    "DET",
+    -0.1953,
+    "under",
+    true,
+    2.5,
+    -135,
+    "prophetx"
+   ],
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "ORL",
+    0.1227,
+    "over",
+    true,
+    1.5,
+    -195,
+    "fliff"
+   ]
+  ]
+ },
+ "401909315": {
+  "date": "2026-11-24",
+  "points": [
+   [
+    "3078576",
+    "Derrick White",
+    "BOS",
+    "WSH",
+    -0.0696,
+    "under",
+    false,
+    13.5,
+    -115,
+    "fliff"
+   ],
+   [
+    "4066354",
+    "Payton Pritchard",
+    "BOS",
+    "WSH",
+    -0.082,
+    "under",
+    false,
+    12.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "BOS",
+    -0.0746,
+    "under",
+    false,
+    15.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "5174563",
+    "Kyshawn George",
+    "WSH",
+    "BOS",
+    -0.0969,
+    "under",
+    false,
+    14.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "6583",
+    "Anthony Davis",
+    "WSH",
+    "BOS",
+    -0.1054,
+    "under",
+    false,
+    21.5,
+    -120,
+    "fliff"
+   ]
+  ],
+  "threes": []
+ },
+ "401909316": {
+  "date": "2026-11-24",
+  "points": [
+   [
+    "5041939",
+    "Cooper Flagg",
+    "DAL",
+    "DEN",
+    0.0503,
+    "over",
+    false,
+    22.5,
+    -120,
+    "fliff"
+   ]
+  ],
+  "threes": []
+ },
  "401909877": {
   "date": "2026-10-27",
   "points": [
