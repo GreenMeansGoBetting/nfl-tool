@@ -157,7 +157,10 @@ the Cloudflare upkeep, the publish, the live check. About 6.5 to 8 minutes from 
   one. The same rules as the hockey refresh (`refresh-check --sport nba` twice, `refresh-stamp
   --sport nba`, the NFL / NHL data put back with `--only nfl nhl --strict`, the live check), with
   the deploy's NBA build command and `pip install -r nfl_tool/requirements.txt`; it commits
-  `model_history/nba_*` (tonight's plays are rewritten until tip). Both refreshes share the
+  `model_history/nba_*` (tonight's plays are rewritten until tip). Its ~30 commits a day are on
+  purpose; don't trim them (checked 2026-11-24). The build reads tonight's plays back from the
+  repo, so the last save before tip is what gets graded, and a price move changes the units won.
+  Bot pushes start no deploy, and the repo is ~26 MB. Both refreshes share the
   concurrency group `site-refresh`, so they never publish over each other. version.json:
   `nba_refresh`.
 - **A new generated file in the site folder** goes in `.gitignore` AND `fetch_live_data.py`'s
