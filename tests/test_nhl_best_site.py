@@ -52,7 +52,7 @@ def reset(day=TONIGHT, **view):
     PAGE.evaluate(
         """([day, view]) => {
             closePlayerCard();
-            Object.assign(bestView, { markets: { sog: true, goal: true, pts: true, saves: true }, sort: 'edge', dir: -1, when: 'all', minEdge: 3, lineup: 'all' }, view);
+            Object.assign(bestView, { markets: { sog: true, goal: true, pts: true, saves: true }, sort: 'edge', dir: -1, when: 'all', minEdge: 3, lineup: 'all', odds: 'all' }, view);
             gameId = null;
             dayIndex = days().indexOf(day);
             render();
@@ -308,6 +308,25 @@ class Filters(unittest.TestCase):
         self.assertTrue(all(float(r["edge"].replace("+", "")) >= 10 for r in PAGE.evaluate(ROWS)))
         reset()
 
+    def test_odds_menu(self):
+        """A member, 2026-11-12: slice the plays by plus / minus money, and the model's favorites at plus money."""
+        shown = "() => sortedPlays(days()[dayIndex]).map((x) => [x.play.price, x.play.chance])"
+        reset()
+        every = PAGE.evaluate(shown)
+        reset(odds="plus")
+        plus = PAGE.evaluate(shown)
+        reset(odds="minus")
+        minus = PAGE.evaluate(shown)
+        self.assertTrue(plus and minus, "the sample has both kinds")
+        self.assertTrue(all(p >= 100 for p, _ in plus) and all(p < 100 for p, _ in minus))
+        self.assertEqual(len(plus) + len(minus), len(every))
+        reset(odds="flip")
+        self.assertTrue(all(p >= 100 and c > 0.5 for p, c in PAGE.evaluate(shown)))
+        PAGE.select_option('select[data-filter="odds"]', "long")
+        self.assertTrue(all(p >= 200 for p, _ in PAGE.evaluate(shown)))
+        reset()
+        self.assertEqual(SITE.errors, [])
+
 
 class Notes(unittest.TestCase):
     def test_no_lineup_and_line_change_notes_and_the_banner(self):
@@ -376,7 +395,34 @@ class Record(unittest.TestCase):
         PAGE.select_option('[data-ytd-window]', "15")
         PAGE.fill('[data-ytd-min="sog"]', "10")
         # Remembered on this device.
-        self.assertEqual(PAGE.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.ytd.nhl-best.v1'))"), {"days": 15, "min": {"sog": 10, "goal": 3, "pts": 5, "saves": 3}})
+        self.assertEqual(PAGE.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.ytd.nhl-best.v1'))"), {"days": 15, "odds": "all", "min": {"sog": 10, "goal": 3, "pts": 5, "saves": 3}})
+        # No prices in these ledgers: no Odds menu.
+        self.assertEqual(PAGE.locator("[data-ytd-odds]").count(), 0)
+        self.assertEqual(SITE.errors, [])
+
+    def test_the_odds_menu(self):
+        """Members, 2026-11-01 / 11-12: records by plus vs minus money, and the model's favorites at plus money."""
+        PAGE.evaluate("""() => {
+            const ago = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return d.toLocaleDateString('en-CA'); };
+            SHOTS.record.ledger = [[ago(3), 0.08, 1, 1.3, ['over'], 130], [ago(3), 0.07, 0, -1, ['over'], -140], [ago(2), 0.09, 1, 2.5, ['under', 'flip'], 250]];
+            GOALS.record.ledger = [[ago(2), 0.05, 0, -1, ['strong'], 210]];
+            POINTS.record.ledger = [[ago(2), 0.06, 1, 0.8, ['over']]];  // a row saved before prices: All Odds only
+            SAVES.record = SAVES.record || {};
+            SAVES.record.ledger = [];
+            renderRecord();
+        }""")
+        reset()
+        PAGE.click("#best-record-open")
+        self.assertEqual(self.tiles(), {"all": "3-2", "sog": "2-1", "goal": "0-1", "pts": "1-0", "saves": "0-0"})
+        PAGE.select_option("[data-ytd-odds]", "plus")
+        self.assertEqual(self.tiles(), {"all": "2-1", "sog": "2-0", "goal": "0-1", "pts": "0-0", "saves": "0-0"})
+        PAGE.select_option("[data-ytd-odds]", "minus")
+        self.assertEqual(self.tiles()["all"], "0-1")
+        PAGE.select_option("[data-ytd-odds]", "long")
+        self.assertEqual(self.tiles(), {"all": "1-1", "sog": "1-0", "goal": "0-1", "pts": "0-0", "saves": "0-0"})
+        PAGE.select_option("[data-ytd-odds]", "flip")
+        self.assertEqual(self.tiles()["all"], "1-0")
+        self.assertEqual(PAGE.evaluate("() => JSON.parse(localStorage.getItem('nfl-tool.ytd.nhl-best.v1')).odds"), "flip")
         self.assertEqual(SITE.errors, [])
 
     def test_without_ledgers_the_season_buckets(self):

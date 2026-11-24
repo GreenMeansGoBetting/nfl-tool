@@ -2680,7 +2680,7 @@ main { max-width: 1840px; }
 .bp-pick-next { margin-left: 10px; }
 .bp-table-wrap { overflow-x: auto; }
 /* ---- YTD Model Performance (ytd.js): the same tracker on every sport ---- */
-.ytd-windows { display: flex; margin: 10px 0 0; }
+.ytd-windows { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 10px 0 0; }
 .ytd-window-pick { display: inline-flex; align-items: center; gap: 8px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
 .ytd-window { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--panel-2); color: var(--text); font: inherit; font-size: 0.85rem; font-weight: 700; letter-spacing: 0; text-transform: none; cursor: pointer; }
 .ytd-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-width: 900px; margin: 10px 0 0; }

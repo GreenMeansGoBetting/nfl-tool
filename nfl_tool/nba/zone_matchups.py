@@ -382,7 +382,7 @@ def ledger(record: dict, logs: dict, market: str) -> list:
             over = p["side"] == "over"
             won = (got > p["line"]) == over
             out.append([g["date"], round(abs(p["score"]), 4), int(won), units_won(p.get("price"), won),
-                        ["strong" if p["strong"] else "lean", "over" if over else "under"]])
+                        ["strong" if p["strong"] else "lean", "over" if over else "under"], p.get("price")])
     return sorted(out, key=lambda r: (r[0], -r[1]))
 
 

@@ -179,13 +179,17 @@ def grade(record: dict, data: dict) -> dict:
 
 
 def ledger(record: dict) -> dict:
-    """market -> [date, edge, won, units, tags] rows, oldest first."""
+    """market -> [date, edge, won, units, tags, price] rows, oldest first. The price feeds the YTD
+    tracker's Odds menu; tag "flip" = a plus-money price the model makes a favorite."""
     out = {g: [] for g in GROUPS}
     for p in sorted((record.get("plays") or {}).values(), key=lambda p: (p["date"], p["name"])):
         if p.get("won") is None:
             continue
         units = round(payout(p["price"]) if p["won"] else -1.0, 3)
-        out[p["group"]].append([p["date"], round(p["edge"], 4), p["won"], units, [p["group"], p["side"], (p["rating"] or "").lower()]])
+        tags = [p["group"], p["side"], (p["rating"] or "").lower()]
+        if p.get("price") is not None and p["price"] >= 100 and (p.get("chance") or 0) > 0.5:
+            tags.append("flip")
+        out[p["group"]].append([p["date"], round(p["edge"], 4), p["won"], units, tags, p.get("price")])
     return out
 
 

@@ -26,11 +26,28 @@ def record_ledger(plays: list) -> list:
     the latest days, with every detail; this keeps every day, with only these.
     A fifth column, the play's tags (side, bucket, with / against his average,
     Zone Match, thin), feeds the split tiles of the shared YTD tracker (site
-    ytd.js: the same filters and sliders on every page, 2026-10-22)."""
+    ytd.js: the same filters and sliders on every page, 2026-10-22). A sixth, the
+    price it was graded at, feeds the tracker's Odds menu (members, 2026-11-01 /
+    11-12: plus vs minus money); "flip" = the model made it a favorite at plus money."""
     def tags(p: dict) -> list:
         out = [t for t in (p.get("side"), p.get("size")) if t]
         if "fade" in p:
             out.append("fade" if p["fade"] else "with")
         out += [t for t in ("zone", "thin") if p.get(t)]
+        if ledger_flip(p.get("price"), p.get("chance") if p.get("chance") is not None else break_even(p.get("price")) + p["edge"]):
+            out.append("flip")
         return out
-    return [[p["date"], p["edge"], int(p["won"]), p["units"], tags(p)] for p in sorted(plays, key=lambda p: (p["date"], -p["edge"]))]
+    return [[p["date"], p["edge"], int(p["won"]), p["units"], tags(p), p.get("price")] for p in sorted(plays, key=lambda p: (p["date"], -p["edge"]))]
+
+
+def break_even(price) -> float:
+    """The chance an American price needs to break even (0 without a price)."""
+    if price is None:
+        return 0.0
+    return 100 / (price + 100) if price > 0 else -price / (-price + 100)
+
+
+def ledger_flip(price, chance) -> bool:
+    """A plus-money price on a play the model makes a favorite (over 50%): the YTD Odds menu's
+    "Model Favorite, Plus Money" (a member, 2026-11-12: "-140 GMG fair, but +130 on Novig")."""
+    return price is not None and price >= 100 and chance is not None and chance > 0.5

@@ -599,7 +599,7 @@ class Record(unittest.TestCase):
         self.assertEqual(len(record["plays"]), shots_page.SHOTS_RECORD_DAYS)
         # The short list Best Plays filters by days back and edge keeps every day.
         self.assertEqual(len(record["ledger"]), 20)
-        self.assertEqual(record["ledger"][0], ["2026-11-01", round(record["plays"][0]["edge"], 3), 1, record["plays"][0]["units"], ["over", "play", "with"]])
+        self.assertEqual(record["ledger"][0], ["2026-11-01", round(record["plays"][0]["edge"], 3), 1, record["plays"][0]["units"], ["over", "play", "with"], record["plays"][0]["price"]])
         self.assertEqual((record["plays"][0]["date"], record["plays"][-1]["date"]), ("2026-11-20", "2026-11-07"))
 
 

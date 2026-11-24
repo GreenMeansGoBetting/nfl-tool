@@ -202,7 +202,7 @@ class Record(unittest.TestCase):
         logs = {"points": {("900", "1"): 14.0}}
         rows = Z.ledger(rec, logs["points"], "points")
         self.assertEqual(rec["900"]["points"][0][-2:], [-110, "fd"])  # main line 12.5: fd -110 beats mgm -115 (dk's 11.5 isn't it)
-        self.assertEqual(rows, [["2099-10-25", round(abs(m["players"]["1"]["points"]["score"]), 4), 1, 0.909, ["strong", "over"]]])
+        self.assertEqual(rows, [["2099-10-25", round(abs(m["players"]["1"]["points"]["score"]), 4), 1, 0.909, ["strong", "over"], -110]])  # the price last: the YTD Odds menu
         self.assertEqual(Z.ledger(rec, {("900", "1"): 10.0}, "points")[0][2:4], [0, -1.0])
         old = {"900": {"date": "2099-10-25", "points": [rec["900"]["points"][0][:8]]}}  # saved before prices were
         self.assertIsNone(Z.ledger(old, logs["points"], "points")[0][3])

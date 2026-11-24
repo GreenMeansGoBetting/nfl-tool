@@ -23,9 +23,31 @@
 //
 // A new model's YTD popup is this call plus its ledger; tests/test_ytd_site.py
 // fails for a page with a YTD button that doesn't load ytd.js.
+//
+// A sixth column, the American price the play was graded at, turns on the Odds
+// menu (members, 2026-11-01 / 11-12: "O/U records by Plus vs Minus odds", "+ or -
+// consensus money"). Tag "flip" = the model makes it a favorite at plus money.
 
 const YTD_WINDOWS = [["yesterday", "Yesterday"], [3, "Last 3 Days"], [7, "Last 7 Days"], [15, "Last 15 Days"], [30, "Last 30 Days"], [0, "Season"]];
+const YTD_ODDS = [
+  ["all", "All Odds"],
+  ["plus", "Plus Money", "+100 or longer"],
+  ["minus", "Minus Money", "Shorter than +100"],
+  ["long", "+200 Or Longer"],
+  ["flip", "Model Favorite, Plus Money", "Plus money on a play the model gives over 50% (a favorite to the model)"],
+];
 const YTD_TRACKERS = {};
+const ytdBreakEven = (price) => (price >= 100 ? 100 / (price + 100) : -price / (-price + 100));
+// Does a price (and the model's flip) pass the Odds menu? No price passes only All Odds.
+function ytdOddsOk(pick, price, flip) {
+  if (!pick || pick === "all") return true;
+  if (price === null || price === undefined || !Number.isFinite(Number(price))) return false;
+  const p = Number(price);
+  if (pick === "plus") return p >= 100;
+  if (pick === "minus") return p < 100;
+  if (pick === "long") return p >= 200;
+  return pick === "flip" ? p >= 100 && !!flip : true;
+}
 
 function ytdDay(back) {
   const d = new Date();
@@ -52,7 +74,7 @@ function ytdLoad(cfg) {
     const v = (saved.min || {})[m.key];
     min[m.key] = Number.isFinite(v) ? Math.max(m.min, Math.min(m.max, v)) : m.min;
   });
-  return { days: YTD_WINDOWS.some(([d]) => d === saved.days) ? saved.days : 0, min };
+  return { days: YTD_WINDOWS.some(([d]) => d === saved.days) ? saved.days : 0, odds: YTD_ODDS.some(([o]) => o === saved.odds) ? saved.odds : "all", min };
 }
 function ytdSave(t) {
   try {
@@ -62,21 +84,27 @@ function ytdSave(t) {
   }
 }
 
-// Does a play pass the tracker's window and its market's slider? For the
-// page's own list under the tiles, so the list and the tiles always agree.
-function ytdKeeps(key, market, date, value) {
+// Does a play pass the tracker's window, its market's slider and the Odds menu?
+// For the page's own list under the tiles, so the list and the tiles always agree.
+// `price` = the price it was graded at; `chance` = the model's (left out: the
+// price's break-even plus `value`, every caller's value being an edge there).
+function ytdKeeps(key, market, date, value, price, chance) {
   const t = YTD_TRACKERS[key];
   if (!t) return true;
   const { from, to } = ytdRange(t.state.days);
   const m = t.cfg.markets.find((x) => x.key === market) || t.cfg.markets[0];
-  return (!from || date >= from) && (!to || date <= to) && (value === null || value === undefined || ytdShown(value, m.scale || 100) >= t.state.min[m.key]);
+  const has = (v) => v !== null && v !== undefined && Number.isFinite(Number(v));
+  const p = has(price) ? Number(price) : null;
+  const c = has(chance) ? Number(chance) : p !== null && has(value) ? ytdBreakEven(p) + Number(value) : null;
+  return (!from || date >= from) && (!to || date <= to) && (value === null || value === undefined || ytdShown(value, m.scale || 100) >= t.state.min[m.key]) && ytdOddsOk(t.state.odds, p, c !== null && c > 0.5);
 }
 
 function ytdTally(t, m, tag) {
   const { from, to } = ytdRange(t.state.days);
   const min = t.state.min[m.key];
-  return (m.ledger || []).reduce((s, [date, value, won, units, tags]) => {
+  return (m.ledger || []).reduce((s, [date, value, won, units, tags, price]) => {
     if ((from && date < from) || (to && date > to) || ytdShown(value, m.scale || 100) < min) return s;
+    if (!ytdOddsOk(t.state.odds, price, (tags || []).includes("flip"))) return s;
     if (tag && !(tags || []).includes(tag)) return s;
     if (m.only && !(tags || []).some((x) => m.only.includes(x))) return s;
     return { wins: s.wins + (won ? 1 : 0), losses: s.losses + (won ? 0 : 1), units: units === null || units === undefined ? s.units : s.units + units, priced: s.priced || (units !== null && units !== undefined) };
@@ -99,6 +127,12 @@ function ytdTracker(box, cfg) {
   box.dataset.ytd = cfg.key;
   // One dropdown for the time frame (the owner, 2026-10-23: not a row of buttons).
   const windows = `<label class="ytd-window-pick"><span>Time Frame</span><select class="ytd-window" data-ytd-window aria-label="Time Frame">${YTD_WINDOWS.map(([d, label]) => `<option value="${d}" data-ytd-days="${d}"${t.state.days === d ? " selected" : ""}>${label}</option>`).join("")}</select></label>`;
+  // The Odds menu, only when the ledger saved prices (a pick with no price can't be split).
+  const priced = cfg.markets.some((m) => (m.ledger || []).some((row) => row[5] !== null && row[5] !== undefined));
+  if (!priced) t.state.odds = "all";
+  const oddsPick = priced
+    ? `<label class="ytd-window-pick"><span>Odds</span><select class="ytd-window" data-ytd-odds aria-label="Odds">${YTD_ODDS.map(([o, label, tip]) => `<option value="${o}"${tip ? ` title="${tip}"` : ""}${t.state.odds === o ? " selected" : ""}>${label}</option>`).join("")}</select></label>`
+    : "";
   const slider = (m) => `<label class="ytd-slider"><span>${m.slider || "Min Edge"}</span><input type="range" min="${m.min}" max="${m.max}" step="${m.step || 1}" value="${t.state.min[m.key]}" data-ytd-min="${m.key}" aria-label="${m.slider || "Min Edge"}, ${m.label}"><output data-ytd-out="${m.key}"></output></label>`;
   const tiles = [];
   if (cfg.all && cfg.markets.length > 1) tiles.push(`<div class="ytd-tile ytd-all" title="Every market, each at its own minimum"><div class="ytd-label">${cfg.all}</div><div data-ytd-body="__all"></div><small class="ytd-sub" data-ytd-sub="__all"></small></div>`);
@@ -106,7 +140,7 @@ function ytdTracker(box, cfg) {
     tiles.push(`<div class="ytd-tile" title="${m.tip || ""}"><div class="ytd-label">${m.label}</div><div data-ytd-body="${m.key}"></div>${slider(m)}</div>`);
     (m.splits || []).forEach(([tag, label, tip]) => tiles.push(`<div class="ytd-tile ytd-split" title="${tip || ""}"><div class="ytd-label">${label}</div><div data-ytd-body="${m.key}:${tag}"></div><small class="ytd-sub" data-ytd-sub="${m.key}:${tag}"></small></div>`));
   });
-  box.innerHTML = `<div class="ytd-windows">${windows}</div><div class="ytd-tiles">${tiles.join("")}</div>`;
+  box.innerHTML = `<div class="ytd-windows">${windows}${oddsPick}</div><div class="ytd-tiles">${tiles.join("")}</div>`;
   ytdUpdate(t);
 }
 // Only the numbers: a slider being dragged keeps its place.
@@ -144,6 +178,16 @@ document.addEventListener("input", (e) => {
   if (t.cfg.onChange) t.cfg.onChange();
 });
 document.addEventListener("change", (e) => {
+  const odds = e.target.closest && e.target.closest("[data-ytd-odds]");
+  const oddsBox = odds && odds.closest("[data-ytd]");
+  const ot = oddsBox && YTD_TRACKERS[oddsBox.dataset.ytd];
+  if (ot) {
+    ot.state.odds = odds.value;
+    ytdSave(ot);
+    ytdUpdate(ot);
+    if (ot.cfg.onChange) ot.cfg.onChange();
+    return;
+  }
   const pick = e.target.closest && e.target.closest("[data-ytd-window]");
   const box = pick && pick.closest("[data-ytd]");
   const t = box && YTD_TRACKERS[box.dataset.ytd];

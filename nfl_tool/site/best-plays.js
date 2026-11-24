@@ -427,7 +427,7 @@ const BP_YTD_KEY = "nfl-best-plays";
 let bpRecord = null;
 const bpYtdDate = (d) => new Date(`${d}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 function bpYtdList() {
-  const plays = (bpRecord.plays || []).filter((p) => ytdKeeps(BP_YTD_KEY, p.group, p.date, p.edge));
+  const plays = (bpRecord.plays || []).filter((p) => ytdKeeps(BP_YTD_KEY, p.group, p.date, p.edge, p.price, p.chance));
   if (!plays.length) return `<p class="no-data-note">No graded plays in this window yet.</p>`;
   const rows = plays.map((p) => {
     const rgb = teamAccentRgb(p.team).join(",");

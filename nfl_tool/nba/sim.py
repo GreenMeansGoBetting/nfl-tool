@@ -1180,7 +1180,9 @@ def ledger(record: dict, logs: dict, market: str) -> list:
                 tags.append(p["kind"])
             if p["dials"]:
                 tags.append("dials")
-            out.append([g["date"], p["edge"], int(won), round(units, 3), tags])
+            if p["price"] >= 100 and (p["chance"] or 0) > 0.5:
+                tags.append("flip")  # a favorite to the model at plus money (the YTD Odds menu)
+            out.append([g["date"], p["edge"], int(won), round(units, 3), tags, p["price"]])
     return sorted(out, key=lambda r: (r[0], -r[1]))
 
 

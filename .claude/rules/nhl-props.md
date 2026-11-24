@@ -100,11 +100,12 @@ A short list for a member in a rush; sends people to the other pages for detail.
 - Columns: #, Player, Play, Rating, **GMG Fair**, Odds (book named under it; Novig keeps its logo;
   opens every book), **Good to** (worst price still at a 3-point edge, `goodTo`), Edge, Notes, Puck
   drop, a "Shots ›" / "Goals ›" link. Every keyed column sorts; Odds = biggest payout first. No Win %.
-  Market switches (at least one stays on); Edge menu (`bestView.minEdge`) and Lineups menu.
+  Market switches (at least one stays on); Edge menu (`bestView.minEdge`), Lineups menu and **Odds**
+  menu (`bestView.odds`, the YTD tracker's `YTD_ODDS` / `ytdOddsOk`; a member, 2026-11-12).
 - A row opens its row on the other page (`shots.html#row=<game>:<player>`; `linkedRow` /
   `scrollToRow`).
 - **YTD:** the shared tracker (styles.md) on each record's `ledger` (`record_ledger`: every graded
-  play `[date, edge, won, units]` plus tags); Min Edge slider per market, edge counted as the table
+  play `[date, edge, won, units]` plus tags, then its price); Min Edge slider per market, edge counted as the table
   rounds it; remembered as `nfl-tool.ytd.nhl-best.v1`. Shots, Goals, Points, Saves popups use the
   same tracker (`nhlYtd`).
 - Player cell: the flex box sits INSIDE the td (`.best-player`); photo 34px, logos 30px. Phone: photo

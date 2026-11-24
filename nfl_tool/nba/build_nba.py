@@ -788,7 +788,7 @@ def predictions_record(season: int, preds: dict, games: list, now_utc: datetime)
             else:
                 line = r["book"]["spread"][play["side"]] if play["market"] == "spread" else play["price"]  # favorite: minus either way
                 tags = ["fav" if line is not None and line < 0 else "dog", "home" if play["side"] else "away"]
-            ledger[play["market"]].append([r["date"], play["edge"], int(won), round(predict.units(play["price"], won), 3), tags])
+            ledger[play["market"]].append([r["date"], play["edge"], int(won), round(predict.units(play["price"], won), 3), tags, play["price"]])
     return {"record": record, "ledger": ledger}
 
 

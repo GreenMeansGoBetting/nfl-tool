@@ -153,6 +153,13 @@ automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for eve
   `value` is what the slider cuts on (an edge, or a pick's chance), compared as the table rounds it;
   `units` null = a pick with no price (win % only). `only` keeps a market to rows with those tags
   (Goals / Saves: Plays = strong + lean, Check First its own tile).
+- **Odds menu** (2026-11-24; members: "O/U records by Plus vs Minus odds", "+ or - consensus money"):
+  a sixth ledger column, the American price it was graded at, turns on an **Odds** dropdown beside
+  Time Frame (`YTD_ODDS`, `ytdOddsOk`, `[data-ytd-odds]`, remembered as `odds`): All Odds, Plus Money
+  (+100 or longer), Minus Money, +200 Or Longer, **Model Favorite, Plus Money** (tag `flip`: the model
+  over 50% at a plus price; builds set it: `ledger_flip` in nhl_records.py, best_plays_record.py,
+  nba/sim.py). No price column = no menu; a row without a price passes only All Odds. Page lists pass
+  `ytdKeeps(key, market, date, edge, price, chance)`. NHL Best Plays' live list has the same menu.
 - The page's own list under the tiles follows the same window and slider (`ytdKeeps`), so they
   always agree. Tiles the ledger can't filter (Not Plays, closing line value, Said vs scored) sit
   under a "Season To Date" label (NHL: `nhlYtd` in nhl-common.js lays every prop page out the same).

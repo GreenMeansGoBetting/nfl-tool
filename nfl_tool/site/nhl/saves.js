@@ -379,7 +379,7 @@ function recordPlays(record) {
   const all = record.plays || [];
   if (!all.length) return "";
   const bucket = RECORD_BUCKETS.find(([key]) => key === savesView.record) || RECORD_BUCKETS[0];
-  const shown = all.filter((play) => bucket[2].includes(play.size) && ytdKeeps("nhl-saves", play.size === "check" ? "check" : "play", play.date, play.edge));
+  const shown = all.filter((play) => bucket[2].includes(play.size) && ytdKeeps("nhl-saves", play.size === "check" ? "check" : "play", play.date, play.edge, play.price));
   const sum = (plays) => plays.reduce((t, play) => ({ wins: t.wins + (play.won ? 1 : 0), losses: t.losses + (play.won ? 0 : 1), units: t.units + play.units }), { wins: 0, losses: 0, units: 0 });
   const line = (t) => `${t.wins}-${t.losses} &middot; ${signed(t.units, 2)}u`;
   const buttons = RECORD_BUCKETS.map(([key, label]) => `<button type="button" class="view-toggle-btn shots-filter-btn${bucket[0] === key ? " active" : ""}" data-filter="record" data-value="${key}">${label}</button>`).join("");

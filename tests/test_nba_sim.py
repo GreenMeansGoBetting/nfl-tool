@@ -382,8 +382,9 @@ class Record(unittest.TestCase):
                                                          row("4", "o", 10.5, -110, "strong", None, True, [])]}}  # sat
         logs = {("9", "1"): 27, ("9", "2"): 16, ("9", "3"): 20}
         self.assertEqual(sim.ledger(record, logs, "points"), [
-            ["2026-10-24", 0.06, 1, 3.0, ["strong", "over", "alt", "chaos", "dials"]],  # a saved "top" counts as Strong
-            ["2026-10-24", 0.06, 0, -1.0, ["strong", "under", "main", "proof"]],
+            # a saved "top" counts as Strong; the price on the end feeds the YTD Odds menu (a 50% chance isn't a "flip")
+            ["2026-10-24", 0.06, 1, 3.0, ["strong", "over", "alt", "chaos", "dials"], 300],
+            ["2026-10-24", 0.06, 0, -1.0, ["strong", "under", "main", "proof"], -110],
         ])
         self.assertEqual(sim.ledger(record, logs, "threes"), [])
 
@@ -470,7 +471,7 @@ class ReboundsAndAssists(unittest.TestCase):
         import props
         self.assertTrue(set(sim.STATS.values()) <= set(props.LOG_FIELDS))
         record = {"9": {"date": "2026-10-27", "rebounds": [["1", "o", 8.5, -110, "dk", 0.6, 0.08, "strong", None, True, []]]}}
-        self.assertEqual(sim.ledger(record, {("9", "1"): 11}, "rebounds"), [["2026-10-27", 0.08, 1, 0.909, ["strong", "over", "main"]]])
+        self.assertEqual(sim.ledger(record, {("9", "1"): 11}, "rebounds"), [["2026-10-27", 0.08, 1, 0.909, ["strong", "over", "main"], -110]])
 
 
 class LastSeasonStart(unittest.TestCase):

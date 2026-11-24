@@ -92,8 +92,9 @@ class Grading(unittest.TestCase):
                          "b": tb_dal(name="Cade Otton", group="any", market="anytime_td", side="yes", line=0.5, price=+250, rating="Check"),
                          "c": play()}}
         led = bpr.ledger(bpr.grade(rec, self.data))
-        self.assertEqual(led["rec"], [["2026-10-08", 0.081, 1, 1.2, ["rec", "under", "strong"]]])
-        self.assertEqual(led["any"], [["2026-10-08", 0.05, 0, -1.0, ["any", "yes", "check"]]])
+        # The price last (the YTD Odds menu); "flip" = plus money on a play the model makes a favorite.
+        self.assertEqual(led["rec"], [["2026-10-08", 0.081, 1, 1.2, ["rec", "under", "strong", "flip"], 120]])
+        self.assertEqual(led["any"], [["2026-10-08", 0.05, 0, -1.0, ["any", "yes", "check", "flip"], 250]])  # the sample's 0.57 chance
         self.assertEqual(led["first"], [])
         self.assertEqual(len(bpr.site_file(rec)["plays"]), 2)
 

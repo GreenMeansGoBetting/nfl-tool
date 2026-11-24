@@ -19,7 +19,7 @@ let SAVES = null;
 let dayIndex = 0;
 let gameId = null; // one game picked in the strip, or null for the whole day
 // markets: which markets are listed. sort / dir: the column and which way.
-const bestView = { markets: { sog: true, goal: true, pts: true, saves: true }, sort: "edge", dir: -1, when: "all", minEdge: 3, lineup: "all" };
+const bestView = { markets: { sog: true, goal: true, pts: true, saves: true }, sort: "edge", dir: -1, when: "all", minEdge: 3, lineup: "all", odds: "all" };
 const MARKETS = [
   ["sog", "Shots on goal", "shots.html"],
   ["goal", "Anytime goal", "goals.html"],
@@ -197,6 +197,8 @@ function sortedPlays(date, notMine = false) {
     .filter((x) => nameMatches(x.r.name))
     .filter((x) => Math.round(x.play.edge * 1000) / 10 >= bestView.minEdge)
     .filter((x) => bestView.lineup === "all" || x.posted)
+    // The Odds menu, the YTD tracker's own (ytd.js): plus / minus money, +200, a model favorite at plus money.
+    .filter((x) => ytdOddsOk(bestView.odds, x.play.price, x.play.chance > 0.5))
     .filter((x) => !dayIsMixed(date) || bestView.when === "all" || (bestView.when === "open") === (x.state === "open"))
     .sort((a, b) => {
       // Plays still to come first, then games in progress, then finished ones, whatever the sort.
@@ -239,7 +241,8 @@ function renderToolbar() {
   const lean = Math.round(edgeAt("lean") * 100);
   const edges = [lean, 5, 7, 10, 15].filter((v, i, a) => v >= lean && a.indexOf(v) === i).map((v) => [v, `${v}+ points`]);
   const filters = menu("minEdge", "Edge", edges, "Only plays with at least this much edge (the model's chance minus the chance the price needs, in points)") +
-    menu("lineup", "Lineups", [["all", "All plays"], ["posted", "Lineup confirmed"]], "Lineup confirmed = the NHL's projected lineup for the game is in");
+    menu("lineup", "Lineups", [["all", "All plays"], ["posted", "Lineup confirmed"]], "Lineup confirmed = the NHL's projected lineup for the game is in") +
+    menu("odds", "Odds", YTD_ODDS, "Plus Money: +100 or longer. Model Favorite, Plus Money: the model gives it over 50% (GMG Fair is minus) but the price is plus");
   el("best-toolbar").innerHTML = `<span class="shots-filter best-markets"><span class="best-filter-label">Markets</span>${markets}</span>${filters}${when}`;
 }
 // The lineup banner: plays in a game whose lineup isn't in can still change.
