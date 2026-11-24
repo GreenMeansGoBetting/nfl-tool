@@ -31378,8 +31378,8 @@
     "under",
     true,
     7.5,
-    105,
-    "prophetx"
+    107,
+    "4cx"
    ],
    [
     "4592691",
@@ -31433,8 +31433,8 @@
     "over",
     false,
     16.5,
-    -108,
-    "fanduel"
+    -104,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -31447,8 +31447,8 @@
     "under",
     false,
     2.5,
-    -130,
-    "draftkings"
+    -146,
+    "prophetx"
    ],
    [
     "3155942",
@@ -31471,8 +31471,8 @@
     "under",
     true,
     2.5,
-    -212,
-    "prophetx"
+    -203,
+    "pinnacle"
    ]
   ]
  }
