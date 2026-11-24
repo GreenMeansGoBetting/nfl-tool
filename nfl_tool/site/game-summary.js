@@ -207,6 +207,102 @@ function gsModelCompute(game, w) {
   }
 }
 
+// A locked game's score under weights w, from the `parts` the build saved with it at kickoff
+// (gmg_model.py `side`): the numbers known before the game, so a member's own weights are graded
+// fairly (a member, 2026-11-19: "once a game starts I lose the predicted totals from the model I
+// made"). Equals the locked GMG score on GMG default (tests/test_model_weights_site.py). null = a
+// game locked before parts were saved.
+function gsModelFromParts(entry, w) {
+  const p = entry && entry.parts;
+  if (!p || !p.away || !p.home) return null;
+  const blendSum = GS_MODEL_BLEND.reduce((sum, f) => sum + w[f.key], 0);
+  const share = (key) => (blendSum ? w[key] / blendSum : 0);
+  const partSum = GS_MODEL_MATCHUPS.reduce((sum, f) => sum + w[f.key], 0);
+  const points = (x) => {
+    let gap = 0;
+    if (partSum) GS_MODEL_MATCHUPS.forEach((f) => {
+      const g = (x.m || {})[f.key];
+      if (g !== null && g !== undefined) gap += (w[f.key] / partSum) * g;
+    });
+    return p.league + share("ratings") * x.r + share("scoring") * x.s + share("matchups") * gap * w.impact * x.t;
+  };
+  const awayRaw = points(p.away);
+  const homeRaw = points(p.home);
+  const mid = (awayRaw + homeRaw) / 2;
+  const half = ((homeRaw - awayRaw) / 2) * w.stretch;
+  const qbOut = (t) => ((entry.qb_out || []).includes(t) ? w.qbOut : 0);
+  return { away_pts: mid - half - w.homeField / 2 - qbOut(entry.away), home_pts: mid + half + w.homeField / 2 - qbOut(entry.home) };
+}
+// The spread and total sides a score takes against an entry's locked lines, graded once it's final
+// (gmg_model.py _grade): { spread: { side, edge, result }, total: { ... } }.
+function gsModelGradeScore(entry, s) {
+  const out = {};
+  if (!s) return out;
+  const result = (v) => (!entry.final ? null : v > 0 ? "win" : v < 0 ? "loss" : "push");
+  const margin = entry.final ? entry.final[1] - entry.final[0] : 0;
+  const points = entry.final ? entry.final[0] + entry.final[1] : 0;
+  if (entry.spread !== null && entry.spread !== undefined) {
+    const lean = s.home_pts - s.away_pts + entry.spread;
+    const side = lean > 0 ? "home" : "away";
+    out.spread = { side, edge: Math.abs(lean), result: result((margin + entry.spread) * (side === "home" ? 1 : -1)) };
+  }
+  if (entry.total !== null && entry.total !== undefined) {
+    const lean = s.away_pts + s.home_pts - entry.total;
+    const side = lean > 0 ? "over" : "under";
+    out.total = { side, edge: Math.abs(lean), result: result((points - entry.total) * (side === "over" ? 1 : -1)) };
+  }
+  return out;
+}
+// Your weights' record next to GMG default's on the SAME games (every final game locked with parts),
+// in the shared YTD tracker (ytd.js): rows [date, points off the line, won, null, [side]]; pushes out.
+function gsModelMineLedgers(w) {
+  const mine = { spread: [], total: [] };
+  const gmg = { spread: [], total: [] };
+  Object.values(DATA.gmg_model || {})
+    .filter((e) => e.parts && e.final && e.date)
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+    .forEach((e) => {
+      const yours = gsModelGradeScore(e, gsModelFromParts(e, w));
+      ["spread", "total"].forEach((k) => {
+        // GMG's column is its own locked record; yours is rounded to a tenth like the build's edges.
+        const theirs = e[`${k}_pick`] ? { side: e[`${k}_pick`], edge: e[`${k}_edge`], result: e[`${k}_result`] } : null;
+        const y = yours[k] ? { ...yours[k], edge: Math.round(yours[k].edge * 10) / 10 } : null;
+        [[y, mine], [theirs, gmg]].forEach(([g, into]) => {
+          if (g && g.result && g.result !== "push") into[k].push([e.date, g.edge, g.result === "win" ? 1 : 0, null, [g.side]]);
+        });
+      });
+    });
+  return { mine, gmg };
+}
+function gsModelDrawMine(root) {
+  const box = root && root.querySelector(".mw-mine-box");
+  if (!box || typeof ytdTracker !== "function") return;
+  const preset = gsModelActivePreset();
+  const w = gsModelWeights(preset);
+  const { mine, gmg } = gsModelMineLedgers(w);
+  const done = Object.values(DATA.gmg_model || {}).filter((e) => e.parts && e.final && e.date);
+  const first = done.map((e) => e.week).sort((a, b) => a - b)[0];
+  root.querySelector(".mw-mine-note").textContent = done.length
+    ? `${done.length} finished game${done.length === 1 ? "" : "s"} since Week ${first}, each graded on the numbers locked at kickoff. Games before then didn't save what the model read, so they can't be re-scored fairly.`
+    : "Your record starts with this week's games: each game's numbers are saved at kickoff and graded once it's final. Check back after the first ones finish.";
+  if (!preset) root.querySelector(".mw-mine-note").textContent += " Move a slider or pick your saved weights above to see their record beside GMG's.";
+  const market = (key, label, ledger, tip) => ({ key, label, ledger, tip, min: 0, max: 10, step: 0.5, start: GS_MODEL_EDGE, scale: 1, unit: "+ pts", slider: "Min Points Off Line" });
+  const yours = preset
+    ? [
+        market("mine-spread", `${preset.name}: Spread`, mine.spread, "Your sliders' side of the locked spread, on every finished game"),
+        market("mine-total", `${preset.name}: Total`, mine.total, "Your sliders' side of the locked total"),
+      ]
+    : [];
+  ytdTracker(box, {
+    key: "nfl-my-model",
+    markets: [
+      ...yours,
+      market("gmg-spread", "GMG Default: Spread", gmg.spread, "GMG default on the same games"),
+      market("gmg-total", "GMG Default: Total", gmg.total, "GMG default on the same games"),
+    ],
+  });
+}
+
 // Saved weight sets: { active: "gmg" | preset id, presets: [{ id, name, w }] }.
 const GS_MODEL_PRESETS_KEY = "nfl-tool.model-presets.v1";
 const GS_MODEL_MAX_PRESETS = 12;
@@ -277,9 +373,10 @@ function gsModelSliderRows(group, w, points) {
     .join("");
 }
 // Spread and total pick a projected score makes against the current line.
-function gsModelPickCells(game, s) {
-  const hs = pv(game, "home_team_spread");
-  const total = pv(game, "total_line");
+function gsModelPickCells(game, s, locked) {
+  // A started game reads the lines locked with it (the entry), never the live ones.
+  const hs = locked ? locked.spread : pv(game, "home_team_spread");
+  const total = locked ? locked.total : pv(game, "total_line");
   const cell = (label, edge) => `<td class="gm-pick ${edge >= GS_MODEL_EDGE ? "gm-pick-big" : "gm-lean"}" title="${edge >= GS_MODEL_EDGE ? "A pick" : "A lean, not a pick"}: these weights are ${fmt(edge, 1)} points from the line (${GS_MODEL_EDGE}+ makes a pick)">${label} <span class="gm-edge">${fmt(edge, 1)}</span></td>`;
   const none = `<td class="muted-label">--</td>`;
   if (!s) return none + none;
@@ -310,9 +407,11 @@ function gsModelPreviewTable(w, presetName, withPicks) {
       const total = pv(g, "total_line");
       const market = hs !== null && hs !== undefined && total ? `${fmt((total + hs) / 2, 1)} - ${fmt((total - hs) / 2, 1)}` : "--";
       const started = gsGameStarted(g);
-      const mine = started ? null : gsModelCompute(g, w);
-      const yours = started ? `<span class="muted-label">locked</span>` : score(mine);
-      const picks = withPicks ? (started ? `<td class="muted-label">--</td><td class="muted-label">--</td>` : gsModelPickCells(g, mine)) : "";
+      // Started: your weights on the numbers locked at kickoff (none saved = "locked").
+      const entry = started ? gsModelEntry(g) : null;
+      const mine = started ? gsModelFromParts(entry, w) : gsModelCompute(g, w);
+      const yours = started && !mine ? `<span class="muted-label">locked</span>` : `${score(mine)}${started ? ` <span class="muted-label" title="Your weights on the numbers locked at kickoff">locked</span>` : ""}`;
+      const picks = withPicks ? (started && !mine ? `<td class="muted-label">--</td><td class="muted-label">--</td>` : gsModelPickCells(g, mine, entry)) : "";
       return `<tr${cur && g.game_id === cur.game_id ? ' class="stat-rank-current"' : ""}><td class="mw-game">${teamLogoMini(g.away, 16)} ${g.away} @ ${teamLogoMini(g.home, 16)} ${g.home}</td><td class="num">${market}</td><td class="num">${score(gsModelDefaultScore(g))}</td><td class="num mw-yours">${yours}</td>${picks}</tr>`;
     })
     .join("");
@@ -351,6 +450,7 @@ function renderModelWeights(page) {
       </div>
       <div class="mw-preview">${gsModelPreviewTable(w, preset ? preset.name : "Your weights", page)}</div>
     </div>
+    ${page ? `<div class="mw-mine"><h2 class="section-title">Your Model Record</h2><p class="section-note mw-mine-note"></p><div class="mw-mine-box"></div></div>` : ""}
     ${page ? `<div class="mw-record">${renderModelRecord()}</div>` : ""}
   </div>`;
 }
@@ -359,7 +459,10 @@ function refreshModelWeights() {
   const popup = document.getElementById("model-weights-content");
   if (popup && !document.getElementById("model-weights-modal").hidden) popup.innerHTML = renderModelWeights(false);
   const section = document.getElementById("section-model");
-  if (section && !section.hidden) section.innerHTML = renderModelWeights(true);
+  if (section && !section.hidden) {
+    section.innerHTML = renderModelWeights(true);
+    gsModelDrawMine(section);
+  }
   const game = currentGame();
   if (game && gsView === "summary") renderGameSummaryCard(game);
 }
@@ -426,6 +529,7 @@ document.addEventListener("input", (e) => {
   gsModelCardTimer = setTimeout(() => {
     const game = currentGame();
     if (game && gsView === "summary") renderGameSummaryCard(game);
+    if (root.classList.contains("mw-page")) gsModelDrawMine(root); // your record follows the sliders
   }, 60);
 });
 document.addEventListener("change", (e) => {
@@ -905,7 +1009,10 @@ function applyPreviewView(game) {
   wrap.hidden = !summary;
   modelWrap.hidden = !model;
   teamsWrap.hidden = !teams;
-  if (model) modelWrap.innerHTML = renderModelWeights(true);
+  if (model) {
+    modelWrap.innerHTML = renderModelWeights(true);
+    gsModelDrawMine(modelWrap);
+  }
   if (teams) teamsWrap.innerHTML = renderTeamRecord();
   if (summary) {
     gsDraft = {};

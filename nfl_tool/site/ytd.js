@@ -72,7 +72,7 @@ function ytdLoad(cfg) {
   const min = {};
   cfg.markets.forEach((m) => {
     const v = (saved.min || {})[m.key];
-    min[m.key] = Number.isFinite(v) ? Math.max(m.min, Math.min(m.max, v)) : m.min;
+    min[m.key] = Number.isFinite(v) ? Math.max(m.min, Math.min(m.max, v)) : m.start !== undefined ? m.start : m.min; // `start`: the slider's first spot
   });
   return { days: YTD_WINDOWS.some(([d]) => d === saved.days) ? saved.days : 0, odds: YTD_ODDS.some(([o]) => o === saved.odds) ? saved.odds : "all", min };
 }

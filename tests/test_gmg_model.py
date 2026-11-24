@@ -39,6 +39,20 @@ class SampleGameScore(unittest.TestCase):
             {"away_pts": 24.7, "home_pts": 27.6, "spread": -3.5, "spread_pick": "away", "spread_edge": 0.6, "total": 54.5, "total_pick": "under", "total_edge": 2.2, "qb_out": []},
         )
 
+    def test_the_entry_keeps_what_the_score_was_made_of(self):
+        """Build Your Model's record re-weighs these at the member's sliders (game-summary.js
+        gsModelFromParts): the league average, and per offense its ratings and scoring reads,
+        the matchup trust and each matchup piece's gap by slider key."""
+        entry = run_model(site_data(), None)[BUF_LA]
+        self.assertEqual(entry["date"], "2026-10-12")
+        parts = entry["parts"]
+        self.assertEqual(set(parts), {"league", "away", "home"})
+        for side in ("away", "home"):
+            self.assertEqual(set(parts[side]), {"r", "s", "t", "m"})
+            self.assertLessEqual(set(parts[side]["m"]), set(gmg_model.PIECE_WEIGHTS))
+            self.assertIn("passing", parts[side]["m"])
+        self.assertAlmostEqual(sum(gmg_model.PIECE_WEIGHTS.values()), 1.0)
+
     def test_only_this_weeks_unstarted_games_are_projected(self):
         """A started game with no earlier copy is left out, never projected
         after the fact; next week's games wait for their own week."""

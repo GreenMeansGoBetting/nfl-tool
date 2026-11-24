@@ -104,6 +104,78 @@ class ModelMatchesTheBuild(unittest.TestCase):
         self.assertEqual(js["scheme"], [list(row) for row in gmg_model.SCHEME_ROWS])
 
 
+class MyModelRecord(unittest.TestCase):
+    """A member's own weights get a record (Ryan Jones, 2026-11-04 / 11-19: "I am unable to view the
+    history of it ... once a game starts I lose the predicted totals from the model I made"). The build
+    locks each game's `parts` at kickoff; the browser re-weighs them, so the record uses only what was
+    known before the game."""
+
+    def entries(self):
+        blob = site_data()
+        grades = gmg_model._Grades(blob)
+        games = [g for g in blob["schedule"] if g["week"] in (blob["current_week"], blob["current_week"] + 1)]
+        return [e for e in (gmg_model._project(blob, grades, g) for g in games) if e]
+
+    def test_parts_on_gmg_default_give_the_locked_score(self):
+        entries = self.entries()
+        self.assertGreaterEqual(len(entries), 25)
+        got = GAME.evaluate("(es) => es.map((e) => gsModelFromParts(e, gsModelDefaults()))", entries)
+        for e, s in zip(entries, got):
+            for side in ("away_pts", "home_pts"):
+                self.assertAlmostEqual(s[side], e[side], delta=0.0501, msg=f"{e['away']} @ {e['home']} {side}")
+        # Other weights move it: ratings only.
+        moved = GAME.evaluate("(e) => gsModelFromParts(e, { ...gsModelDefaults(), scoring: 0, matchups: 0 })", entries[0])
+        p = entries[0]["parts"]
+        mid = p["league"] + (p["away"]["r"] + p["home"]["r"]) / 2
+        half = (p["home"]["r"] - p["away"]["r"]) / 2 * gmg_model.MARGIN_STRETCH
+        qb = lambda t: gmg_model.QB_OUT_POINTS if t in entries[0]["qb_out"] else 0  # noqa: E731
+        self.assertAlmostEqual(moved["home_pts"], mid + half + gmg_model.HOME_FIELD / 2 - qb(entries[0]["home"]), places=6)
+
+    def test_graded_against_the_locked_line(self):
+        got = GAME.evaluate("""() => gsModelGradeScore({ spread: -3.5, total: 45, final: [20, 24] }, { away_pts: 20, home_pts: 27 })""")
+        self.assertEqual(got["spread"], {"side": "home", "edge": 3.5, "result": "win"})  # won by 4, laid 3.5
+        self.assertEqual(got["total"], {"side": "over", "edge": 2, "result": "loss"})  # 44 < 45
+        self.assertEqual(GAME.evaluate("() => gsModelGradeScore({ spread: -3.5 }, { away_pts: 20, home_pts: 27 }).spread.result"), None)
+
+    def test_the_record_and_the_locked_week_table(self):
+        e = dict(self.entries()[0], frozen=True)
+        gmg_model._grade(e, {"away_score": 17, "home_score": 30})
+        got = GAME.evaluate(
+            """(e) => {
+                const keep = DATA.gmg_model;
+                const id = DATA.schedule.find((g) => g.away === e.away && g.home === e.home).game_id;
+                DATA.gmg_model = { [id]: e };
+                try {
+                    const def = gsModelMineLedgers(gsModelDefaults());
+                    const odd = gsModelMineLedgers({ ...gsModelDefaults(), homeField: 0, stretch: 0.5 });
+                    const g = DATA.schedule.find((x) => x.game_id === id);
+                    const table = gsModelPreviewTable(gsModelDefaults(), "Mine", true);
+                    return { def, odd, table, week: g.week };
+                } finally { DATA.gmg_model = keep; }
+            }""",
+            e,
+        )
+        # GMG default re-scored from its parts lands where the locked score does
+        self.assertEqual(got["def"]["mine"], got["def"]["gmg"])
+        self.assertEqual(len(got["def"]["mine"]["spread"]) + len(got["def"]["mine"]["total"]), 2 if e.get("total") is not None else 1)
+        self.assertEqual(got["odd"]["gmg"], got["def"]["gmg"], "GMG's column never follows the sliders")
+        self.assertEqual(SITE.errors, [])
+
+    def test_the_page_draws_it(self):
+        GAME.evaluate("() => { gsView = 'model'; applyPreviewView(currentGame()); }")
+        try:
+            # GMG default active: only GMG's two tiles, and a nudge to make your own
+            self.assertEqual(GAME.locator("#section-model .mw-mine [data-ytd-body]").count(), 2)
+            self.assertIn("YOUR MODEL RECORD", GAME.inner_text("#section-model").upper())
+            # Your saved weights: their two tiles join GMG's
+            GAME.evaluate("""() => { gsModelSaveState({ active: 'p1', presets: [{ id: 'p1', name: 'Ryan', w: { ...gsModelDefaults(), homeField: 3 } }] }); refreshModelWeights(); }""")
+            self.assertEqual(GAME.locator("#section-model .mw-mine [data-ytd-body]").count(), 4)
+            self.assertIn("RYAN: SPREAD", GAME.inner_text("#section-model .mw-mine").upper())
+        finally:
+            GAME.evaluate("() => { gsModelSaveState({ active: 'gmg', presets: [] }); gsView = 'full'; applyPreviewView(currentGame()); }")
+        self.assertEqual(SITE.errors, [])
+
+
 class PickNeedsFourPoints(unittest.TestCase):
     def test_same_number_in_the_build_and_the_browser(self):
         self.assertEqual(GAME.evaluate("() => GS_MODEL_EDGE"), gmg_model.EDGE_POINTS)

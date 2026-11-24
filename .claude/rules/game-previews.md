@@ -177,3 +177,13 @@ want the entire set of info they can get on the site." Do not add stat lines bac
 - With a preset active the tile shows the preset's name and score, so a screenshot never passes
   custom weights off as "GMG model". Games that have kicked off, the record popup and the graded
   picks always use GMG default.
+- **Your Model Record** (2026-11-24; Ryan Jones asked twice: "see what our models are doing relative
+  to the actual game outcomes"): each projection saves `date` and **`parts`** (league average; per
+  offense `r` ratings read, `s` scoring read, `t` matchup trust, `m` each matchup piece's gap by slider
+  key, `PIECE_KEYS`), locked with it at kickoff. `gsModelFromParts(entry, w)` re-weighs them (equals
+  the locked score on GMG default, `test_site_js.MyModelRecord`); `gsModelGradeScore` grades against
+  the entry's locked lines. Build Your Model shows the active preset's Spread / Total beside GMG
+  default's own record on the same finished games (`gsModelMineLedgers`, ytd.js tracker key
+  `nfl-my-model`, Min Points Off Line slider starting at 4). Games locked before parts existed can't
+  be re-scored (no look-ahead). The week table shows your score on started games too ("locked").
+  **Keep `side()` in gmg_model.py, `gsModelFromParts` and `gsModelCompute` in step.**

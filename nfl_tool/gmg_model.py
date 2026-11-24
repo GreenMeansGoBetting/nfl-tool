@@ -88,6 +88,11 @@ STAT_WEIGHTS = [
     # slider stays so a member can still add weight).
     ("penalty_yards_off_per_g", True, "penalty_yards_def_per_g", True, 0.0),
 ]
+# Each matchup piece's slider key in Build Your Model (GS_MODEL_MATCHUPS in game-summary.js).
+PIECE_KEYS = {"Passing": "passing", "Rushing": "rushing", "Red Zone": "redzone", "Trenches": "trenches", "Scheme": "scheme",
+              "epa_per_play": "epa", "third_down_rate": "third", "explosive_rate": "explosive", "turnovers_per_g": "turnovers",
+              "sacks_allowed_per_g": "sacks", "penalty_yards_off_per_g": "penalties"}
+PIECE_WEIGHTS = {**{PIECE_KEYS[k]: w for k, w in GRADE_WEIGHTS.items()}, **{PIECE_KEYS[k]: w for k, _, _, _, w in STAT_WEIGHTS}}
 
 
 def _z(value, values, invert=False):
@@ -156,17 +161,21 @@ class _Grades:
             return self.trenches(team, side)
         return self.composite(team, CATEGORIES[label][side])
 
-    def matchup_gap(self, off, dfn):
-        gap = 0.0
-        for label, weight in GRADE_WEIGHTS.items():
+    def matchup_gaps(self, off, dfn):
+        """{slider key: offense z minus defense z} for every matchup piece both sides have."""
+        out = {}
+        for label in GRADE_WEIGHTS:
             off_z, def_z = self.category(label, off, "off"), self.category(label, dfn, "def")
             if off_z is not None and def_z is not None:
-                gap += weight * (off_z - def_z)
-        for off_key, off_inv, def_key, def_inv, weight in STAT_WEIGHTS:
+                out[PIECE_KEYS[label]] = off_z - def_z
+        for off_key, off_inv, def_key, def_inv, _ in STAT_WEIGHTS:
             off_z, def_z = self.stat_z(off, off_key, off_inv), self.stat_z(dfn, def_key, def_inv)
             if off_z is not None and def_z is not None:
-                gap += weight * (off_z - def_z)
-        return gap
+                out[PIECE_KEYS[off_key]] = off_z - def_z
+        return out
+
+    def matchup_gap(self, off, dfn):
+        return sum(PIECE_WEIGHTS[k] * g for k, g in self.matchup_gaps(off, dfn).items())
 
 
 def _norm_name(name):
@@ -246,18 +255,32 @@ def _project(blob, grades, game):
     played = lambda t: grades.raw[t].get("games_played") or 0
     trust = lambda t: played(t) / (played(t) + PRIOR_GAMES)
 
-    def points(off, dfn):
-        rating = ratings[off]["off"] - ratings[dfn]["def"]
-        scoring = (grades.stats[off]["points_for_per_g"] - grades.league) * trust(off) + (grades.stats[dfn]["points_against_per_g"] - grades.league) * trust(dfn)
-        matchups = grades.matchup_gap(off, dfn) * POINTS_PER_Z * min(1.0, (played(off) + played(dfn)) / 2 / FULL_TRUST_GAMES)
-        return grades.league + BLEND["ratings"] * rating + BLEND["scoring"] * scoring + BLEND["matchups"] * matchups
+    def side(off, dfn):
+        """One offense vs the other defense, before any weight: what a member's own sliders
+        re-weigh (Build Your Model's record, the "parts" below)."""
+        return {
+            "r": ratings[off]["off"] - ratings[dfn]["def"],
+            "s": (grades.stats[off]["points_for_per_g"] - grades.league) * trust(off) + (grades.stats[dfn]["points_against_per_g"] - grades.league) * trust(dfn),
+            "t": min(1.0, (played(off) + played(dfn)) / 2 / FULL_TRUST_GAMES),
+            "m": grades.matchup_gaps(off, dfn),
+        }
+
+    def points(p):
+        matchups = sum(PIECE_WEIGHTS[k] * g for k, g in p["m"].items()) * POINTS_PER_Z * p["t"]
+        return grades.league + BLEND["ratings"] * p["r"] + BLEND["scoring"] * p["s"] + BLEND["matchups"] * matchups
 
     qb_out = [t for t in (away, home) if _qb_out(blob, t, game["week"])]
-    away_raw, home_raw = points(away, home), points(home, away)
+    away_side, home_side = side(away, home), side(home, away)
+    away_raw, home_raw = points(away_side), points(home_side)
     mid, half = (away_raw + home_raw) / 2, (home_raw - away_raw) / 2 * MARGIN_STRETCH
     away_pts = mid - half - HOME_FIELD / 2 - (QB_OUT_POINTS if away in qb_out else 0)
     home_pts = mid + half + HOME_FIELD / 2 - (QB_OUT_POINTS if home in qb_out else 0)
-    entry = {"week": game["week"], "away": away, "home": home, "away_pts": round(away_pts, 1), "home_pts": round(home_pts, 1), "qb_out": qb_out}
+    entry = {"week": game["week"], "date": game.get("date"), "away": away, "home": home, "away_pts": round(away_pts, 1), "home_pts": round(home_pts, 1), "qb_out": qb_out}
+    # Everything the score was made of, locked with it at kickoff, so a member's own weights can be
+    # graded on the numbers known before the game (a member, 2026-11-04 / 11-19: "I am unable to view
+    # the history of it ... once a game starts I lose the predicted totals from the model I made").
+    rnd = lambda p: {"r": round(p["r"], 3), "s": round(p["s"], 3), "t": round(p["t"], 3), "m": {k: round(v, 3) for k, v in p["m"].items()}}  # noqa: E731
+    entry["parts"] = {"league": round(grades.league, 3), "away": rnd(away_side), "home": rnd(home_side)}
     spread, total = _line(game, "home_team_spread"), _line(game, "total_line")
     if spread is not None:
         # Home is expected to win by -spread; the model's margin past that picks a side.
