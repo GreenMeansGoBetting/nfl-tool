@@ -5390,9 +5390,9 @@
     "Desmond Bane",
     "ORL",
     "DET",
-    -0.1341,
+    -0.1067,
     "under",
-    true,
+    false,
     17.5,
     -114,
     "prophetx"
@@ -5402,97 +5402,109 @@
     "Kevin Huerter",
     "DET",
     "ORL",
-    0.1279,
+    0.1307,
     "over",
     true,
     11.5,
-    -105,
-    "betmgm"
+    -106,
+    "4cx"
+   ],
+   [
+    "4348700",
+    "Goga Bitadze",
+    "ORL",
+    "DET",
+    0.0592,
+    "over",
+    false,
+    5.5,
+    131,
+    "prophetx"
    ],
    [
     "4395702",
     "Isaiah Joe",
     "DET",
     "ORL",
-    0.1368,
+    0.1546,
     "over",
     true,
     11.5,
-    101,
-    "prophetx"
+    100,
+    "caesars"
    ],
    [
     "4432165",
     "Jalen Suggs",
     "ORL",
     "DET",
-    -0.0931,
+    -0.1035,
     "under",
     false,
     11.5,
-    -129,
-    "caesars"
-   ],
-   [
-    "4702382",
-    "Tristan da Silva",
-    "ORL",
-    "DET",
-    -0.1166,
-    "under",
-    false,
-    10.5,
-    -108,
-    "draftkings"
+    -119,
+    "4cx"
    ],
    [
     "4712849",
     "Anthony Black",
     "ORL",
     "DET",
-    -0.0523,
+    -0.0633,
     "under",
     false,
     14.5,
-    -115,
-    "draftkings"
+    -120,
+    "prophetx"
    ]
   ],
   "threes": [
+   [
+    "3908845",
+    "John Collins",
+    "DET",
+    "ORL",
+    -0.26,
+    "under",
+    true,
+    1.5,
+    -220,
+    "4cx"
+   ],
    [
     "4066320",
     "Desmond Bane",
     "ORL",
     "DET",
-    -0.2621,
+    -0.2072,
     "under",
     true,
     3.5,
-    -126,
-    "prophetx"
+    -135,
+    "betmgm"
    ],
    [
     "4066372",
     "Kevin Huerter",
     "DET",
     "ORL",
-    0.1262,
+    0.1123,
     "over",
-    true,
+    false,
     1.5,
-    -149,
-    "prophetx"
+    -135,
+    "betmgm"
    ],
    [
     "4277847",
     "Wendell Carter Jr.",
     "ORL",
     "DET",
-    -0.4135,
+    -0.4208,
     "under",
     true,
     0.5,
-    122,
+    124,
     "fanduel"
    ],
    [
@@ -5500,23 +5512,35 @@
     "Isaiah Joe",
     "DET",
     "ORL",
-    0.1768,
+    0.2046,
     "over",
     true,
     2.5,
-    148,
-    "4cx"
+    132,
+    "fanduel"
+   ],
+   [
+    "4432165",
+    "Jalen Suggs",
+    "ORL",
+    "DET",
+    -0.0749,
+    "under",
+    false,
+    1.5,
+    110,
+    "betmgm"
    ],
    [
     "4432166",
     "Cade Cunningham",
     "DET",
     "ORL",
-    0.1606,
+    0.1866,
     "over",
     true,
     2.5,
-    154,
+    153,
     "prophetx"
    ],
    [
@@ -5524,11 +5548,11 @@
     "Franz Wagner",
     "ORL",
     "DET",
-    -0.2521,
+    -0.1981,
     "under",
     true,
     1.5,
-    -150,
+    -165,
     "betmgm"
    ],
    [
@@ -5536,24 +5560,24 @@
     "Tristan da Silva",
     "ORL",
     "DET",
-    -0.2006,
+    -0.1533,
     "under",
     true,
     2.5,
-    -140,
-    "betmgm"
+    -146,
+    "fanduel"
    ],
    [
     "5107199",
     "Daniss Jenkins",
     "DET",
     "ORL",
-    0.1118,
+    0.1354,
     "over",
-    false,
+    true,
     2.5,
-    168,
-    "prophetx"
+    176,
+    "4cx"
    ]
   ]
  },
@@ -5565,55 +5589,55 @@
     "Derrick White",
     "BOS",
     "WSH",
-    -0.0664,
+    -0.0651,
     "under",
     false,
     13.5,
-    -114,
-    "fanduel"
+    -118,
+    "caesars"
    ],
    [
     "4066354",
     "Payton Pritchard",
     "BOS",
     "WSH",
-    -0.0809,
+    -0.0806,
     "under",
     false,
-    12.5,
-    118,
-    "prophetx"
+    13.5,
+    -110,
+    "draftkings"
    ],
    [
     "4277905",
     "Trae Young",
     "WSH",
     "BOS",
-    -0.0831,
+    -0.081,
     "under",
     false,
-    15.5,
-    -123,
-    "draftkings"
+    14.5,
+    -114,
+    "prophetx"
    ],
    [
     "5104155",
     "Bilal Coulibaly",
     "WSH",
     "BOS",
-    -0.0541,
+    -0.0734,
     "under",
     false,
     6.5,
-    -108,
-    "pinnacle"
+    -113,
+    "prophetx"
    ],
    [
     "5174563",
     "Kyshawn George",
     "WSH",
     "BOS",
-    -0.1002,
+    -0.1033,
     "under",
     false,
     14.5,
@@ -5621,28 +5645,28 @@
     "prophetx"
    ],
    [
-    "5175647",
-    "Hugo Gonzalez",
-    "BOS",
-    "WSH",
-    -0.0602,
-    "under",
-    false,
-    5.5,
-    -111,
-    "draftkings"
-   ],
-   [
     "6583",
     "Anthony Davis",
     "WSH",
     "BOS",
-    -0.0951,
+    -0.0993,
     "under",
     false,
     21.5,
-    -111,
+    -116,
     "prophetx"
+   ],
+   [
+    "6609",
+    "Khris Middleton",
+    "WSH",
+    "BOS",
+    0.0776,
+    "over",
+    false,
+    5.5,
+    -110,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -5651,11 +5675,11 @@
     "Derrick White",
     "BOS",
     "WSH",
-    -0.2064,
+    -0.1941,
     "under",
     true,
     1.5,
-    158,
+    165,
     "4cx"
    ],
    [
@@ -5663,71 +5687,71 @@
     "Jayson Tatum",
     "BOS",
     "WSH",
-    -0.1491,
+    -0.1508,
     "under",
     true,
     2.5,
-    122,
-    "prophetx"
+    126,
+    "draftkings"
    ],
    [
     "4065804",
     "Sam Hauser",
     "BOS",
     "WSH",
-    -0.0785,
+    -0.0981,
     "under",
     false,
     2.5,
-    -220,
-    "fanduel"
+    -188,
+    "draftkings"
    ],
    [
     "4066354",
     "Payton Pritchard",
     "BOS",
     "WSH",
-    -0.2133,
+    -0.2015,
     "under",
     true,
     2.5,
-    -190,
-    "prophetx"
+    -169,
+    "4cx"
    ],
    [
     "4251",
     "Paul George",
     "BOS",
     "WSH",
-    -0.1117,
+    -0.1251,
     "under",
-    false,
+    true,
     2.5,
-    105,
-    "betmgm"
+    121,
+    "prophetx"
    ],
    [
     "5104155",
     "Bilal Coulibaly",
     "WSH",
     "BOS",
-    0.1972,
+    0.146,
     "over",
     true,
     0.5,
-    -147,
-    "prophetx"
+    -132,
+    "4cx"
    ],
    [
     "5142718",
     "AJ Dybantsa",
     "WSH",
     "BOS",
-    0.2381,
+    0.1977,
     "over",
     true,
     1.5,
-    139,
+    165,
     "4cx"
    ],
    [
@@ -5735,12 +5759,12 @@
     "Anthony Davis",
     "WSH",
     "BOS",
-    0.1734,
+    0.1429,
     "over",
     true,
     0.5,
-    -136,
-    "caesars"
+    -122,
+    "prophetx"
    ]
   ]
  },
@@ -5752,62 +5776,74 @@
     "Daniel Gafford",
     "DAL",
     "DEN",
-    -0.093,
+    -0.1111,
     "under",
     false,
     9.5,
-    -103,
-    "draftkings"
+    -105,
+    "betmgm"
+   ],
+   [
+    "4278594",
+    "Naji Marshall",
+    "DAL",
+    "DEN",
+    0.0514,
+    "over",
+    false,
+    10.5,
+    102,
+    "pinnacle"
    ],
    [
     "5041939",
     "Cooper Flagg",
     "DAL",
     "DEN",
-    0.0502,
+    0.0766,
     "over",
     false,
-    23.5,
-    -110,
-    "pinnacle"
+    24.5,
+    -105,
+    "prophetx"
    ],
    [
     "5211175",
     "Zaccharie Risacher",
     "DAL",
     "DEN",
-    0.0698,
+    0.0855,
     "over",
     false,
-    8.5,
-    -103,
-    "4cx"
+    7.5,
+    -110,
+    "fanduel"
    ]
   ],
   "threes": [
-   [
-    "3064290",
-    "Aaron Gordon",
-    "DEN",
-    "DAL",
-    -0.0609,
-    "under",
-    false,
-    1.5,
-    -155,
-    "betmgm"
-   ],
    [
     "3112335",
     "Nikola Jokic",
     "DEN",
     "DAL",
-    -0.3475,
+    -0.3453,
     "under",
     true,
     1.5,
-    -150,
+    -145,
     "betmgm"
+   ],
+   [
+    "6442",
+    "Kyrie Irving",
+    "DAL",
+    "DEN",
+    -0.0771,
+    "under",
+    false,
+    3.5,
+    -141,
+    "prophetx"
    ]
   ]
  },
