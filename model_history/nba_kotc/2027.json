@@ -13473,63 +13473,63 @@
   "board": [
    {
     "id": "3112335",
-    "lead": 0.2672,
+    "lead": 0.2703,
     "name": "Nikola Jokic",
-    "proj": 44.9,
+    "proj": 45.1,
     "team": "DEN"
    },
    {
     "id": "4566434",
-    "lead": 0.192,
+    "lead": 0.1902,
     "name": "Franz Wagner",
     "proj": 42.1,
     "team": "ORL"
    },
    {
     "id": "4065648",
-    "lead": 0.1511,
+    "lead": 0.1501,
     "name": "Jayson Tatum",
     "proj": 40.7,
     "team": "BOS"
    },
    {
-    "id": "5041939",
-    "lead": 0.0888,
-    "name": "Cooper Flagg",
-    "proj": 37.3,
-    "team": "DAL"
-   },
-   {
     "id": "3936299",
-    "lead": 0.0885,
+    "lead": 0.0895,
     "name": "Jamal Murray",
-    "proj": 37.2,
+    "proj": 37.3,
     "team": "DEN"
    },
    {
+    "id": "5041939",
+    "lead": 0.0888,
+    "name": "Cooper Flagg",
+    "proj": 37.4,
+    "team": "DAL"
+   },
+   {
     "id": "6583",
-    "lead": 0.0817,
+    "lead": 0.0809,
     "name": "Anthony Davis",
     "proj": 36.6,
     "team": "WSH"
    },
    {
     "id": "4432166",
-    "lead": 0.0689,
+    "lead": 0.0678,
     "name": "Cade Cunningham",
     "proj": 35.8,
     "team": "DET"
    },
    {
     "id": "6442",
-    "lead": 0.0231,
+    "lead": 0.024,
     "name": "Kyrie Irving",
-    "proj": 31.2,
+    "proj": 31.4,
     "team": "DAL"
    },
    {
     "id": "4251",
-    "lead": 0.0154,
+    "lead": 0.0153,
     "name": "Paul George",
     "proj": 29.6,
     "team": "BOS"
@@ -13543,7 +13543,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0038,
+    "lead": 0.0037,
     "name": "Trae Young",
     "proj": 25.5,
     "team": "WSH"
@@ -13587,7 +13587,7 @@
     "id": "4278078",
     "lead": 0.0008,
     "name": "P.J. Washington",
-    "proj": 21.5,
+    "proj": 21.6,
     "team": "DAL"
    },
    {
@@ -13615,7 +13615,7 @@
     "id": "4431767",
     "lead": 0.0004,
     "name": "Christian Braun",
-    "proj": 20.6,
+    "proj": 20.7,
     "team": "DEN"
    },
    {
@@ -13657,7 +13657,7 @@
     "id": "3064290",
     "lead": 0.0,
     "name": "Aaron Gordon",
-    "proj": 19.2,
+    "proj": 19.3,
     "team": "DEN"
    },
    {
@@ -13678,7 +13678,7 @@
     "id": "4278594",
     "lead": 0.0,
     "name": "Naji Marshall",
-    "proj": 16.7,
+    "proj": 16.8,
     "team": "DAL"
    },
    {
@@ -13689,6 +13689,13 @@
     "team": "DET"
    },
    {
+    "id": "5211175",
+    "lead": 0.0,
+    "name": "Zaccharie Risacher",
+    "proj": 15.3,
+    "team": "DAL"
+   },
+   {
     "id": "4278049",
     "lead": 0.0,
     "name": "Daniel Gafford",
@@ -13696,17 +13703,10 @@
     "team": "DAL"
    },
    {
-    "id": "5211175",
-    "lead": 0.0,
-    "name": "Zaccharie Risacher",
-    "proj": 15.2,
-    "team": "DAL"
-   },
-   {
     "id": "4896372",
     "lead": 0.0,
     "name": "Walter Clayton Jr.",
-    "proj": 14.7,
+    "proj": 14.8,
     "team": "DAL"
    },
    {
@@ -13720,14 +13720,14 @@
     "id": "3978",
     "lead": 0.0,
     "name": "DeMar DeRozan",
-    "proj": 13.4,
+    "proj": 13.5,
     "team": "DEN"
    },
    {
     "id": "4873153",
     "lead": 0.0,
     "name": "Morez Johnson Jr.",
-    "proj": 12.9,
+    "proj": 13.0,
     "team": "DAL"
    },
    {
