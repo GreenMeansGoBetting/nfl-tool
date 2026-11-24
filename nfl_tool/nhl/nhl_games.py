@@ -291,6 +291,10 @@ def reduce_game(raw: dict) -> dict:
         if period.get("periodType") == "SO":
             continue
         owner = d.get("eventOwnerTeamId")
+        if kind == "faceoff":  # faceoffs taken, won or lost: who really plays center (playing_positions)
+            for key in ("winningPlayerId", "losingPlayerId"):
+                if d.get(key):
+                    skater_extra.setdefault(d[key], Counter())["fo"] += 1
         if kind in SHOT_EVENTS:
             shooter = d.get("scoringPlayerId") or d.get("shootingPlayerId")
             team_id = team_of.get(shooter, owner)
@@ -384,7 +388,7 @@ def reduce_game(raw: dict) -> dict:
                     "headshot": spot.get("headshot"), "toi": clock_seconds(s.get("toi")), "g": s.get("goals", 0), "a": s.get("assists", 0),
                     "sog": s.get("sog", 0), "hits": s.get("hits", 0), "blk": s.get("blockedShots", 0), "att": extra.get("att", 0),
                     "hd": extra.get("a_low_slot", 0), "ppp": extra.get("ppp", 0), "pm": s.get("plusMinus", 0), "pim": s.get("pim", 0),
-                    "unb": extra.get("unb", 0), "pp_unb": extra.get("pp_unb", 0),
+                    "unb": extra.get("unb", 0), "pp_unb": extra.get("pp_unb", 0), "fo": extra.get("fo", 0),
                     "slot": lines.get(str(pid)),
                     # Seconds on the power play (the league's per-game report); None when the game has none.
                     "pp_toi": on_pp.get(str(pid), 0) if on_pp is not None else None,

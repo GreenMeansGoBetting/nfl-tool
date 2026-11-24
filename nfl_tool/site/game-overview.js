@@ -1741,7 +1741,7 @@ function renderPickRevealContent(game) {
     .join("");
   if (!sections) return `${heading}<p class="no-data-note">No picks saved for this game yet.</p>`;
   return `${heading}<div class="reveal-grid">${sections}</div>
-    <p class="pikkit-reminder">Novig likely has the best price. Always line shop with Pikkit. Prices are estimates.</p>`;
+    <p class="pikkit-reminder">Novig likely has the best price. Always line shop with <a href="https://links.pikkit.com/invite/gmg" target="_blank" rel="noopener" title="Open Pikkit with code GMG">Pikkit</a> (Code GMG). Prices are estimates.</p>`;
 }
 
 function openPickRevealModal(game) {

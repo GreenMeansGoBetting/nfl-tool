@@ -49,6 +49,22 @@ class Build(unittest.TestCase):
         self.assertEqual(aaa["10"], aaa["season"])
         self.assertEqual(vp["teams"]["BBB"]["season"], [1, 9, 2, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0])  # AAA's center on BBB
 
+    def test_a_listed_center_who_takes_no_faceoffs_counts_on_his_wing(self):
+        # A member, 2026-11-21: Reinhart and Verhaeghe listed as centers though they play the wing.
+        # Box-score ids are the record's enumerate order: 0 = the real center, 1 = a "C" winger
+        # shooting right, 2 = a "C" winger with no shooting hand known, 3 = a listed LW taking every draw.
+        def game(d):
+            players = [skater("BBB", "C", 1, 0), skater("BBB", "C", 4, 1), skater("BBB", "C", 2, 0), skater("BBB", "L", 1, 0)]
+            for p, fo in zip(players, (15, 1, 0, 12)):
+                p["fo"] = fo
+            return record(f"2026-10-{d:02d}", "AAA", "BBB", players)
+        recs = [game(d) for d in range(1, 4)]
+        pos = nhl_stats.playing_positions(recs, {"1": "R", "3": "L"})
+        self.assertEqual(pos, {"1": "R", "3": "C"})  # "0" stays C; "2" stays C (no hand known)
+        self.assertEqual(nhl_stats.playing_positions(recs[:2], {"1": "R"}), {}, "under 3 games: as listed")
+        aaa = nhl_stats.compute_vs_position(recs, pos)["teams"]["AAA"]["season"]
+        self.assertEqual(aaa[1:7], [3 * (1 + 2 + 1), 0, 0, 0, 3 * 4, 3 * 1])  # C: real center, unknown hand, the LW taking draws; R: the winger
+
     def test_last_10_is_the_latest_ten(self):
         recs = [record(f"2026-10-{d:02d}", "AAA", "BBB", [skater("BBB", "C", d, 0)]) for d in range(1, 13)]
         aaa = nhl_stats.compute_vs_position(recs)["teams"]["AAA"]

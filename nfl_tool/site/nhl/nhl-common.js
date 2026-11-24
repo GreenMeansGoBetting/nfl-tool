@@ -1047,6 +1047,23 @@ function nhlLadder(x, rows, o) {
 // A box in the Player header of every prop table (Shots, Goals, Points, Saves, Best Plays).
 // Case and accents don't matter. One search for
 // the page; the page's renderTable redraws and the box keeps its cursor.
+// The Skaters menu on every prop page: position, or tonight's line / pair in the NHL's projected lineup
+// (a member, 2026-11-23: "only show players on the 3rd line" for No Goal bets). A line pick lists only
+// players the posted lineup puts there, so a game with no lineup yet shows nobody under it.
+const SKATER_PICKS = [
+  ["all", "All Skaters"], ["F", "Forwards"], ["D", "Defense"],
+  ["top6", "Top 6 Forwards"], ["bottom6", "Bottom 6 Forwards"],
+  ["F1", "1st Line"], ["F2", "2nd Line"], ["F3", "3rd Line"], ["F4", "4th Line"],
+  ["D1", "1st Pair"], ["D2", "2nd Pair"], ["D3", "3rd Pair"],
+];
+const SKATER_PICK_TIP = "Forwards / Defense by position. A line or pair is tonight's spot in the NHL's projected lineup, so it lists only games whose lineup is in";
+function skaterPick(pick, r) {
+  if (!pick || pick === "all") return true;
+  if (pick === "F" || pick === "D") return (r.pos === "D" ? "D" : "F") === pick;
+  if (pick === "top6") return r.slot === "F1" || r.slot === "F2";
+  if (pick === "bottom6") return r.slot === "F3" || r.slot === "F4";
+  return r.slot === pick;
+}
 let NAME_SEARCH = "";
 const searchText = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 const nameSearching = () => !!searchText(NAME_SEARCH);

@@ -111,6 +111,17 @@ class Chances(unittest.TestCase):
         self.assertEqual(len(PAGE.evaluate(TEAMS)), 8)
         self.assertIsNone(PAGE.evaluate("() => iceView.slot"))
 
+    def test_none_then_one_game(self):
+        # A member, 2026-11-23: on a 15-game night, unticking every game to keep one took 14 clicks.
+        open_day()
+        PAGE.click("#ice-games [data-ice-pick='0']")
+        self.assertEqual(PAGE.evaluate("() => iceView.games.size"), 0)
+        one = sorted(g["game_id"] for g in built()["games"])[0]
+        PAGE.click(f"#ice-games [data-game='{one}']")
+        self.assertEqual(PAGE.evaluate("() => [...iceView.games]"), [one])
+        PAGE.click("#ice-games [data-ice-pick='1']")
+        self.assertEqual(PAGE.evaluate("() => iceView.games.size"), len(built()["games"]))
+
     def test_another_start_time_picks_its_games(self):
         open_day()
         PAGE.click("#ice-slots [data-slot='20:00']")

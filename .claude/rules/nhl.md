@@ -175,6 +175,8 @@ them: read the one for the part you are changing.
   `NAME_SEARCH`; case and accents ignored). No match keeps the table with "No players match". A new
   prop table: `search: true` on its Player column + `nameMatches` in its filter.
   Test: `tests/test_nhl_search_site.py`.
+- **Skaters menu** (Shots, Goals, Points: `SKATER_PICKS` / `skaterPick` in nhl-common.js): All,
+  Forwards, Defense, Top 6 / Bottom 6 Forwards, each line and pair (tonight's posted `slot` only).
 - **Same filters and open row on every prop page:** an **Edge** menu (`edgeOptions` /
   `edgeAtLeast`; "Any edge" by default off Best Plays), a Lineups menu, and the every-book column in
   the open row. A new prop page gets all three.

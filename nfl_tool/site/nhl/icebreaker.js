@@ -95,7 +95,9 @@ function renderSlate() {
   el("ice-slots").innerHTML = iceSlots(day)
     .map(([t, gs]) => `<button type="button" class="ice-chip${t === iceView.slot ? " ice-on" : ""}" data-slot="${t}" title="Pick every game starting at ${timeLabel(t)} ${gmgZoneAbbr()}">${timeLabel(t)} ${gmgZoneAbbr()} <b>${gs.length}</b></button>`)
     .join("");
-  el("ice-games").innerHTML = day.games
+  // All / None first, as on King of the Hat Trick: one click clears a big night to pick a few.
+  const allOn = day.games.every((g) => iceView.games.has(g.game_id));
+  el("ice-games").innerHTML = `<button type="button" class="ice-chip${allOn ? " ice-on" : ""}" data-ice-pick="1" title="Pick every game">All</button><button type="button" class="ice-chip${iceView.games.size ? "" : " ice-on"}" data-ice-pick="0" title="Take every game out, then click the ones you want">None</button>` + day.games
     .map((g) => {
       const on = iceView.games.has(g.game_id);
       return `<button type="button" class="ice-game${on ? " ice-on" : ""}" data-game="${g.game_id}" title="${on ? "In the contest: click to take it out" : "Not in the contest: click to add it"}"><span class="ice-check">${on ? "&#10003;" : "+"}</span>${shareLogo(g.away, 18)}<span class="at">@</span>${shareLogo(g.home, 18)}<span class="ice-gt">${g.final ? "Final" : g.locked ? "Live" : fmtTime(g, false)}</span></button>`;
@@ -333,6 +335,14 @@ document.addEventListener("click", (e) => {
   const slot = e.target.closest("[data-slot]");
   if (slot) {
     pickSlot(slot.dataset.slot);
+    return renderIce();
+  }
+  const pick = e.target.closest("[data-ice-pick]");
+  if (pick) {
+    const day = iceDay();
+    iceView.games = new Set(pick.dataset.icePick === "1" && day ? day.games.map((g) => g.game_id) : []);
+    iceView.slot = null;
+    iceView.team = null;
     return renderIce();
   }
   const game = e.target.closest("[data-game]");

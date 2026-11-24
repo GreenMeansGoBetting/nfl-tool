@@ -115,8 +115,11 @@ function renderHatSlate() {
   el("hat-day-label").textContent = all[hatView.day] ? longDate(all[hatView.day]) : "";
   el("hat-day-prev").disabled = hatView.day <= 0;
   el("hat-day-next").disabled = hatView.day >= all.length - 1;
+  // All / None first (a member, 2026-11-23: on a 15-game night, unticking every game to keep one took 14 clicks).
+  const allOn = day && day.games.every((g) => hatView.games.has(g.game_id));
   el("hat-games").innerHTML = day
-    ? day.games
+    ? `<button type="button" class="ice-chip${allOn ? " ice-on" : ""}" data-hat-pick="1" title="Pick every game">All</button><button type="button" class="ice-chip${hatView.games.size ? "" : " ice-on"}" data-hat-pick="0" title="Take every game out, then click the ones you want">None</button>` +
+      day.games
         .map((g) => {
           const on = hatView.games.has(g.game_id);
           return `<button type="button" class="ice-game${on ? " ice-on" : ""}" data-hat-game="${g.game_id}" title="${on ? "Click to take this game out" : "Click to add this game"}"><span class="ice-check">${on ? "&#10003;" : "+"}</span>${shareLogo(g.away, 18)}<span class="at">@</span>${shareLogo(g.home, 18)}<span class="ice-gt">${g.final ? "Final" : g.locked ? "Live" : fmtTime(g, false)}</span></button>`;
@@ -385,6 +388,13 @@ document.addEventListener("click", (e) => {
   if (day) {
     hatView.day = Math.max(0, Math.min(hatDays().length - 1, hatView.day + (day.id === "hat-day-next" ? 1 : -1)));
     hatView.games = null;
+    hatView.team = null;
+    return renderHat();
+  }
+  const pick = e.target.closest("[data-hat-pick]");
+  if (pick) {
+    const day = hatDay();
+    hatView.games = new Set(pick.dataset.hatPick === "1" && day ? day.games.map((g) => g.game_id) : []);
     hatView.team = null;
     return renderHat();
   }

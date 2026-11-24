@@ -99,8 +99,9 @@ def compute_recent_games(records: list) -> dict:
     return {team: games[-RECENT_GAMES:] for team, games in out.items()}
 
 
-def compute_skaters(records: list, toi_report: dict) -> dict:
-    """{player id: season line}. A player belongs to the team of his latest game."""
+def compute_skaters(records: list, toi_report: dict, positions: dict | None = None) -> dict:
+    """{player id: season line}. A player belongs to the team of his latest game; `pos` is where he
+    plays this season (playing_positions), else the box score's."""
     games = {}
     for r in records:
         for pid, line in r["skaters"].items():
@@ -112,7 +113,7 @@ def compute_skaters(records: list, toi_report: dict) -> dict:
         last5 = lines[-5:]
         report = toi_report.get(int(pid)) or {}
         out[pid] = {
-            "id": pid, "name": last["name"], "team": last["team"], "pos": last["pos"], "headshot": last["headshot"],
+            "id": pid, "name": last["name"], "team": last["team"], "pos": (positions or {}).get(pid, last["pos"]), "headshot": last["headshot"],
             "shoots": report.get("shootsCatches"), "games": gp, "toi": num(total("toi") / gp / 60, 1),
             "g": total("g"), "a": total("a"), "p": total("g") + total("a"), "ppp": total("ppp"),
             "sog_pg": num(total("sog") / gp), "att_pg": num(total("att") / gp), "hd": total("hd"),
@@ -258,9 +259,37 @@ def write_player_files(folder: Path, teams: dict, stats: dict, generated_at: str
 
 VS_POS = ("C", "L", "R", "D")  # the box score's positions: center, left wing, right wing, defense
 VS_POS_LAST = 10
+# Where a forward really plays (a member, 2026-11-21: Reinhart and Verhaeghe listed as centers on Vs
+# Position, "they clearly don't" play there now). The box score keeps a player's listed position, often
+# years old. Real centers take most of their line's faceoffs (10+ a game); wingers take a few.
+POS_MIN_GAMES = 3  # games with faceoff counts before his listed position is questioned
+CENTER_FO_PG = 8  # a listed winger taking this many faceoffs a game is a center
+WING_FO_PG = 4  # a listed center taking fewer than this is a winger, on his shooting side
 
 
-def compute_vs_position(records: list) -> dict:
+def playing_positions(records: list, shoots: dict) -> dict:
+    """{player id: "C" / "L" / "R"} for every forward whose box-score position isn't where his
+    faceoffs say he plays this season. A center who isn't taking draws goes to the wing on his
+    shooting side (no shooting hand known: left as listed)."""
+    seen = {}
+    for r in records:
+        for pid, s in r["skaters"].items():
+            if s["pos"] in ("C", "L", "R") and "fo" in s:
+                g = seen.setdefault(pid, {"pos": s["pos"], "games": 0, "fo": 0})
+                g.update(pos=s["pos"], games=g["games"] + 1, fo=g["fo"] + s["fo"])
+    out = {}
+    for pid, g in seen.items():
+        if g["games"] < POS_MIN_GAMES:
+            continue
+        per_game = g["fo"] / g["games"]
+        if g["pos"] == "C" and per_game < WING_FO_PG and shoots.get(pid) in ("L", "R"):
+            out[pid] = shoots[pid]
+        elif g["pos"] != "C" and per_game >= CENTER_FO_PG:
+            out[pid] = "C"
+    return out
+
+
+def compute_vs_position(records: list, positions: dict | None = None) -> dict:
     """What each defense allows to each skater position (the Vs Position page; a member, 2026-11-13:
     "the shots that each team gives to each position. LW/C/RW/D"): shots on goal and goals by the
     other team's centers, left wings, right wings and defensemen, in all its games, at home, on
@@ -272,9 +301,10 @@ def compute_vs_position(records: list) -> dict:
     for r in records:  # oldest first (load_games sorts by date)
         for team, other in ((r["home"], r["away"]), (r["away"], r["home"])):
             row = [1] + [0] * (width - 1)
-            for s in r["skaters"].values():
-                if s["team"] == other and s["pos"] in VS_POS:
-                    k = VS_POS.index(s["pos"])
+            for pid, s in r["skaters"].items():
+                pos = (positions or {}).get(pid, s["pos"])  # where he plays this season, not his listed spot
+                if s["team"] == other and pos in VS_POS:
+                    k = VS_POS.index(pos)
                     i = 1 + 2 * k
                     row[i] += s.get("sog") or 0
                     row[i + 1] += s.get("g") or 0
@@ -299,13 +329,15 @@ def season_stats(season: int, data_dir: Path, standings: dict, team_ids: dict) -
     finished = sorted(g["id"] for g in listing if g.get("gameStateId") in FINISHED_STATES)
     records, debug = load_games(finished, season, data_dir)
     reports = {"powerplay": fetch_report("team/powerplay", season), "penaltykill": fetch_report("team/penaltykill", season)}
+    toi_report = fetch_report("skater/timeonice", season, "playerId")
+    positions = playing_positions(records, {str(pid): row.get("shootsCatches") for pid, row in toi_report.items()})
     return {
         "listing": listing,
         "records": records,
         "debug": debug,
         "team_stats": compute_team_stats(records, standings, reports, team_ids),
-        "vs_position": compute_vs_position(records),
-        "skaters": compute_skaters(records, fetch_report("skater/timeonice", season, "playerId")),
+        "vs_position": compute_vs_position(records, positions),
+        "skaters": compute_skaters(records, toi_report, positions),
         "goalies": compute_goalies(records),
         "detail": compute_player_details(records),
         "league": league_areas(records),

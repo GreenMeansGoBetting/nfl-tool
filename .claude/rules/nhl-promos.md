@@ -66,7 +66,8 @@ DraftKings: a **first goal scorer** bet on whoever scores the **quickest goal (b
   -ln(1 - chance)) the King of the Crease way (`ICEBREAKER_RULES`). Outs left off.
 - **The page does one division** (`icebreaker.js`): his rate over everyone's in the picked games;
   team = its players added; "Of team" = his share. Day arrows, **Start time** chips (opens on 7:00
-  PM ET, else the first), **Games** chips.
+  PM ET, else the first), **Games** chips led by **All / None** (`data-ice-pick`; Hat Trick
+  `data-hat-pick`: a member, 2026-11-23, 14 clicks to keep one game of 15).
 - **Fast starts** (`fast_starts`): games scored first, middle first-goal time, early SOG, what
   tonight's opponent allows. **Shown, never counted**; eight colors by place among picked teams.
 - Layout: Teams table (Chance, top three "Best bets", Fast starts) beside Players (Line, Chance, "1

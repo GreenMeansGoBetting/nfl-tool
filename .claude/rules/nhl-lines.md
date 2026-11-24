@@ -55,5 +55,9 @@ position"; the owner: its own page under Line Matchups, a Shots / Goals toggle, 
   teams lead, never grayed. **Today's Teams Only** in its band follows the day picked. Defense tiles are graded from the
   defense's side (the owner, 2026-11-17: "isn't good defense colored green site wide"): allows the fewest = 1st green,
   allows the most = 32nd red; the chart still lists the most allowed first. Player tiles: more = green.
-- The box score's positions list many wingers as C (it's the roster's position, not tonight's line).
+- **Position = where he plays this season** (`playing_positions`, 2026-11-24; a member: Reinhart and
+  Verhaeghe listed as C). The box score keeps the roster's old position, so with 3+ games: a listed C
+  taking under `WING_FO_PG` (4) faceoffs a game goes to the wing on his shooting side (unknown hand:
+  stays C); a listed winger taking `CENTER_FO_PG` (8)+ is a C. Faceoffs = skater line `fo` (taken, won
+  or lost). Used by `vs_position` and data.json `skaters[].pos`.
 - Tests: `tests/test_nhl_vs_position.py`.

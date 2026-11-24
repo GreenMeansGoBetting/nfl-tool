@@ -119,7 +119,7 @@ function sortedRows(date, lineup = goalsView.lineup, checks = goalsView.checks) 
   return rowsFor(date)
     .filter((x) => !x.r.out)
     .filter((x) => nameMatches(x.r.name))
-    .filter((x) => goalsView.pos === "all" || positionGroup(x.r.pos) === goalsView.pos)
+    .filter((x) => skaterPick(goalsView.pos, x.r))
     .filter((x) => lineup === "all" || x.r.slot)
     .filter((x) => edgeAtLeast(x.r.edge, goalsView.minEdge))
     .filter((x) => goalsView.odds === "all" || has(x.r.odds))
@@ -164,7 +164,7 @@ function renderToolbar() {
     `<label class="shots-menu"${tip ? ` title="${tip}"` : ""}><span>${label}</span><select class="shots-filter-select" data-filter="${key}">${options.map(([value, text]) => `<option value="${value}"${String(goalsView[key]) === String(value) ? " selected" : ""}>${text}</option>`).join("")}</select></label>`;
   const checks = sortedRows(days()[dayIndex], goalsView.lineup, true).filter(needsCheck).length;
   el("shots-toolbar").innerHTML =
-    menu("pos", "Skaters", [["all", "All skaters"], ["F", "Forwards"], ["D", "Defense"]]) +
+    menu("pos", "Skaters", SKATER_PICKS, SKATER_PICK_TIP) +
     menu("lineup", "Lineups", [["all", "All players"], ["confirmed", "Lineup Confirmed"]], "All players: every game, including those still waiting on the NHL's projected lineup. Lineup Confirmed: only games whose lineup is in, each player on tonight's line or pair") +
     menu("minEdge", "Edge", edgeOptions(), "Only plays with at least this much edge (the model's chance minus the chance the price needs, in points)") +
     menu("odds", "Odds", [["all", "Priced or not"], ["priced", "Priced only"]], "Priced or not: every player, the ones Novig hasn't priced with the model's fair price only") +
