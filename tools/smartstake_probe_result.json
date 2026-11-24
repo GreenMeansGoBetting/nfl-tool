@@ -7306,5 +7306,336 @@
     "body": "{\"error\":\"snapshot page limit exceeded\"}"
    }
   }
+ },
+ "nfl_first_td": {
+  "generated_at": "2026-11-24T14:34:38Z",
+  "market_list_count": 297,
+  "market_list_first": [
+   "football_first_field_goal",
+   "football_first_field_goal_3way",
+   "football_first_passing_touchdown",
+   "football_first_punt",
+   "football_first_sack",
+   "football_first_sack_3way",
+   "football_first_team_to_score_wins_yes_no",
+   "football_first_touchdown",
+   "football_first_touchdown_3way",
+   "football_first_touchdown_yards",
+   "football_first_turnover_3way",
+   "football_half_1_player_first_team_touchdown_scorer_yes_no",
+   "football_half_1_player_first_touchdown_scorer_yes_no",
+   "football_half_1_player_last_touchdown_scorer_yes_no",
+   "football_half_1_score_first",
+   "football_half_2_player_first_touchdown_scorer_yes_no",
+   "football_half_2_score_first",
+   "football_half_2_score_first_3way",
+   "football_player_first_rush_yards",
+   "football_player_first_team_touchdown_scorer_yes_no",
+   "football_player_first_touchdown_scorer_yes_no",
+   "football_player_last_team_touchdown_scorer_yes_no",
+   "football_player_last_touchdown_scorer_yes_no",
+   "football_quarter_1_player_first_team_touchdown_scorer_yes_no",
+   "football_quarter_1_player_first_touchdown_scorer_yes_no",
+   "football_quarter_1_player_last_touchdown_scorer_yes_no",
+   "football_quarter_1_score_first",
+   "football_quarter_2_score_first",
+   "football_score_first",
+   "football_score_first_3way",
+   "football_team_score_first_drive_yes_no"
+  ],
+  "alternate_only": {
+   "pages": 16,
+   "more_pages": false,
+   "quotes": 640,
+   "markets": {
+    "football_player_last_touchdown_scorer_yes_no": {
+     "name": "Player Last Touchdown Scorer",
+     "books": {
+      "heritage|yes|alt=True": 24,
+      "bracco|yes|alt=True": 50
+     }
+    },
+    "football_player_first_team_touchdown_scorer_yes_no": {
+     "name": "Player First Team Touchdown Scorer",
+     "books": {
+      "heritage|yes|alt=True": 153,
+      "bracco|yes|alt=True": 19
+     }
+    },
+    "football_first_touchdown": {
+     "name": "First Touchdown",
+     "books": {
+      "bet_jack|hometeam|alt=True": 13,
+      "bet_jack|awayteam|alt=True": 13,
+      "betinia_nj|hometeam|alt=True": 13,
+      "betinia_nj|awayteam|alt=True": 13,
+      "desert_diamond|awayteam|alt=True": 13,
+      "desert_diamond|hometeam|alt=True": 13,
+      "leovegas|awayteam|alt=True": 13,
+      "leovegas|hometeam|alt=True": 13,
+      "northstar_bets|hometeam|alt=True": 13,
+      "northstar_bets|awayteam|alt=True": 13
+     }
+    },
+    "football_first_field_goal": {
+     "name": "First Field Goal",
+     "books": {
+      "bet_jack|awayteam|alt=True": 7,
+      "bet_jack|hometeam|alt=True": 7,
+      "betinia_nj|awayteam|alt=True": 7,
+      "betinia_nj|hometeam|alt=True": 7,
+      "desert_diamond|awayteam|alt=True": 7,
+      "desert_diamond|hometeam|alt=True": 7,
+      "leovegas|hometeam|alt=True": 7,
+      "leovegas|awayteam|alt=True": 7,
+      "northstar_bets|awayteam|alt=True": 7,
+      "northstar_bets|hometeam|alt=True": 7
+     }
+    },
+    "football_score_first": {
+     "name": "Score First",
+     "books": {
+      "bet_jack|awayteam|alt=True": 8,
+      "bet_jack|hometeam|alt=True": 8,
+      "betinia_nj|awayteam|alt=True": 8,
+      "betinia_nj|hometeam|alt=True": 8,
+      "desert_diamond|awayteam|alt=True": 8,
+      "desert_diamond|hometeam|alt=True": 8,
+      "leovegas|hometeam|alt=True": 8,
+      "leovegas|awayteam|alt=True": 8,
+      "northstar_bets|awayteam|alt=True": 8,
+      "northstar_bets|hometeam|alt=True": 8
+     }
+    },
+    "football_player_first_touchdown_scorer_yes_no": {
+     "name": "Player First Touchdown Scorer",
+     "books": {
+      "tonybet|yes|alt=True": 112
+     }
+    },
+    "football_player_first_rush_yards": {
+     "name": "Player First Rush Yards",
+     "books": {
+      "prizepicks|under|alt=True": 1,
+      "prizepicks|over|alt=True": 1
+     }
+    }
+   }
+  },
+  "main_only": {
+   "pages": 16,
+   "more_pages": false,
+   "quotes": 3543,
+   "markets": {
+    "football_player_last_touchdown_scorer_yes_no": {
+     "name": "Player Last Touchdown Scorer",
+     "books": {
+      "fanatics|yes|alt=False": 435,
+      "courtside|yes|alt=False": 157,
+      "draftkings|yes|alt=False": 157,
+      "fliff|yes|alt=False": 82,
+      "onyx|yes|alt=False": 156,
+      "stake|no|alt=False": 34,
+      "stake|yes|alt=False": 89,
+      "pointsbet_ca|yes|alt=False": 22
+     }
+    },
+    "football_player_first_team_touchdown_scorer_yes_no": {
+     "name": "Player First Team Touchdown Scorer",
+     "books": {
+      "fanatics|yes|alt=False": 435,
+      "draftkings|yes|alt=False": 157,
+      "pointsbet_ca|yes|alt=False": 12
+     }
+    },
+    "football_player_first_touchdown_scorer_yes_no": {
+     "name": "Player First Touchdown Scorer",
+     "books": {
+      "fanatics|yes|alt=False": 435,
+      "courtside|yes|alt=False": 157,
+      "stake|yes|alt=False": 89,
+      "stake|no|alt=False": 31,
+      "parlayplay|yes|alt=False": 155,
+      "underdog_dfs_best|yes|alt=False": 175,
+      "draftkings|yes|alt=False": 157,
+      "fliff|yes|alt=False": 91,
+      "onyx|yes|alt=False": 156,
+      "pointsbet_ca|yes|alt=False": 22
+     }
+    },
+    "football_half_2_player_first_touchdown_scorer_yes_no": {
+     "name": "2nd Half Player First Touchdown Scorer",
+     "books": {
+      "draftkings|yes|alt=False": 102
+     }
+    },
+    "football_player_first_rush_yards": {
+     "name": "Player First Rush Yards",
+     "books": {
+      "prizepicks|over|alt=False": 13,
+      "prizepicks|under|alt=False": 13,
+      "prizepicks_best|over|alt=False": 13,
+      "prizepicks_best|under|alt=False": 13
+     }
+    },
+    "football_score_first_3way": {
+     "name": "Score First 3-Way",
+     "books": {
+      "betano|awayteam|alt=False": 5,
+      "betano|hometeam|alt=False": 5,
+      "betano|draw|alt=False": 5,
+      "caesars|awayteam|alt=False": 15,
+      "caesars|hometeam|alt=False": 15
+     }
+    },
+    "football_quarter_2_score_first": {
+     "name": "2nd Quarter Score First",
+     "books": {
+      "caesars|awayteam|alt=False": 3,
+      "caesars|hometeam|alt=False": 3
+     }
+    },
+    "football_first_sack": {
+     "name": "First Sack",
+     "books": {
+      "caesars|hometeam|alt=False": 3,
+      "caesars|awayteam|alt=False": 3
+     }
+    },
+    "football_first_touchdown_3way": {
+     "name": "First Touchdown 3-Way",
+     "books": {
+      "caesars|hometeam|alt=False": 15,
+      "caesars|awayteam|alt=False": 15
+     }
+    },
+    "football_first_passing_touchdown": {
+     "name": "First Passing Touchdown",
+     "books": {
+      "caesars|awayteam|alt=False": 3,
+      "caesars|hometeam|alt=False": 3
+     }
+    },
+    "football_score_first": {
+     "name": "Score First",
+     "books": {
+      "courtside|awayteam|alt=False": 14,
+      "courtside|hometeam|alt=False": 14
+     }
+    },
+    "football_team_score_first_drive_yes_no": {
+     "name": "Team Score First Drive",
+     "books": {
+      "fanatics|yes|alt=False": 10,
+      "fanatics|no|alt=False": 10
+     }
+    },
+    "football_first_touchdown_yards": {
+     "name": "Total First Touchdown Yards",
+     "books": {
+      "draftkings|under|alt=False": 4,
+      "draftkings|over|alt=False": 4
+     }
+    },
+    "football_first_punt": {
+     "name": "First Punt",
+     "books": {
+      "caesars|hometeam|alt=False": 3,
+      "caesars|awayteam|alt=False": 3
+     }
+    },
+    "football_half_2_score_first_3way": {
+     "name": "2nd Half Score First 3-Way",
+     "books": {
+      "caesars|awayteam|alt=False": 15,
+      "caesars|hometeam|alt=False": 15
+     }
+    }
+   }
+  },
+  "market=football_first_field_goal": {
+   "pages": 16,
+   "more_pages": false,
+   "quotes": 182,
+   "markets": {
+    "football_first_field_goal": {
+     "name": "First Field Goal",
+     "books": {
+      "bally_bet|hometeam|alt=None": 7,
+      "bally_bet|awayteam|alt=None": 7,
+      "betrivers|hometeam|alt=None": 7,
+      "betrivers|awayteam|alt=None": 7,
+      "fanduel|awayteam|alt=None": 16,
+      "fanduel|hometeam|alt=None": 16,
+      "monopoly|hometeam|alt=None": 7,
+      "monopoly|awayteam|alt=None": 7,
+      "bet_jack|awayteam|alt=True": 7,
+      "bet_jack|hometeam|alt=True": 7,
+      "betinia_nj|awayteam|alt=True": 7,
+      "betinia_nj|hometeam|alt=True": 7,
+      "betplay|awayteam|alt=None": 7,
+      "betplay|hometeam|alt=None": 7,
+      "betrsportsbook|awayteam|alt=None": 5,
+      "betrsportsbook|hometeam|alt=None": 5,
+      "desert_diamond|awayteam|alt=True": 7,
+      "desert_diamond|hometeam|alt=True": 7,
+      "leovegas|hometeam|alt=True": 7,
+      "leovegas|awayteam|alt=True": 7,
+      "northstar_bets|awayteam|alt=True": 7,
+      "northstar_bets|hometeam|alt=True": 7,
+      "proline|awayteam|alt=None": 7,
+      "proline|hometeam|alt=None": 7
+     }
+    }
+   }
+  },
+  "market=football_first_field_goal_3way": {
+   "pages": 16,
+   "more_pages": false,
+   "quotes": 60,
+   "markets": {
+    "football_first_field_goal_3way": {
+     "name": "First Field Goal 3-Way",
+     "books": {
+      "draftkings|hometeam|alt=None": 4,
+      "draftkings|awayteam|alt=None": 4,
+      "draftkings|draw|alt=None": 4,
+      "pointsbet_ca|awayteam|alt=None": 16,
+      "pointsbet_ca|hometeam|alt=None": 16,
+      "pointsbet_ca|draw|alt=None": 16
+     }
+    }
+   }
+  },
+  "market=football_first_passing_touchdown": {
+   "pages": 16,
+   "more_pages": false,
+   "quotes": 6,
+   "markets": {
+    "football_first_passing_touchdown": {
+     "name": "First Passing Touchdown",
+     "books": {
+      "caesars|hometeam|alt=False": 3,
+      "caesars|awayteam|alt=False": 3
+     }
+    }
+   }
+  },
+  "market=football_first_punt": {
+   "pages": 16,
+   "more_pages": false,
+   "quotes": 38,
+   "markets": {
+    "football_first_punt": {
+     "name": "First Punt",
+     "books": {
+      "caesars|hometeam|alt=False": 3,
+      "caesars|awayteam|alt=False": 3,
+      "pointsbet_ca|hometeam|alt=None": 16,
+      "pointsbet_ca|awayteam|alt=None": 16
+     }
+    }
+   }
+  }
  }
 }
