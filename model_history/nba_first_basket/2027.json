@@ -4596,91 +4596,74 @@
  "401909325": {
   "away": "SA",
   "date": "2026-11-25",
-  "first_home": 0.439,
+  "first_home": 0.5,
   "home": "POR",
   "jumpers": [
-   [
-    "5104157",
-    "Victor Wembanyama"
-   ],
+   null,
    [
     "5105565",
     "Donovan Clingan"
    ]
   ],
   "players": {
-   "4066259": [
-    "De'Aaron Fox",
-    0.114,
-    null,
-    false,
-    null
-   ],
    "4395630": [
     "Devin Vassell",
-    0.098,
+    0.171,
     null,
     false,
     null
    ],
    "4431736": [
     "Toumani Camara",
-    0.068,
+    0.078,
     null,
     false,
     null
    ],
    "4592479": [
     "Julian Champagnie",
-    0.098,
+    0.161,
     null,
     false,
     null
    ],
    "4683021": [
     "Deni Avdija",
-    0.113,
+    0.128,
     null,
     false,
     null
    ],
    "4845367": [
     "Stephon Castle",
-    0.091,
+    0.148,
     null,
     false,
     null
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.075,
-    null,
-    false,
-    null
-   ],
-   "5104157": [
-    "Victor Wembanyama",
-    0.137,
+    0.085,
     null,
     false,
     null
    ],
    "5105565": [
     "Donovan Clingan",
-    0.066,
+    0.075,
     null,
     false,
     null
    ],
    "6606": [
     "Damian Lillard",
-    0.1,
+    0.114,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.316
+  "tip_home": 0.5
  },
  "401909843": {
   "away": "ATL",
@@ -23183,13 +23166,10 @@
  "401910045": {
   "away": "SA",
   "date": "2026-11-23",
-  "first_home": 0.384,
+  "first_home": 0.5,
   "home": "SAC",
   "jumpers": [
-   [
-    "5104157",
-    "Victor Wembanyama"
-   ],
+   null,
    [
     "3155942",
     "Domantas Sabonis"
@@ -23198,75 +23178,61 @@
   "players": {
    "3064440": [
     "Zach LaVine",
-    0.07,
+    0.091,
     1340,
-    false,
+    true,
     "draftkings"
    ],
    "3155942": [
     "Domantas Sabonis",
-    0.088,
+    0.115,
     860,
-    false,
+    true,
     "draftkings"
    ],
    "4065732": [
     "De'Andre Hunter",
-    0.061,
+    0.08,
     1400,
-    false,
+    true,
     "fanduel"
-   ],
-   "4066259": [
-    "De'Aaron Fox",
-    0.125,
-    550,
-    false,
-    "fliff"
    ],
    "4395630": [
     "Devin Vassell",
-    0.107,
+    0.171,
     650,
-    false,
+    true,
     "fanduel"
    ],
    "4592479": [
     "Julian Champagnie",
-    0.108,
+    0.161,
     950,
     true,
     "fanduel"
    ],
    "4594327": [
     "Keegan Murray",
-    0.066,
+    0.086,
     1700,
     true,
     "fanduel"
    ],
    "4845367": [
     "Stephon Castle",
-    0.1,
+    0.148,
     750,
-    false,
+    true,
     "fanduel"
-   ],
-   "5104157": [
-    "Victor Wembanyama",
-    0.15,
-    305,
-    false,
-    "fliff"
    ],
    "5142620": [
     "Darius Acuff Jr.",
-    0.083,
+    0.109,
     1020,
-    false,
+    true,
     "draftkings"
    ]
   },
-  "tip_home": 0.151
+  "tip_home": 0.5
  }
 }
