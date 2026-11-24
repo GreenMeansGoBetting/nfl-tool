@@ -1305,6 +1305,8 @@ const GMG_UPDATES_SEEN_KEY = "nfl-tool.updates-seen.v1";
       pills(["$100 Thanksgiving Contest", "contest.html", 50]),
       pills(["Game Previews", "game-overview.html", 140], ["TD Data", "index.html", 20]),
       pills(["Opening Drive Tool", "opening-drives.html", 45]),
+      // Vs Position: what each defense allows to QB / RB / WR / TE (the owner, 2026-11-24: its own tool, under Opening Drive).
+      pills(["Vs Position", "nfl-vs-position.html", 265]),
       { head: "Player Props" },
       pills(["Best Plays", "best-plays.html", 300]),
       // One page, three views: the link's #view opens that tab (player-props.js).

@@ -2706,6 +2706,7 @@ main { max-width: 1840px; }
 .data-table.od-grid .od-glabels th:has(.od-lab), .od-fair-table .od-glabels th { white-space: nowrap; }
 /* Grouped columns on tints, tiles inside (the NBA zone grid's look, nba/zones.css .zm-grid). */
 .data-table.od-grid { border-spacing: 0; table-layout: fixed; }
+.od-grid .od-ggap-col { width: 6px; } /* the Opening Drive Tool and NFL Vs Position (moved from td-data.css) */
 .data-table.od-grid th, .data-table.od-grid td { padding: 3px; text-align: center; vertical-align: middle; border-radius: 0; background-color: transparent; white-space: nowrap; }
 .data-table .od-ggap { padding: 0 !important; background: transparent !important; }
 .od-grid .od-g0 { --zg: var(--accent-rgb); }

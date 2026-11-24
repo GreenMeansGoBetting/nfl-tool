@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GMG's NFL Suite &mdash; Vs Position</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Condensed:wght@500;600;700&family=Sofia+Sans+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>try{if(localStorage.getItem("nfl-tool.theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="nfl-vs-position.css">
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="game-overview.html" aria-label="GMG Sports Data Suite home"><span class="brand-mark">GMG</span><span class="brand-name">Sports Data <b>Suite</b></span></a>
+  <nav class="page-nav">
+    <a href="/game-overview.html" data-sport="nfl">NFL</a>
+    <a href="/nba/" data-sport="nba">NBA</a>
+    <a href="/nhl/" data-sport="nhl">NHL</a>
+    <a href="/promo-tools.html" data-sport="promo">Promo Tools</a>
+  </nav>
+  <div class="topbar-actions">
+    <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch light/dark theme" title="Switch light/dark theme">&#9788;</button>
+  </div>
+</div>
+
+<main>
+  <div id="schedule-scroller" class="schedule-scroller" hidden>
+    <div class="week-picker">
+      <button type="button" id="week-prev" class="week-nav-btn">&lsaquo;</button>
+      <span id="week-label" class="week-label">Week</span>
+      <button type="button" id="week-next" class="week-nav-btn">&rsaquo;</button>
+    </div>
+    <div id="matchup-row" class="matchup-row"></div>
+  </div>
+
+  <div id="empty-state" class="empty-state"><p>Loading what each defense allows&hellip;</p></div>
+
+  <div id="nvp-app" class="section-wrap" hidden>
+    <div class="bp-title-row">
+      <h2 class="section-title">Vs Position</h2>
+      <button type="button" class="info-i" aria-expanded="false" aria-controls="nvp-note" title="How to read this">i</button>
+    </div>
+    <p class="section-note info-note" id="nvp-note" hidden>What each defense gives up a game to each position: the other team's <b>QBs</b>, <b>RBs</b>, <b>WRs</b> and <b>TEs</b>, by the player's roster position. <b>Rec Yds</b>, <b>Receptions</b> and <b>Targets</b> are receiving; <b>Rush Yds</b> is rushing; <b>TDs</b> are rushing plus receiving touchdowns (a QB's passing TDs don't count). A defense's tile is its number a game and its rank of 32: <b>allows the fewest = green, allows the most = red</b> (a bad defense is red). Each offense's players at that position show their own number a game, colored against the other starters at their position (the most = green); a player who missed games shows how many he played ("4 GP"). Players ruled Out this week are left off. <b>Games</b> picks the stretch: the season, home or road games only, or the team's last 3, 5 or 8. Real counts, no pull toward league average.</p>
+    <div class="view-toggle bp-toolbar" id="nvp-toolbar">
+      <span id="nvp-stats"></span>
+      <label class="bp-game-pick nvp-pick">Games:
+        <select id="nvp-win">
+          <option value="season">Season</option>
+          <option value="home">Home</option>
+          <option value="away">Away</option>
+          <option value="3">Last 3</option>
+          <option value="5">Last 5</option>
+          <option value="8">Last 8</option>
+        </select>
+      </label>
+      <label class="bp-game-pick nvp-pick">Matchup:
+        <select id="away-select"></select> @ <select id="home-select"></select>
+      </label>
+    </div>
+    <div id="nvp-matchup" class="nvp-match"></div>
+    <h3 class="section-title nvp-sub-title">All Teams</h3>
+    <div id="nvp-teams" class="bp-table-wrap"></div>
+  </div>
+</main>
+
+<footer>
+  Data: <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener">nflverse-data</a> play-by-play, regular season only.
+</footer>
+
+<script src="sync.js"></script>
+<script src="teams.js"></script>
+<script src="common.js"></script>
+<script src="player-card.js"></script>
+<script src="book-odds.js"></script>
+<script src="nfl-vs-position.js"></script>
+</body>
+</html>

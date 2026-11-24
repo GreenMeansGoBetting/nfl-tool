@@ -1,0 +1,26 @@
+/* NFL Vs Position (nfl-vs-position.html). Loaded after style.css by that page only; the grid itself
+   is style.css's .od-grid / .od-tile (the One Look). This file's phone block stays last. */
+.nvp-pick { margin-left: 10px; }
+.nvp-pick select { font: inherit; }
+.nvp-match { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px; margin: 12px 0 18px; }
+.nvp-team { display: inline-flex; align-items: center; gap: 5px; }
+.nvp-side { width: fit-content; max-width: 100%; }
+.nvp-side .nvp-pos-col { width: 44px; }
+.nvp-side .nvp-def-col, .nvp-all .nvp-def-col { width: 70px; }
+.nvp-side .nvp-player-col { width: 96px; }
+.data-table.od-grid .nvp-pos { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; text-align: center !important; }
+.nvp-player small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); font-size: 0.7rem; }
+.nvp-player .nvp-gp { margin-left: 3px; font-style: normal; color: var(--muted); }
+.nvp-all { width: fit-content; max-width: 100%; }
+.nvp-all .nvp-team-col { width: 80px; }
+.nvp-all .nvp-g-col { width: 30px; }
+.nvp-all th.bp-sort { cursor: pointer; }
+.nvp-all tr.nvp-sel td.od-label { box-shadow: inset 4px 0 0 var(--accent); }
+.nvp-sub-title { margin-top: 6px; }
+
+@media (max-width: 760px) {
+  .nvp-pick { margin-left: 0; }
+  .nvp-match { display: block; overflow-x: auto; }
+  .nvp-side { margin-bottom: 12px; }
+  .nvp-side .nvp-player-col { width: 84px; }
+}

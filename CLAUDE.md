@@ -78,7 +78,7 @@ message, so every line costs usage); detail belongs in a rules file.
 - `tools/`: `check_site.py` (local page check), `run_tests.py` + `tests/` (site JS runs in a real
   browser via `tests/site_browser.py`), `backtest/` (season replays per model).
 - NFL pages (`nfl_tool/site/`): `game-overview.html/.js` + `game-summary.js` Game Previews;
-  `index.html` + `app.js` TD Data; `opening-drives.html/.js` Opening Drive Tool (td-data.md); `player-props.html/.js` + `props-summary.js` Player Props;
+  `index.html` + `app.js` TD Data; `opening-drives.html/.js` Opening Drive Tool, `nfl-vs-position.html/.js` Vs Position (td-data.md); `player-props.html/.js` + `props-summary.js` Player Props;
   `best-plays.html/.js` NFL Best Plays; `player-card.js` player card popup; `promo-tools.html/.js`
   King of the Endzone; `contest.html/.js` $100 CONTEST (promos.md); `support.html`.
 - Shared: `my-plays.html/.js` My Plays (every sport's saved plays, Photo Export, `parlay-wheel.js`;

@@ -4,6 +4,7 @@ paths:
   - "nfl_tool/site/index.html"
   - "nfl_tool/site/first-td.html"
   - "nfl_tool/site/opening-drives.*"
+  - "nfl_tool/site/nfl-vs-position.*"
 ---
 # TD Data
 
@@ -114,6 +115,25 @@ Odds picks stay in a 330px right rail (team headers in team color). Main area, t
 
 Beats the blitz, Pressure trouble, Clean pocket, Light-box runs, Beats stacked box, RZ wall all
 use the offense's number and the defense's allowed number (`matchupCall` / `matchupKind`).
+
+## NFL Vs Position (`nfl-vs-position.html/.js/.css`, its own tool under the Opening Drive Tool in the menu; 2026-11-24)
+
+What each defense allows a game to QB / RB / WR / TE (a member: "how many receiving yards the Colts
+gave to running backs"; the owner: QB rushing and TDs too, "bad defense is red", built like the
+Opening Drive Tool). Named `nfl-` because `nhl/vs-position.html` exists (an nhl.-address root file
+would collide); classes `nvp-*` (the NHL page owns `vp-*`).
+- **Counted in the browser** (`vpBuild`): every player's weekly log (`player_game_logs`, with
+  `opp`) by his roster position (prop_matchup_model's per-game players, else `player_stats`; FB =
+  RB), only weeks the two teams played. Equals the build's play-by-play totals and TDs allowed
+  (`tests/test_nfl_vs_position_site.py` checks every defense). No build change.
+- Stats: Rec Yds / Receptions / Targets (RB, WR, TE), Rush Yds (QB, RB), TDs (rush + rec, all four;
+  a QB's passing TDs don't count). Games: Season / Home / Away / Last 3 / 5 / 8.
+- **Defense tiles from the defense's side**: 1st = allows the fewest = green, 32nd = red
+  (`rankScaleStyle`). Matchup: one box per offense (team-color bands), a row per position: the
+  other defense's tile, then the offense's players there (`VP_SHOWN` QB 1, RB 2, WR 3, TE 2 by
+  targets + carries a game; 2+ games, never Out via `lineupOutOn`), colored against every team's
+  shown players at that position (most = green), "N GP" under half the team's games. All Teams:
+  the picked game's teams first, then sortable by any column.
 
 ## Opening Drive Tool (`opening-drives.html/.js`, its own page under TD Data in the menu; 2026-10-29)
 

@@ -20,6 +20,7 @@ PAGE_FILES = {
     "promos.css": ["promo-tools.html", "contest.html"],
     "support.css": ["support.html"],
     "activity.css": ["activity.html"],
+    "nfl-vs-position.css": ["nfl-vs-position.html"],
 }
 OWNER = {page: css for css, pages in PAGE_FILES.items() for page in pages}
 

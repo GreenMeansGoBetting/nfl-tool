@@ -45,7 +45,7 @@ class TopMenu(unittest.TestCase):
         page = SITE.open("game-overview.html")
         try:
             page.click(".page-nav .nfl-trigger")
-            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["$100 Thanksgiving Contest", "/contest.html", False], ["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Opening Drive Tool", "/opening-drives.html", False], ["Best Plays", "/best-plays.html", False], ["Receiving", "/player-props.html#receiving", False], ["Rushing", "/player-props.html#rushing", False], ["Passing", "/player-props.html#passing", False]])
+            self.assertEqual(page.evaluate(LINKS % ".nfl-menu"), [["$100 Thanksgiving Contest", "/contest.html", False], ["Game Previews", "/game-overview.html", True], ["TD Data", "/index.html", False], ["Opening Drive Tool", "/opening-drives.html", False], ["Vs Position", "/nfl-vs-position.html", False], ["Best Plays", "/best-plays.html", False], ["Receiving", "/player-props.html#receiving", False], ["Rushing", "/player-props.html#rushing", False], ["Passing", "/player-props.html#passing", False]])
             # The $100 CONTEST link shows for every member, not just the owner (2026-11-21).
             self.assertEqual(page.evaluate("() => document.querySelector('.nfl-menu a[href$=\"contest.html\"]').closest('.owner-only')"), None)
             # The owner, 2026-11-04: every sport's menu is colored pills like Prop Research, no New tags.

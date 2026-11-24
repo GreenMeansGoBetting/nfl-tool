@@ -22,7 +22,6 @@
 .od-chip.od-x { color: var(--muted); }
 .od-chip.od-num { color: var(--text); }
 .od-none { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
-.od-grid .od-ggap-col { width: 6px; }
 .data-table.od-grid .od-gtitle { background-color: rgba(var(--zg, 128, 128, 128), 0.26); color: var(--text); padding: 6px 4px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18); font-size: 0.8rem; }
 .od-tile.od-fair { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; padding: 8px 3px; }
 .od-fair-table { width: 620px; }

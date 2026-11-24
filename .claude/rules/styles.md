@@ -182,7 +182,7 @@ automatically." It was NHL Best Plays' popup; now `site/ytd.js` draws it for eve
 - **One file per NFL page group (2026-11-23), loaded right after style.css by its pages only:**
   `game-previews.css` (game-overview), `td-data.css` (index, opening-drives), `player-props.css`
   (player-props, best-plays), `my-plays.css`, `promos.css` (promo-tools, contest), `support.css`,
-  `activity.css`. A rule goes in a page file only when every name in it exists on that group's
+  `activity.css`, `nfl-vs-position.css`. A rule goes in a page file only when every name in it exists on that group's
   pages alone; best-plays loads app.js, so most TD Data rules are shared and stay in style.css.
   A new rule for one page goes at the end of that page's file (its own phone block last).
   `tests/test_stylesheets.py` checks the links and that no page file's class shows up elsewhere.
