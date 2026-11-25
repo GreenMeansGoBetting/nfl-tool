@@ -13835,7 +13835,7 @@
    },
    {
     "id": "5104157",
-    "lead": 0.1719,
+    "lead": 0.1722,
     "name": "Victor Wembanyama",
     "proj": 45.4,
     "team": "SA"
@@ -13863,23 +13863,23 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0448,
+    "lead": 0.0449,
     "name": "Jalen Brunson",
     "proj": 37.6,
     "team": "NY"
    },
    {
     "id": "4431678",
-    "lead": 0.0307,
+    "lead": 0.0308,
     "name": "Tyrese Maxey",
     "proj": 36.1,
     "team": "PHI"
    },
    {
     "id": "3917376",
-    "lead": 0.03,
+    "lead": 0.0296,
     "name": "Jaylen Brown",
-    "proj": 35.3,
+    "proj": 35.2,
     "team": "PHI"
    },
    {
@@ -13898,7 +13898,7 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0173,
+    "lead": 0.0174,
     "name": "Julius Randle",
     "proj": 33.4,
     "team": "BKN"
@@ -13912,7 +13912,7 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0143,
+    "lead": 0.0144,
     "name": "Ty Jerome",
     "proj": 33.0,
     "team": "MEM"
@@ -13925,18 +13925,18 @@
     "team": "PHI"
    },
    {
-    "id": "4066261",
-    "lead": 0.01,
-    "name": "Bam Adebayo",
-    "proj": 32.3,
-    "team": "MIA"
-   },
-   {
     "id": "3155942",
     "lead": 0.01,
     "name": "Domantas Sabonis",
     "proj": 31.8,
     "team": "SAC"
+   },
+   {
+    "id": "4066261",
+    "lead": 0.0097,
+    "name": "Bam Adebayo",
+    "proj": 32.2,
+    "team": "MIA"
    },
    {
     "id": "4395725",
@@ -13970,22 +13970,22 @@
     "id": "4278104",
     "lead": 0.0051,
     "name": "Michael Porter Jr.",
-    "proj": 29.2,
+    "proj": 29.3,
     "team": "BKN"
    },
    {
-    "id": "3202",
-    "lead": 0.0048,
-    "name": "Kevin Durant",
-    "proj": 30.1,
-    "team": "HOU"
-   },
-   {
     "id": "4431671",
-    "lead": 0.0048,
+    "lead": 0.005,
     "name": "Jaden McDaniels",
     "proj": 29.5,
     "team": "MIN"
+   },
+   {
+    "id": "3202",
+    "lead": 0.0046,
+    "name": "Kevin Durant",
+    "proj": 30.0,
+    "team": "HOU"
    },
    {
     "id": "4278053",
@@ -14124,7 +14124,7 @@
     "id": "2991230",
     "lead": 0.0003,
     "name": "Fred VanVleet",
-    "proj": 22.5,
+    "proj": 22.4,
     "team": "HOU"
    },
    {
