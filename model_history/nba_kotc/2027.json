@@ -13828,42 +13828,42 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2385,
+    "lead": 0.2383,
     "name": "Giannis Antetokounmpo",
     "proj": 48.2,
     "team": "MIA"
    },
    {
     "id": "5104157",
-    "lead": 0.1721,
+    "lead": 0.1719,
     "name": "Victor Wembanyama",
     "proj": 45.3,
     "team": "SA"
    },
    {
     "id": "3136195",
-    "lead": 0.1015,
+    "lead": 0.1024,
     "name": "Karl-Anthony Towns",
-    "proj": 41.9,
+    "proj": 42.0,
     "team": "NY"
    },
    {
     "id": "4871144",
-    "lead": 0.0853,
+    "lead": 0.0852,
     "name": "Alperen Sengun",
     "proj": 40.6,
     "team": "HOU"
    },
    {
     "id": "4278073",
-    "lead": 0.0831,
+    "lead": 0.0827,
     "name": "Shai Gilgeous-Alexander",
     "proj": 40.8,
     "team": "OKC"
    },
    {
     "id": "3934672",
-    "lead": 0.0486,
+    "lead": 0.0484,
     "name": "Jalen Brunson",
     "proj": 37.5,
     "team": "NY"
@@ -13891,23 +13891,23 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0209,
+    "lead": 0.0208,
     "name": "Deni Avdija",
     "proj": 34.4,
     "team": "POR"
    },
    {
     "id": "3064514",
-    "lead": 0.019,
+    "lead": 0.0189,
     "name": "Julius Randle",
     "proj": 33.5,
     "team": "BKN"
    },
    {
     "id": "3908809",
-    "lead": 0.0169,
+    "lead": 0.0174,
     "name": "Donovan Mitchell",
-    "proj": 33.2,
+    "proj": 33.3,
     "team": "CLE"
    },
    {
@@ -13947,16 +13947,16 @@
    },
    {
     "id": "4396971",
-    "lead": 0.0073,
+    "lead": 0.0072,
     "name": "Naz Reid",
-    "proj": 29.9,
+    "proj": 29.8,
     "team": "CHA"
    },
    {
     "id": "3992",
     "lead": 0.0058,
     "name": "James Harden",
-    "proj": 28.7,
+    "proj": 28.8,
     "team": "CLE"
    },
    {
@@ -14010,14 +14010,14 @@
    },
    {
     "id": "4845367",
-    "lead": 0.0027,
+    "lead": 0.0026,
     "name": "Stephon Castle",
     "proj": 28.1,
     "team": "SA"
    },
    {
     "id": "4433287",
-    "lead": 0.0024,
+    "lead": 0.0023,
     "name": "Brandon Miller",
     "proj": 28.1,
     "team": "CHA"
@@ -14026,7 +14026,7 @@
     "id": "4871145",
     "lead": 0.0022,
     "name": "Josh Giddey",
-    "proj": 27.3,
+    "proj": 27.2,
     "team": "CHI"
    },
    {
@@ -14103,7 +14103,7 @@
     "id": "4397189",
     "lead": 0.0003,
     "name": "Jalen Smith",
-    "proj": 23.0,
+    "proj": 22.9,
     "team": "CHI"
    },
    {
@@ -14166,7 +14166,7 @@
     "id": "4711294",
     "lead": 0.0002,
     "name": "Matas Buzelis",
-    "proj": 21.9,
+    "proj": 21.8,
     "team": "CHI"
    },
    {
