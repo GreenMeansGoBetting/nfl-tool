@@ -5792,8 +5792,8 @@
     "under",
     false,
     9.5,
-    -111,
-    "betmgm"
+    -118,
+    "draftkings"
    ],
    [
     "4278594",
@@ -5816,7 +5816,7 @@
     "over",
     false,
     23.5,
-    -111,
+    -112,
     "prophetx"
    ],
    [
@@ -5827,9 +5827,9 @@
     0.0848,
     "over",
     false,
-    6.5,
-    -117,
-    "prophetx"
+    7.5,
+    -118,
+    "caesars"
    ]
   ],
   "threes": [
@@ -5854,8 +5854,8 @@
     "under",
     false,
     3.5,
-    -148,
-    "draftkings"
+    -140,
+    "betmgm"
    ]
   ]
  },
