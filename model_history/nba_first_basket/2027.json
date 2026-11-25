@@ -3704,6 +3704,11 @@
     "draftkings"
    ]
   },
+  "result": {
+   "scorer": "4395702",
+   "team": "DET",
+   "tip": "ORL"
+  },
   "tip_home": 0.599
  },
  "401909315": {
@@ -3887,7 +3892,7 @@
  "401909317": {
   "away": "MIA",
   "date": "2026-11-25",
-  "first_home": 0.48,
+  "first_home": 0.481,
   "home": "PHI",
   "jumpers": [
    [
@@ -3951,7 +3956,7 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.103,
+    0.104,
     600,
     false,
     "fanduel"
@@ -3971,7 +3976,7 @@
     "fanduel"
    ]
   },
-  "tip_home": 0.44
+  "tip_home": 0.441
  },
  "401909318": {
   "away": "CHI",
@@ -4149,12 +4154,12 @@
     null
    ]
   },
-  "tip_home": 0.399
+  "tip_home": 0.4
  },
  "401909320": {
   "away": "MIN",
   "date": "2026-11-25",
-  "first_home": 0.492,
+  "first_home": 0.491,
   "home": "OKC",
   "jumpers": [
    [
@@ -4238,7 +4243,7 @@
     "fanduel"
    ]
   },
-  "tip_home": 0.475
+  "tip_home": 0.474
  },
  "401909321": {
   "away": "LAC",
@@ -4450,7 +4455,7 @@
    ],
    "3155526": [
     "Dillon Brooks",
-    0.084,
+    0.085,
     900,
     false,
     "fanduel"
@@ -4683,12 +4688,12 @@
     null
    ]
   },
-  "tip_home": 0.297
+  "tip_home": 0.298
  },
  "401909326": {
   "away": "MIA",
   "date": "2026-11-27",
-  "first_home": 0.466,
+  "first_home": 0.467,
   "home": "NY",
   "jumpers": [
    [
@@ -4710,7 +4715,7 @@
    ],
    "3059319": [
     "Andrew Wiggins",
-    0.085,
+    0.084,
     null,
     false,
     null
@@ -4772,12 +4777,12 @@
     null
    ]
   },
-  "tip_home": 0.398
+  "tip_home": 0.399
  },
  "401909327": {
   "away": "MIL",
   "date": "2026-11-27",
-  "first_home": 0.493,
+  "first_home": 0.486,
   "home": "DET",
   "jumpers": [
    [
@@ -4792,28 +4797,28 @@
   "players": {
    "3133628": [
     "Myles Turner",
-    0.099,
+    0.101,
     null,
     false,
     null
    ],
    "3134907": [
     "Kyle Kuzma",
-    0.08,
+    0.081,
     null,
     false,
     null
    ],
    "3908845": [
     "John Collins",
-    0.095,
+    0.094,
     null,
     false,
     null
    ],
    "4066372": [
     "Kevin Huerter",
-    0.095,
+    0.092,
     null,
     false,
     null
@@ -4827,41 +4832,41 @@
    ],
    "4395725": [
     "Tyler Herro",
-    0.105,
+    0.107,
     null,
     false,
     null
    ],
    "4432848": [
     "Jaime Jaquez Jr.",
-    0.121,
+    0.122,
     null,
     false,
     null
    ],
    "4591725": [
     "Ryan Rollins",
-    0.082,
+    0.083,
     null,
     false,
     null
    ],
    "4684742": [
     "Ausar Thompson",
-    0.092,
+    0.091,
     null,
     false,
     null
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.103,
+    0.102,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.479
+  "tip_home": 0.458
  },
  "401909328": {
   "away": "PHI",
@@ -4950,7 +4955,7 @@
     null
    ]
   },
-  "tip_home": 0.548
+  "tip_home": 0.547
  },
  "401909329": {
   "away": "BKN",
@@ -5039,7 +5044,7 @@
     null
    ]
   },
-  "tip_home": 0.591
+  "tip_home": 0.59
  },
  "401909330": {
   "away": "ATL",
@@ -5122,13 +5127,13 @@
    ],
    "4869342": [
     "Dyson Daniels",
-    0.085,
+    0.084,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.49
+  "tip_home": 0.491
  },
  "401909331": {
   "away": "MEM",
@@ -5217,7 +5222,7 @@
     "bet365"
    ]
   },
-  "tip_home": 0.547
+  "tip_home": 0.548
  },
  "401909332": {
   "away": "DAL",
@@ -5306,7 +5311,7 @@
     null
    ]
   },
-  "tip_home": 0.485
+  "tip_home": 0.486
  },
  "401909333": {
   "away": "LAL",
@@ -5361,7 +5366,7 @@
    ],
    "4433136": [
     "Walker Kessler",
-    0.068,
+    0.069,
     null,
     false,
     null
@@ -5400,7 +5405,7 @@
  "401909334": {
   "away": "DEN",
   "date": "2026-11-27",
-  "first_home": 0.497,
+  "first_home": 0.498,
   "home": "UTAH",
   "jumpers": [
    [
@@ -5484,12 +5489,12 @@
     null
    ]
   },
-  "tip_home": 0.492
+  "tip_home": 0.493
  },
  "401909335": {
   "away": "NO",
   "date": "2026-11-27",
-  "first_home": 0.585,
+  "first_home": 0.586,
   "home": "LAC",
   "jumpers": [
    [
@@ -5573,7 +5578,7 @@
     null
    ]
   },
-  "tip_home": 0.757
+  "tip_home": 0.758
  },
  "401909336": {
   "away": "GS",

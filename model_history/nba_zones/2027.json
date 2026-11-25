@@ -5788,7 +5788,7 @@
     "Daniel Gafford",
     "DAL",
     "DEN",
-    -0.1111,
+    -0.1104,
     "under",
     false,
     9.5,
@@ -5800,11 +5800,11 @@
     "Naji Marshall",
     "DAL",
     "DEN",
-    0.0514,
+    0.0505,
     "over",
     false,
     9.5,
-    -114,
+    -108,
     "4cx"
    ],
    [
@@ -5812,19 +5812,19 @@
     "Cooper Flagg",
     "DAL",
     "DEN",
-    0.0766,
+    0.076,
     "over",
     false,
     23.5,
-    -117,
-    "draftkings"
+    -111,
+    "prophetx"
    ],
    [
     "5211175",
     "Zaccharie Risacher",
     "DAL",
     "DEN",
-    0.0855,
+    0.0848,
     "over",
     false,
     6.5,
@@ -5838,24 +5838,24 @@
     "Nikola Jokic",
     "DEN",
     "DAL",
-    -0.3453,
+    -0.3461,
     "under",
     true,
     1.5,
-    -149,
-    "prophetx"
+    -137,
+    "4cx"
    ],
    [
     "6442",
     "Kyrie Irving",
     "DAL",
     "DEN",
-    -0.0771,
+    -0.077,
     "under",
     false,
     3.5,
-    -150,
-    "betmgm"
+    -148,
+    "draftkings"
    ]
   ]
  },
