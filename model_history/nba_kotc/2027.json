@@ -13828,28 +13828,28 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.237,
+    "lead": 0.2375,
     "name": "Giannis Antetokounmpo",
     "proj": 48.2,
     "team": "MIA"
    },
    {
     "id": "5104157",
-    "lead": 0.1694,
+    "lead": 0.1699,
     "name": "Victor Wembanyama",
     "proj": 45.3,
     "team": "SA"
    },
    {
     "id": "3136195",
-    "lead": 0.107,
+    "lead": 0.1053,
     "name": "Karl-Anthony Towns",
-    "proj": 42.0,
+    "proj": 41.9,
     "team": "NY"
    },
    {
     "id": "4278073",
-    "lead": 0.0921,
+    "lead": 0.0922,
     "name": "Shai Gilgeous-Alexander",
     "proj": 40.8,
     "team": "OKC"
@@ -13870,14 +13870,14 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0303,
+    "lead": 0.0305,
     "name": "Tyrese Maxey",
     "proj": 36.1,
     "team": "PHI"
    },
    {
     "id": "3917376",
-    "lead": 0.0288,
+    "lead": 0.029,
     "name": "Jaylen Brown",
     "proj": 35.3,
     "team": "PHI"
@@ -13898,31 +13898,38 @@
    },
    {
     "id": "3908809",
-    "lead": 0.0174,
+    "lead": 0.0171,
     "name": "Donovan Mitchell",
-    "proj": 33.3,
+    "proj": 33.2,
     "team": "CLE"
    },
    {
     "id": "3064514",
-    "lead": 0.0152,
+    "lead": 0.0154,
     "name": "Julius Randle",
     "proj": 33.5,
     "team": "BKN"
    },
    {
     "id": "4065733",
-    "lead": 0.0148,
+    "lead": 0.0149,
     "name": "Ty Jerome",
     "proj": 32.9,
     "team": "MEM"
    },
    {
     "id": "3059318",
-    "lead": 0.0134,
+    "lead": 0.0135,
     "name": "Joel Embiid",
     "proj": 32.5,
     "team": "PHI"
+   },
+   {
+    "id": "4066261",
+    "lead": 0.0112,
+    "name": "Bam Adebayo",
+    "proj": 32.3,
+    "team": "MIA"
    },
    {
     "id": "3155942",
@@ -13939,15 +13946,8 @@
     "team": "MIL"
    },
    {
-    "id": "4066261",
-    "lead": 0.0111,
-    "name": "Bam Adebayo",
-    "proj": 32.3,
-    "team": "MIA"
-   },
-   {
     "id": "3136193",
-    "lead": 0.0102,
+    "lead": 0.0103,
     "name": "Devin Booker",
     "proj": 32.0,
     "team": "PHX"
@@ -13996,17 +13996,10 @@
    },
    {
     "id": "1966",
-    "lead": 0.0038,
+    "lead": 0.0039,
     "name": "LeBron James",
     "proj": 30.2,
     "team": "PHI"
-   },
-   {
-    "id": "3992",
-    "lead": 0.0037,
-    "name": "James Harden",
-    "proj": 28.8,
-    "team": "CLE"
    },
    {
     "id": "4278053",
@@ -14014,6 +14007,13 @@
     "name": "Davion Mitchell",
     "proj": 29.2,
     "team": "MIA"
+   },
+   {
+    "id": "3992",
+    "lead": 0.0036,
+    "name": "James Harden",
+    "proj": 28.7,
+    "team": "CLE"
    },
    {
     "id": "4433287",
