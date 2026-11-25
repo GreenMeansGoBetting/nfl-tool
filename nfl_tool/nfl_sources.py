@@ -383,12 +383,21 @@ def build_roster_team_lookup(rosters: pd.DataFrame) -> dict:
     the game, not the player's team; book_td_odds). MUST be built from the
     CURRENT (requested) season's roster, not whatever season the pbp-based
     stats fell back to: the fallback season's roster once still had A.J.
-    Brown on his old team after an offseason trade."""
+    Brown on his old team after an offseason trade.
+
+    Each player's teams are listed oldest to newest (his CURRENT team last):
+    a player who moved between the two teams of one game must go to the
+    team he is on now. Joe Milton III (DAL practice squad Weeks 1-5, PHI
+    from Week 6) matched both sides of PHI @ DAL and was dropped from the
+    TD odds while every book priced him (the owner, 2026-11-25)."""
     lookup = {}
-    for row in rosters.itertuples(index=False):
+    for row in rosters.sort_values("week", kind="stable").itertuples(index=False):
         if pd.isna(row.full_name):
             continue
-        lookup.setdefault(row.full_name, set()).add(row.team)
+        teams = lookup.setdefault(row.full_name, [])
+        if row.team in teams:
+            teams.remove(row.team)
+        teams.append(row.team)
     return lookup
 
 

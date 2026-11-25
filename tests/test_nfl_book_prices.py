@@ -59,6 +59,25 @@ class BookTdOdds(unittest.TestCase):
         self.assertEqual([r["name"] for r in rows["DEN"]], ["Jaleel McLaughlin"])
 
 
+    def test_player_on_both_teams_goes_to_his_current_one(self):
+        # Joe Milton III, PHI @ DAL 2026-11-25: DAL practice squad Weeks 1-5,
+        # PHI from Week 6. Matching both sides dropped him while every book
+        # priced him (+300 BetMGM).
+        import pandas as pd
+        import nfl_sources
+        rosters = pd.DataFrame([
+            {"week": 7, "team": "PHI", "full_name": "Joe Milton III"},
+            {"week": 1, "team": "DAL", "full_name": "Joe Milton III"},
+            {"week": 5, "team": "DAL", "full_name": "Joe Milton III"},
+            {"week": 6, "team": "PHI", "full_name": "Joe Milton III"},
+        ])
+        roster = nfl_sources.build_roster_team_lookup(rosters)
+        self.assertEqual(roster["Joe Milton III"], ["DAL", "PHI"])
+        books = {"PHI_DAL": {"td": {"joemilton": td("Joe Milton III", ("betmgm", "o", 300), ("fanduel", "o", 290))}}}
+        rows = nfl_lines.book_td_odds(books, roster, {"Joe Milton III": "QB"}, set())
+        self.assertEqual(list(rows), ["PHI"])
+        self.assertEqual((rows["PHI"][0]["best_odds"], rows["PHI"][0]["best_book"]), (300, "BetMGM"))
+
     def test_exchange_only_player_left_off(self):
         # Jaydon Blue, DAL @ PHI 2026-10-26: Novig +100 and a ProphetX Yes at
         # -286, no sportsbook -- the one-sided rule made him a 67% favorite.

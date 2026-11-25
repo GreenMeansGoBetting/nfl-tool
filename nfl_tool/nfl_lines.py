@@ -299,10 +299,17 @@ def book_td_odds(book_odds: dict, roster_teams: dict, roster_positions: dict | N
     no-vig chance -- the median, across books quoting both sides, of
     Yes / (Yes + No); with no two-sided book, the median sportsbook Yes
     chance x 0.9. A player only an exchange prices is left off (TD_EXCHANGES).
-    A player's team is whichever side of the game his current roster lists."""
+    A player's team is whichever side of the game his roster lists; one who
+    has been on BOTH teams this season goes to the newer one (roster_teams
+    lists each player's teams oldest to newest: Joe Milton III, DAL then
+    PHI, was dropped from PHI @ DAL)."""
     by_norm = {}
     for name, teams in (roster_teams or {}).items():
-        by_norm.setdefault(_norm_player(name), set()).update(teams)
+        have = by_norm.setdefault(_norm_player(name), [])
+        for t in teams:
+            if t in have:
+                have.remove(t)
+            have.append(t)
     prob = moneyline_to_implied_prob
     out = {}
     for key, game in (book_odds or {}).items():
@@ -311,8 +318,9 @@ def book_td_odds(book_odds: dict, roster_teams: dict, roster_positions: dict | N
             name = row.get("name")
             if not name or name in (unavailable or ()):
                 continue
-            side = [t for t in (away, home) if t in by_norm.get(_norm_player(name), ())]
-            if len(side) != 1:
+            teams = by_norm.get(_norm_player(name), [])
+            side = [t for t in teams if t in (away, home)][-1:]  # the newer of the two
+            if not side:
                 continue
             by_book = {}
             for book, s, _line, odds, _url in row.get("q") or []:

@@ -20,6 +20,8 @@ Split from `data-pipeline.md` (2026-11-23), which keeps building locally, rating
 - Anytime TD (`player_td_odds`): SmartStake's list (`book_td_odds`, team from the current roster;
   its best price and its own no-vig chance). Novig's own feed only for a team SmartStake has
   nothing on (`merge_td_odds`; the owner, 2026-10-26: "smartstake, not novig default"). A player
+  who was on BOTH teams of a game this season goes to his newer one (`build_roster_team_lookup` lists
+  teams oldest to newest; Joe Milton III, DAL then PHI, was dropped from PHI @ DAL, 2026-11-25). A player
   only an exchange prices (`TD_EXCHANGES`: Novig, ProphetX, Kalshi, Polymarket) is left off.
 - Who the odds leave off (`odds_unavailable_names`): Out / Doubtful / IR on his team's LATEST
   report up to this week, plus `roster_out`. Never an earlier week's (Barkley, Out Weeks 5-6, was
