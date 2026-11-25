@@ -13828,28 +13828,28 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2385,
+    "lead": 0.2384,
     "name": "Giannis Antetokounmpo",
     "proj": 48.2,
     "team": "MIA"
    },
    {
     "id": "5104157",
-    "lead": 0.1722,
+    "lead": 0.1721,
     "name": "Victor Wembanyama",
     "proj": 45.3,
     "team": "SA"
    },
    {
     "id": "3136195",
-    "lead": 0.1016,
+    "lead": 0.1015,
     "name": "Karl-Anthony Towns",
     "proj": 41.9,
     "team": "NY"
    },
    {
     "id": "4871144",
-    "lead": 0.0854,
+    "lead": 0.0853,
     "name": "Alperen Sengun",
     "proj": 40.6,
     "team": "HOU"
@@ -13877,9 +13877,9 @@
    },
    {
     "id": "3917376",
-    "lead": 0.027,
+    "lead": 0.0273,
     "name": "Jaylen Brown",
-    "proj": 35.2,
+    "proj": 35.3,
     "team": "PHI"
    },
    {
@@ -13919,9 +13919,9 @@
    },
    {
     "id": "4066261",
-    "lead": 0.0129,
+    "lead": 0.0131,
     "name": "Bam Adebayo",
-    "proj": 32.2,
+    "proj": 32.3,
     "team": "MIA"
    },
    {
@@ -13982,7 +13982,7 @@
    },
    {
     "id": "1966",
-    "lead": 0.0053,
+    "lead": 0.0052,
     "name": "LeBron James",
     "proj": 30.2,
     "team": "PHI"
@@ -14086,13 +14086,6 @@
     "team": "BKN"
    },
    {
-    "id": "4433083",
-    "lead": 0.0004,
-    "name": "Cam Spencer",
-    "proj": 21.9,
-    "team": "MEM"
-   },
-   {
     "id": "3064440",
     "lead": 0.0003,
     "name": "Zach LaVine",
@@ -14119,6 +14112,13 @@
     "name": "Rui Hachimura",
     "proj": 22.1,
     "team": "LAC"
+   },
+   {
+    "id": "4433083",
+    "lead": 0.0003,
+    "name": "Cam Spencer",
+    "proj": 21.9,
+    "team": "MEM"
    },
    {
     "id": "3995",
