@@ -13828,7 +13828,7 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2384,
+    "lead": 0.2385,
     "name": "Giannis Antetokounmpo",
     "proj": 48.2,
     "team": "MIA"
@@ -13856,7 +13856,7 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0828,
+    "lead": 0.0831,
     "name": "Shai Gilgeous-Alexander",
     "proj": 40.8,
     "team": "OKC"
@@ -13884,9 +13884,9 @@
    },
    {
     "id": "5142620",
-    "lead": 0.0249,
+    "lead": 0.0244,
     "name": "Darius Acuff Jr.",
-    "proj": 34.4,
+    "proj": 34.3,
     "team": "SAC"
    },
    {
@@ -13928,7 +13928,7 @@
     "id": "3155942",
     "lead": 0.0119,
     "name": "Domantas Sabonis",
-    "proj": 31.8,
+    "proj": 31.7,
     "team": "SAC"
    },
    {
@@ -13982,7 +13982,7 @@
    },
    {
     "id": "1966",
-    "lead": 0.0052,
+    "lead": 0.0053,
     "name": "LeBron James",
     "proj": 30.2,
     "team": "PHI"
@@ -14003,9 +14003,9 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0039,
+    "lead": 0.0036,
     "name": "Yaxel Lendeborg",
-    "proj": 29.4,
+    "proj": 29.3,
     "team": "GS"
    },
    {
