@@ -3902,7 +3902,7 @@
  "401909317": {
   "away": "MIA",
   "date": "2026-11-25",
-  "first_home": 0.48,
+  "first_home": 0.453,
   "home": "PHI",
   "jumpers": [
    [
@@ -3910,63 +3910,63 @@
     "Bam Adebayo"
    ],
    [
-    "3059318",
-    "Joel Embiid"
+    "4432446",
+    "Jabari Walker"
    ]
   ],
   "players": {
    "1966": [
     "LeBron James",
-    0.089,
+    0.088,
     900,
     false,
     "fanduel"
    ],
    "3032977": [
     "Giannis Antetokounmpo",
-    0.125,
+    0.132,
     450,
     false,
     "hard_rock"
    ],
-   "3059318": [
-    "Joel Embiid",
-    0.089,
+   "3059319": [
+    "Andrew Wiggins",
+    0.087,
     null,
     false,
     null
    ],
-   "3059319": [
-    "Andrew Wiggins",
-    0.082,
+   "3912848": [
+    "Dean Wade",
+    0.066,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.105,
+    0.103,
     600,
     false,
     "fanduel"
    ],
    "4066261": [
     "Bam Adebayo",
-    0.113,
+    0.119,
     700,
     false,
     "fanduel"
    ],
    "4278053": [
     "Davion Mitchell",
-    0.097,
+    0.102,
     900,
     false,
     "fanduel"
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.103,
+    0.102,
     650,
     false,
     "fanduel"
@@ -3980,13 +3980,13 @@
    ],
    "6475": [
     "Klay Thompson",
-    0.081,
+    0.086,
     950,
     false,
     "fanduel"
    ]
   },
-  "tip_home": 0.44
+  "tip_home": 0.358
  },
  "401909318": {
   "away": "CHI",
@@ -4821,21 +4821,14 @@
    ],
    "3908845": [
     "John Collins",
-    0.094,
+    0.093,
     null,
     false,
     null
    ],
    "4066372": [
     "Kevin Huerter",
-    0.093,
-    null,
-    false,
-    null
-   ],
-   "4278562": [
-    "Paul Reed",
-    0.088,
+    0.089,
     null,
     false,
     null
@@ -4843,6 +4836,13 @@
    "4395725": [
     "Tyler Herro",
     0.106,
+    null,
+    false,
+    null
+   ],
+   "4432166": [
+    "Cade Cunningham",
+    0.098,
     null,
     false,
     null
@@ -4863,14 +4863,14 @@
    ],
    "4684742": [
     "Ausar Thompson",
-    0.091,
+    0.089,
     null,
     false,
     null
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.102,
+    0.098,
     null,
     false,
     null
@@ -4881,12 +4881,12 @@
  "401909328": {
   "away": "PHI",
   "date": "2026-11-27",
-  "first_home": 0.516,
+  "first_home": 0.544,
   "home": "IND",
   "jumpers": [
    [
-    "3059318",
-    "Joel Embiid"
+    "4432446",
+    "Jabari Walker"
    ],
    [
     "4017837",
@@ -4901,58 +4901,58 @@
     false,
     null
    ],
-   "3059318": [
-    "Joel Embiid",
-    0.089,
-    null,
-    false,
-    null
-   ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.102,
+    0.108,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.117,
+    0.123,
+    null,
+    false,
+    null
+   ],
+   "3912848": [
+    "Dean Wade",
+    0.067,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.106,
+    0.104,
     null,
     false,
     null
    ],
    "4017837": [
     "Ivica Zubac",
-    0.097,
+    0.102,
     null,
     false,
     null
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.097,
+    0.102,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.083,
+    0.087,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.104,
+    0.103,
     null,
     false,
     null
@@ -4965,7 +4965,7 @@
     null
    ]
   },
-  "tip_home": 0.549
+  "tip_home": 0.631
  },
  "401909329": {
   "away": "BKN",
@@ -24658,12 +24658,12 @@
  "401910050": {
   "away": "PHI",
   "date": "2026-11-28",
-  "first_home": 0.477,
+  "first_home": 0.505,
   "home": "HOU",
   "jumpers": [
    [
-    "3059318",
-    "Joel Embiid"
+    "4432446",
+    "Jabari Walker"
    ],
    [
     "4871144",
@@ -24673,63 +24673,63 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.097,
+    0.096,
     null,
     false,
     null
    ],
    "2991230": [
     "Fred VanVleet",
-    0.087,
-    null,
-    false,
-    null
-   ],
-   "3059318": [
-    "Joel Embiid",
-    0.097,
+    0.093,
     null,
     false,
     null
    ],
    "3202": [
     "Kevin Durant",
-    0.097,
+    0.103,
+    null,
+    false,
+    null
+   ],
+   "3912848": [
+    "Dean Wade",
+    0.072,
     null,
     false,
     null
    ],
    "3917376": [
     "Jaylen Brown",
-    0.114,
+    0.113,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.113,
+    0.112,
     null,
     false,
     null
    ],
    "4432639": [
     "Jabari Smith Jr.",
-    0.085,
+    0.09,
     null,
     false,
     null
    ],
    "4684740": [
     "Amen Thompson",
-    0.093,
+    0.099,
     null,
     false,
     null
    ],
    "4871144": [
     "Alperen Sengun",
-    0.095,
+    0.101,
     null,
     false,
     null
@@ -24742,6 +24742,6 @@
     null
    ]
   },
-  "tip_home": 0.43
+  "tip_home": 0.514
  }
 }
