@@ -4535,23 +4535,16 @@
    ]
   ],
   "players": {
-   "3064440": [
-    "Zach LaVine",
-    0.097,
-    1200,
-    true,
-    "fanduel"
-   ],
    "3155942": [
     "Domantas Sabonis",
-    0.122,
+    0.123,
     750,
     false,
     "hard_rock"
    ],
    "4065732": [
     "De'Andre Hunter",
-    0.092,
+    0.095,
     1300,
     true,
     "fanduel"
@@ -4563,9 +4556,16 @@
     false,
     "draftkings"
    ],
+   "4431679": [
+    "Precious Achiuwa",
+    0.087,
+    null,
+    false,
+    null
+   ],
    "4594327": [
     "Keegan Murray",
-    0.091,
+    0.094,
     1300,
     true,
     "fanduel"
@@ -4586,9 +4586,9 @@
    ],
    "5142620": [
     "Darius Acuff Jr.",
-    0.115,
+    0.118,
     850,
-    false,
+    true,
     "fanduel"
    ],
    "5175737": [
