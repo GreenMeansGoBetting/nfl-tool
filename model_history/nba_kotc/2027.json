@@ -13828,21 +13828,21 @@
   "board": [
    {
     "id": "3032977",
-    "lead": 0.2443,
+    "lead": 0.2444,
     "name": "Giannis Antetokounmpo",
     "proj": 48.3,
     "team": "MIA"
    },
    {
     "id": "5104157",
-    "lead": 0.1649,
+    "lead": 0.1651,
     "name": "Victor Wembanyama",
     "proj": 45.5,
     "team": "SA"
    },
    {
     "id": "3136195",
-    "lead": 0.1051,
+    "lead": 0.1054,
     "name": "Karl-Anthony Towns",
     "proj": 42.1,
     "team": "NY"
@@ -13856,14 +13856,14 @@
    },
    {
     "id": "4278073",
-    "lead": 0.0773,
+    "lead": 0.0775,
     "name": "Shai Gilgeous-Alexander",
     "proj": 40.9,
     "team": "OKC"
    },
    {
     "id": "3934672",
-    "lead": 0.0423,
+    "lead": 0.0426,
     "name": "Jalen Brunson",
     "proj": 37.6,
     "team": "NY"
@@ -13883,18 +13883,18 @@
     "team": "PHI"
    },
    {
-    "id": "5142620",
-    "lead": 0.0236,
-    "name": "Darius Acuff Jr.",
-    "proj": 34.7,
-    "team": "SAC"
-   },
-   {
     "id": "4683021",
-    "lead": 0.0231,
+    "lead": 0.023,
     "name": "Deni Avdija",
     "proj": 34.5,
     "team": "POR"
+   },
+   {
+    "id": "5142620",
+    "lead": 0.0217,
+    "name": "Darius Acuff Jr.",
+    "proj": 34.4,
+    "team": "SAC"
    },
    {
     "id": "3908809",
@@ -13905,16 +13905,16 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0158,
+    "lead": 0.0162,
     "name": "Ty Jerome",
-    "proj": 32.9,
+    "proj": 33.0,
     "team": "MEM"
    },
    {
     "id": "3064514",
-    "lead": 0.0155,
+    "lead": 0.016,
     "name": "Julius Randle",
-    "proj": 33.3,
+    "proj": 33.4,
     "team": "BKN"
    },
    {
@@ -13932,18 +13932,18 @@
     "team": "MIA"
    },
    {
-    "id": "3155942",
-    "lead": 0.0101,
-    "name": "Domantas Sabonis",
-    "proj": 32.1,
-    "team": "SAC"
+    "id": "4395725",
+    "lead": 0.0104,
+    "name": "Tyler Herro",
+    "proj": 31.6,
+    "team": "MIL"
    },
    {
-    "id": "4395725",
-    "lead": 0.0101,
-    "name": "Tyler Herro",
-    "proj": 31.5,
-    "team": "MIL"
+    "id": "3155942",
+    "lead": 0.0097,
+    "name": "Domantas Sabonis",
+    "proj": 31.9,
+    "team": "SAC"
    },
    {
     "id": "3136193",
@@ -13961,14 +13961,14 @@
    },
    {
     "id": "5175737",
-    "lead": 0.0057,
+    "lead": 0.0056,
     "name": "Yaxel Lendeborg",
-    "proj": 29.7,
+    "proj": 29.5,
     "team": "GS"
    },
    {
     "id": "4396907",
-    "lead": 0.0054,
+    "lead": 0.0055,
     "name": "Darius Garland",
     "proj": 29.9,
     "team": "LAC"
@@ -13984,7 +13984,7 @@
     "id": "4396971",
     "lead": 0.0046,
     "name": "Naz Reid",
-    "proj": 30.0,
+    "proj": 29.9,
     "team": "CHA"
    },
    {
@@ -13995,18 +13995,18 @@
     "team": "MIA"
    },
    {
+    "id": "4431671",
+    "lead": 0.0036,
+    "name": "Jaden McDaniels",
+    "proj": 29.6,
+    "team": "MIN"
+   },
+   {
     "id": "4278104",
     "lead": 0.0036,
     "name": "Michael Porter Jr.",
     "proj": 29.2,
     "team": "BKN"
-   },
-   {
-    "id": "4431671",
-    "lead": 0.0035,
-    "name": "Jaden McDaniels",
-    "proj": 29.6,
-    "team": "MIN"
    },
    {
     "id": "4903027",
@@ -14026,21 +14026,21 @@
     "id": "4871145",
     "lead": 0.003,
     "name": "Josh Giddey",
-    "proj": 27.4,
+    "proj": 27.3,
     "team": "CHI"
    },
    {
     "id": "4433287",
     "lead": 0.0026,
     "name": "Brandon Miller",
-    "proj": 28.3,
+    "proj": 28.2,
     "team": "CHA"
    },
    {
     "id": "4845367",
-    "lead": 0.0026,
+    "lead": 0.0025,
     "name": "Stephon Castle",
-    "proj": 28.2,
+    "proj": 28.1,
     "team": "SA"
    },
    {
@@ -14068,7 +14068,7 @@
     "id": "3064440",
     "lead": 0.0012,
     "name": "Zach LaVine",
-    "proj": 25.7,
+    "proj": 25.6,
     "team": "SAC"
    },
    {
@@ -14082,7 +14082,7 @@
     "id": "4433249",
     "lead": 0.0011,
     "name": "Moussa Diabate",
-    "proj": 24.1,
+    "proj": 24.0,
     "team": "CHA"
    },
    {
@@ -14103,14 +14103,14 @@
     "id": "4709138",
     "lead": 0.0005,
     "name": "Brandin Podziemski",
-    "proj": 24.5,
+    "proj": 24.4,
     "team": "GS"
    },
    {
     "id": "4711294",
     "lead": 0.0004,
     "name": "Matas Buzelis",
-    "proj": 22.0,
+    "proj": 21.9,
     "team": "CHI"
    },
    {
@@ -14131,7 +14131,7 @@
     "id": "4397189",
     "lead": 0.0002,
     "name": "Jalen Smith",
-    "proj": 23.1,
+    "proj": 23.0,
     "team": "CHI"
    },
    {
@@ -14145,7 +14145,7 @@
     "id": "4433083",
     "lead": 0.0002,
     "name": "Cam Spencer",
-    "proj": 21.9,
+    "proj": 22.0,
     "team": "MEM"
    },
    {
@@ -14159,7 +14159,7 @@
     "id": "4395651",
     "lead": 0.0002,
     "name": "Coby White",
-    "proj": 20.2,
+    "proj": 20.1,
     "team": "CHA"
    },
    {
@@ -14187,7 +14187,7 @@
     "id": "4065732",
     "lead": 0.0,
     "name": "De'Andre Hunter",
-    "proj": 22.9,
+    "proj": 22.7,
     "team": "SAC"
    },
    {
