@@ -6761,11 +6761,11 @@
     "Marcus Smart",
     "HOU",
     "PHX",
-    0.076,
+    0.0764,
     "over",
     false,
     5.5,
-    -120,
+    -107,
     "prophetx"
    ],
    [
@@ -6773,11 +6773,11 @@
     "Kevin Durant",
     "HOU",
     "PHX",
-    -0.1456,
+    -0.145,
     "under",
     true,
     21.5,
-    -118,
+    -116,
     "draftkings"
    ],
    [
@@ -6785,23 +6785,23 @@
     "Jordan Goodwin",
     "PHX",
     "HOU",
-    -0.056,
+    -0.0555,
     "under",
     false,
-    9.5,
-    -283,
-    "prophetx"
+    7.5,
+    -127,
+    "caesars"
    ],
    [
     "4432639",
     "Jabari Smith Jr.",
     "HOU",
     "PHX",
-    -0.064,
+    -0.0641,
     "under",
     false,
     13.5,
-    -109,
+    -113,
     "prophetx"
    ],
    [
@@ -6809,24 +6809,24 @@
     "Jalen Green",
     "PHX",
     "HOU",
-    0.0688,
+    0.0687,
     "over",
     false,
     13.5,
-    -120,
-    "betmgm"
+    -117,
+    "prophetx"
    ],
    [
     "4871144",
     "Alperen Sengun",
     "HOU",
     "PHX",
-    0.13,
+    0.1313,
     "over",
     true,
     20.5,
-    100,
-    "prophetx"
+    107,
+    "4cx"
    ]
   ],
   "threes": [
@@ -6835,7 +6835,7 @@
     "Marcus Smart",
     "HOU",
     "PHX",
-    0.1335,
+    0.1343,
     "over",
     true,
     1.5,
@@ -6847,43 +6847,43 @@
     "Fred VanVleet",
     "HOU",
     "PHX",
-    0.1039,
+    0.104,
     "over",
     false,
     2.5,
-    100,
-    "circa"
+    105,
+    "4cx"
    ],
    [
     "3155526",
     "Dillon Brooks",
     "PHX",
     "HOU",
-    -0.0657,
+    -0.0651,
     "under",
     false,
     1.5,
-    -103,
-    "4cx"
+    -106,
+    "draftkings"
    ],
    [
     "4066383",
     "Miles Bridges",
     "PHX",
     "HOU",
-    -0.0892,
+    -0.0885,
     "under",
     false,
     1.5,
-    -135,
-    "betmgm"
+    -134,
+    "4cx"
    ],
    [
     "4278402",
     "Jordan Goodwin",
     "PHX",
     "HOU",
-    -0.1373,
+    -0.1364,
     "under",
     true,
     1.5,
@@ -6899,8 +6899,8 @@
     "over",
     false,
     1.5,
-    -121,
-    "prophetx"
+    -112,
+    "4cx"
    ]
   ]
  },
@@ -6912,11 +6912,11 @@
     "De'Andre Hunter",
     "SAC",
     "GS",
-    0.0709,
+    0.0715,
     "over",
     false,
     15.5,
-    -115,
+    -114,
     "prophetx"
    ],
    [
@@ -6924,11 +6924,23 @@
     "Charles Bassey",
     "GS",
     "SAC",
-    0.2,
+    0.2013,
     "over",
     true,
     10.5,
-    -111,
+    101,
+    "4cx"
+   ],
+   [
+    "4997536",
+    "Gui Santos",
+    "GS",
+    "SAC",
+    0.1066,
+    "over",
+    false,
+    8.5,
+    102,
     "fanduel"
    ],
    [
@@ -6936,24 +6948,24 @@
     "Yaxel Lendeborg",
     "GS",
     "SAC",
-    0.1582,
+    0.1581,
     "over",
     true,
     21.5,
-    -109,
-    "pinnacle"
+    105,
+    "4cx"
    ],
    [
     "6589",
     "Draymond Green",
     "GS",
     "SAC",
-    0.1629,
+    0.1627,
     "over",
     true,
     5.5,
-    -115,
-    "caesars"
+    -113,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -6962,7 +6974,7 @@
     "Domantas Sabonis",
     "SAC",
     "GS",
-    -0.4197,
+    -0.4183,
     "under",
     true,
     0.5,
@@ -6974,7 +6986,7 @@
     "De'Andre Hunter",
     "SAC",
     "GS",
-    0.1239,
+    0.1249,
     "over",
     true,
     1.5,
@@ -6986,47 +6998,59 @@
     "Malik Monk",
     "SAC",
     "GS",
-    -0.0761,
+    -0.0759,
     "under",
     false,
     1.5,
     106,
-    "draftkings"
+    "caesars"
    ],
    [
     "4066436",
     "De'Anthony Melton",
     "GS",
     "SAC",
-    -0.0553,
+    -0.0551,
     "under",
     false,
     1.5,
-    154,
-    "fanduel"
+    140,
+    "betmgm"
    ],
    [
     "4594327",
     "Keegan Murray",
     "SAC",
     "GS",
-    0.0716,
+    0.0727,
     "over",
     false,
     1.5,
-    -115,
+    -117,
     "prophetx"
+   ],
+   [
+    "4897262",
+    "Will Richard",
+    "GS",
+    "SAC",
+    -0.0989,
+    "under",
+    false,
+    1.5,
+    -240,
+    "fanduel"
    ],
    [
     "5142620",
     "Darius Acuff Jr.",
     "SAC",
     "GS",
-    -0.0857,
+    -0.0853,
     "under",
     false,
     2.5,
-    122,
+    120,
     "fanduel"
    ],
    [
@@ -7034,11 +7058,11 @@
     "Yaxel Lendeborg",
     "GS",
     "SAC",
-    0.2625,
+    0.2631,
     "over",
     true,
     1.5,
-    -139,
+    -146,
     "prophetx"
    ],
    [
@@ -7046,12 +7070,12 @@
     "Draymond Green",
     "GS",
     "SAC",
-    0.3003,
+    0.3011,
     "over",
     true,
     0.5,
-    -130,
-    "fanduel"
+    -134,
+    "4cx"
    ]
   ]
  },
@@ -7063,23 +7087,23 @@
     "Jrue Holiday",
     "POR",
     "SA",
-    -0.1079,
+    -0.1075,
     "under",
     false,
     12.5,
-    -102,
-    "prophetx"
+    -104,
+    "caesars"
    ],
    [
     "4066259",
     "De'Aaron Fox",
     "SA",
     "POR",
-    -0.0977,
+    -0.097,
     "under",
     false,
     14.5,
-    -110,
+    -111,
     "prophetx"
    ],
    [
@@ -7091,7 +7115,7 @@
     "under",
     true,
     10.5,
-    -105,
+    100,
     "betmgm"
    ],
    [
@@ -7099,11 +7123,11 @@
     "Deni Avdija",
     "POR",
     "SA",
-    -0.0652,
+    -0.0658,
     "under",
     false,
     22.5,
-    -107,
+    -103,
     "prophetx"
    ],
    [
@@ -7111,11 +7135,11 @@
     "Scoot Henderson",
     "POR",
     "SA",
-    -0.0662,
+    -0.0655,
     "under",
     false,
     10.5,
-    -113,
+    -114,
     "prophetx"
    ],
    [
@@ -7123,11 +7147,11 @@
     "Stephon Castle",
     "SA",
     "POR",
-    -0.0789,
+    -0.0787,
     "under",
     false,
     19.5,
-    -119,
+    -114,
     "draftkings"
    ],
    [
@@ -7149,11 +7173,11 @@
     "De'Aaron Fox",
     "SA",
     "POR",
-    -0.1848,
+    -0.1844,
     "under",
     true,
     1.5,
-    -176,
+    -172,
     "4cx"
    ],
    [
@@ -7161,7 +7185,7 @@
     "Scoot Henderson",
     "POR",
     "SA",
-    -0.1538,
+    -0.1535,
     "under",
     true,
     1.5,
@@ -7177,19 +7201,19 @@
     "under",
     true,
     1.5,
-    145,
-    "betmgm"
+    143,
+    "prophetx"
    ],
    [
     "5081727",
     "Sidy Cissoko",
     "POR",
     "SA",
-    -0.2545,
+    -0.2543,
     "under",
     true,
     1.5,
-    -227,
+    -232,
     "prophetx"
    ],
    [
@@ -7197,12 +7221,12 @@
     "Victor Wembanyama",
     "SA",
     "POR",
-    0.3596,
+    0.3627,
     "over",
     true,
     2.5,
-    123,
-    "draftkings"
+    125,
+    "4cx"
    ]
   ]
  },
