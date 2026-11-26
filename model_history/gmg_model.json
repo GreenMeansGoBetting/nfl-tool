@@ -2193,6 +2193,68 @@
   "updated": "2026-11-22T07:01Z",
   "week": 11
  },
+ "2026_12_CHI_DET": {
+  "away": "CHI",
+  "away_pts": 24.8,
+  "date": "2026-11-26",
+  "final": [
+   39,
+   35
+  ],
+  "frozen": true,
+  "home": "DET",
+  "home_pts": 27.1,
+  "parts": {
+   "away": {
+    "m": {
+     "epa": 1.128,
+     "explosive": 0.547,
+     "passing": 0.915,
+     "penalties": -0.766,
+     "redzone": 1.595,
+     "rushing": -0.334,
+     "sacks": -1.245,
+     "scheme": 1.272,
+     "third": 2.127,
+     "trenches": -0.03,
+     "turnovers": -0.567
+    },
+    "r": 2.27,
+    "s": 2.687,
+    "t": 1.0
+   },
+   "home": {
+    "m": {
+     "epa": 1.028,
+     "explosive": 2.486,
+     "passing": 1.261,
+     "penalties": -0.734,
+     "redzone": 0.656,
+     "rushing": 1.847,
+     "sacks": -0.691,
+     "scheme": 0.983,
+     "third": -1.988,
+     "trenches": 0.0,
+     "turnovers": 2.062
+    },
+    "r": 2.72,
+    "s": 2.7,
+    "t": 1.0
+   },
+   "league": 23.116
+  },
+  "qb_out": [],
+  "spread": 1.5,
+  "spread_edge": 3.8,
+  "spread_pick": "home",
+  "spread_result": "loss",
+  "total": 55.5,
+  "total_edge": 3.5,
+  "total_pick": "under",
+  "total_result": "loss",
+  "updated": "2026-11-26T08:37Z",
+  "week": 12
+ },
  "2026_12_GB_LA": {
   "away": "GB",
   "away_pts": 19.1,
@@ -2253,6 +2315,64 @@
   "total_pick": "over",
   "total_result": "loss",
   "updated": "2026-11-25T21:57Z",
+  "week": 12
+ },
+ "2026_12_PHI_DAL": {
+  "away": "PHI",
+  "away_pts": 17.6,
+  "date": "2026-11-26",
+  "frozen": true,
+  "home": "DAL",
+  "home_pts": 29.3,
+  "parts": {
+   "away": {
+    "m": {
+     "epa": 0.838,
+     "explosive": -0.288,
+     "passing": 0.281,
+     "penalties": 2.768,
+     "redzone": 0.452,
+     "rushing": 1.127,
+     "sacks": -1.529,
+     "scheme": 0.226,
+     "third": 1.266,
+     "trenches": -1.09,
+     "turnovers": 1.828
+    },
+    "r": -2.97,
+    "s": 0.136,
+    "t": 1.0
+   },
+   "home": {
+    "m": {
+     "epa": 1.86,
+     "explosive": 0.025,
+     "passing": 0.803,
+     "penalties": -1.13,
+     "redzone": 1.675,
+     "rushing": 0.696,
+     "sacks": 1.636,
+     "scheme": 0.223,
+     "third": 1.565,
+     "trenches": 1.15,
+     "turnovers": 2.816
+    },
+    "r": 4.8,
+    "s": 4.846,
+    "t": 1.0
+   },
+   "league": 23.116
+  },
+  "qb_out": [
+   "PHI"
+  ],
+  "spread": -8.5,
+  "spread_edge": 3.2,
+  "spread_pick": "home",
+  "total": 47.5,
+  "total_edge": 0.6,
+  "total_pick": "under",
+  "updated": "2026-11-26T08:37Z",
   "week": 12
  }
 }

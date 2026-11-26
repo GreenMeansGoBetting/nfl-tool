@@ -7254,7 +7254,7 @@
     "under",
     true,
     8.5,
-    -118,
+    -110,
     "fanduel"
    ],
    [
@@ -7266,8 +7266,8 @@
     "over",
     true,
     9.5,
-    -140,
-    "fliff"
+    -117,
+    "prophetx"
    ],
    [
     "3064482",
@@ -7278,8 +7278,8 @@
     "under",
     false,
     5.5,
-    100,
-    "fanduel"
+    -105,
+    "fliff"
    ],
    [
     "3934672",
@@ -7290,20 +7290,8 @@
     "over",
     false,
     28.5,
-    -106,
+    -102,
     "fanduel"
-   ],
-   [
-    "3934719",
-    "OG Anunoby",
-    "NY",
-    "MIA",
-    -0.0784,
-    "under",
-    false,
-    15.5,
-    -120,
-    "fliff"
    ],
    [
     "4066261",
@@ -7314,7 +7302,7 @@
     "under",
     true,
     17.5,
-    -104,
+    -102,
     "fanduel"
    ]
   ],
@@ -7328,8 +7316,8 @@
     "over",
     true,
     1.5,
-    115,
-    "fliff"
+    127,
+    "prophetx"
    ],
    [
     "3064482",
@@ -7340,7 +7328,7 @@
     "under",
     false,
     0.5,
-    155,
+    150,
     "fliff"
    ],
    [
@@ -7352,8 +7340,8 @@
     "over",
     false,
     1.5,
-    -175,
-    "fliff"
+    -156,
+    "prophetx"
    ],
    [
     "3147657",
@@ -7368,30 +7356,6 @@
     "fanduel"
    ],
    [
-    "3934672",
-    "Jalen Brunson",
-    "NY",
-    "MIA",
-    0.2374,
-    "over",
-    true,
-    2.5,
-    -155,
-    "fliff"
-   ],
-   [
-    "3934719",
-    "OG Anunoby",
-    "NY",
-    "MIA",
-    -0.05,
-    "under",
-    false,
-    2.5,
-    -190,
-    "fliff"
-   ],
-   [
     "4066261",
     "Bam Adebayo",
     "MIA",
@@ -7400,7 +7364,7 @@
     "over",
     true,
     1.5,
-    164,
+    168,
     "fanduel"
    ],
    [
@@ -7412,20 +7376,57 @@
     "under",
     false,
     1.5,
-    118,
-    "fanduel"
+    130,
+    "draftkings"
    ]
   ]
  },
  "401909327": {
   "date": "2026-11-27",
   "points": [],
-  "threes": []
+  "threes": [
+   [
+    "5107199",
+    "Daniss Jenkins",
+    "DET",
+    "MIL",
+    0.0685,
+    "over",
+    false,
+    2.5,
+    152,
+    "fanduel"
+   ]
+  ]
  },
  "401909328": {
   "date": "2026-11-27",
   "points": [],
   "threes": [
+   [
+    "3059318",
+    "Joel Embiid",
+    "PHI",
+    "IND",
+    0.1061,
+    "over",
+    false,
+    0.5,
+    -185,
+    "fliff"
+   ],
+   [
+    "4278355",
+    "Obi Toppin",
+    "IND",
+    "PHI",
+    -0.0747,
+    "under",
+    false,
+    1.5,
+    -132,
+    "fanduel"
+   ],
    [
     "4396909",
     "Aaron Nesmith",
@@ -7468,9 +7469,9 @@
     -0.0534,
     "under",
     false,
-    13.5,
-    -130,
-    "fliff"
+    12.5,
+    100,
+    "fanduel"
    ],
    [
     "4066354",
@@ -7481,8 +7482,8 @@
     "under",
     false,
     12.5,
-    -112,
-    "fanduel"
+    -104,
+    "draftkings"
    ],
    [
     "4278039",
@@ -7492,8 +7493,8 @@
     -0.0836,
     "under",
     false,
-    20.5,
-    -130,
+    19.5,
+    -110,
     "fliff"
    ],
    [
@@ -7504,8 +7505,8 @@
     0.0951,
     "over",
     false,
-    11.5,
-    -135,
+    12.5,
+    -105,
     "fliff"
    ],
    [
@@ -7517,7 +7518,7 @@
     "under",
     false,
     9.5,
-    -114,
+    -120,
     "fanduel"
    ],
    [
@@ -7543,7 +7544,7 @@
     "under",
     true,
     1.5,
-    146,
+    148,
     "fanduel"
    ],
    [
@@ -7554,9 +7555,9 @@
     -0.0621,
     "under",
     false,
-    3.5,
-    -182,
-    "fanduel"
+    2.5,
+    125,
+    "fliff"
    ],
    [
     "4066354",
@@ -7567,8 +7568,8 @@
     "under",
     true,
     2.5,
-    -200,
-    "fliff"
+    -180,
+    "fanduel"
    ],
    [
     "4397020",
@@ -7773,7 +7774,44 @@
  },
  "401909332": {
   "date": "2026-11-27",
-  "points": [],
+  "points": [
+   [
+    "4278049",
+    "Daniel Gafford",
+    "DAL",
+    "PHX",
+    0.1711,
+    "over",
+    true,
+    9.5,
+    -115,
+    "fanatics"
+   ],
+   [
+    "4278594",
+    "Naji Marshall",
+    "DAL",
+    "PHX",
+    -0.0731,
+    "under",
+    false,
+    9.5,
+    -108,
+    "fanduel"
+   ],
+   [
+    "5041939",
+    "Cooper Flagg",
+    "DAL",
+    "PHX",
+    -0.1045,
+    "under",
+    false,
+    24.5,
+    -130,
+    "fliff"
+   ]
+  ],
   "threes": []
  },
  "401909333": {
@@ -7788,8 +7826,20 @@
     "under",
     false,
     9.5,
-    -112,
+    -118,
     "fanduel"
+   ],
+   [
+    "4395723",
+    "Keldon Johnson",
+    "SA",
+    "LAL",
+    -0.0902,
+    "under",
+    false,
+    10.5,
+    -115,
+    "fanatics"
    ],
    [
     "4397014",
@@ -7800,7 +7850,7 @@
     "under",
     false,
     10.5,
-    -114,
+    -104,
     "fanduel"
    ],
    [
@@ -7812,7 +7862,7 @@
     "under",
     false,
     5.5,
-    -102,
+    104,
     "fanduel"
    ]
   ],
@@ -7826,8 +7876,8 @@
     "over",
     true,
     1.5,
-    152,
-    "fanduel"
+    158,
+    "prophetx"
    ],
    [
     "4845367",
@@ -7850,8 +7900,8 @@
     "over",
     true,
     2.5,
-    135,
-    "fliff"
+    149,
+    "prophetx"
    ]
   ]
  },
@@ -7867,7 +7917,7 @@
     "under",
     true,
     12.5,
-    -120,
+    -135,
     "fliff"
    ]
   ],
@@ -7881,8 +7931,8 @@
     "under",
     false,
     1.5,
-    -200,
-    "fliff"
+    -158,
+    "fanduel"
    ],
    [
     "4431767",
@@ -7893,8 +7943,8 @@
     "under",
     true,
     1.5,
-    -110,
-    "fanatics"
+    -152,
+    "fanduel"
    ],
    [
     "4433627",
@@ -7912,8 +7962,34 @@
  },
  "401909335": {
   "date": "2026-11-27",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4395628",
+    "Zion Williamson",
+    "NO",
+    "LAC",
+    0.1198,
+    "over",
+    false,
+    21.5,
+    -115,
+    "fanatics"
+   ]
+  ],
+  "threes": [
+   [
+    "3913176",
+    "Brandon Ingram",
+    "LAC",
+    "NO",
+    0.1273,
+    "over",
+    true,
+    1.5,
+    -110,
+    "fanatics"
+   ]
+  ]
  },
  "401909336": {
   "date": "2026-11-27",
