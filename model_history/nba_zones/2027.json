@@ -7242,6 +7242,391 @@
    ]
   ]
  },
+ "401909326": {
+  "date": "2026-11-27",
+  "points": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "MIA",
+    0.1281,
+    "over",
+    true,
+    10.5,
+    102,
+    "fanduel"
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "MIA",
+    0.118,
+    "over",
+    false,
+    28.5,
+    -108,
+    "fanduel"
+   ],
+   [
+    "4066261",
+    "Bam Adebayo",
+    "MIA",
+    "NY",
+    -0.1713,
+    "under",
+    true,
+    17.5,
+    -108,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "3136195",
+    "Karl-Anthony Towns",
+    "NY",
+    "MIA",
+    0.1156,
+    "over",
+    false,
+    1.5,
+    -175,
+    "fliff"
+   ],
+   [
+    "3147657",
+    "Mikal Bridges",
+    "NY",
+    "MIA",
+    -0.0762,
+    "under",
+    false,
+    1.5,
+    -104,
+    "fanduel"
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "MIA",
+    0.2404,
+    "over",
+    true,
+    2.5,
+    -155,
+    "fliff"
+   ],
+   [
+    "4066261",
+    "Bam Adebayo",
+    "MIA",
+    "NY",
+    0.3293,
+    "over",
+    true,
+    1.5,
+    162,
+    "fanduel"
+   ],
+   [
+    "4278053",
+    "Davion Mitchell",
+    "MIA",
+    "NY",
+    -0.0594,
+    "under",
+    false,
+    1.5,
+    122,
+    "fanduel"
+   ]
+  ]
+ },
+ "401909327": {
+  "date": "2026-11-27",
+  "points": [],
+  "threes": []
+ },
+ "401909328": {
+  "date": "2026-11-27",
+  "points": [],
+  "threes": []
+ },
+ "401909329": {
+  "date": "2026-11-27",
+  "points": [],
+  "threes": []
+ },
+ "401909330": {
+  "date": "2026-11-27",
+  "points": [],
+  "threes": []
+ },
+ "401909331": {
+  "date": "2026-11-27",
+  "points": [
+   [
+    "3136196",
+    "Trey Lyles",
+    "MIN",
+    "MEM",
+    -0.1037,
+    "under",
+    false,
+    5.5,
+    100,
+    "fliff"
+   ],
+   [
+    "4065733",
+    "Ty Jerome",
+    "MEM",
+    "MIN",
+    -0.0955,
+    "under",
+    false,
+    22.5,
+    -107,
+    "prophetx"
+   ],
+   [
+    "4433083",
+    "Cam Spencer",
+    "MEM",
+    "MIN",
+    -0.0963,
+    "under",
+    false,
+    9.5,
+    105,
+    "4cx"
+   ],
+   [
+    "4903027",
+    "Cedric Coward",
+    "MEM",
+    "MIN",
+    -0.0681,
+    "under",
+    false,
+    15.5,
+    -111,
+    "betmgm"
+   ],
+   [
+    "5112087",
+    "Jaylen Wells",
+    "MEM",
+    "MIN",
+    -0.11,
+    "under",
+    false,
+    10.5,
+    -104,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "3136196",
+    "Trey Lyles",
+    "MIN",
+    "MEM",
+    -0.1228,
+    "under",
+    true,
+    0.5,
+    145,
+    "fliff"
+   ],
+   [
+    "4397002",
+    "Ayo Dosunmu",
+    "MIN",
+    "MEM",
+    -0.1741,
+    "under",
+    true,
+    1.5,
+    145,
+    "caesars"
+   ],
+   [
+    "4431671",
+    "Jaden McDaniels",
+    "MIN",
+    "MEM",
+    -0.063,
+    "under",
+    false,
+    1.5,
+    -106,
+    "prophetx"
+   ],
+   [
+    "4432810",
+    "Isaiah Stewart",
+    "MEM",
+    "MIN",
+    -0.1443,
+    "under",
+    true,
+    0.5,
+    -114,
+    "prophetx"
+   ],
+   [
+    "4432816",
+    "LaMelo Ball",
+    "MIN",
+    "MEM",
+    -0.1104,
+    "under",
+    false,
+    3.5,
+    -104,
+    "prophetx"
+   ],
+   [
+    "4432847",
+    "Terrence Shannon Jr.",
+    "MIN",
+    "MEM",
+    -0.1574,
+    "under",
+    true,
+    1.5,
+    -222,
+    "prophetx"
+   ],
+   [
+    "4592492",
+    "Bones Hyland",
+    "MIN",
+    "MEM",
+    -0.1217,
+    "under",
+    true,
+    1.5,
+    107,
+    "caesars"
+   ],
+   [
+    "4684806",
+    "Taylor Hendricks",
+    "MEM",
+    "MIN",
+    -0.1214,
+    "under",
+    true,
+    0.5,
+    176,
+    "fanduel"
+   ],
+   [
+    "5112087",
+    "Jaylen Wells",
+    "MEM",
+    "MIN",
+    -0.1791,
+    "under",
+    true,
+    1.5,
+    140,
+    "betmgm"
+   ]
+  ]
+ },
+ "401909332": {
+  "date": "2026-11-27",
+  "points": [],
+  "threes": []
+ },
+ "401909333": {
+  "date": "2026-11-27",
+  "points": [
+   [
+    "4277811",
+    "Collin Sexton",
+    "LAL",
+    "SA",
+    -0.0772,
+    "under",
+    false,
+    9.5,
+    -122,
+    "fanduel"
+   ],
+   [
+    "4397014",
+    "Quentin Grimes",
+    "LAL",
+    "SA",
+    -0.1046,
+    "under",
+    false,
+    10.5,
+    -125,
+    "fanduel"
+   ],
+   [
+    "4592691",
+    "Jake LaRavia",
+    "LAL",
+    "SA",
+    -0.1076,
+    "under",
+    false,
+    5.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "5104157",
+    "Victor Wembanyama",
+    "SA",
+    "LAL",
+    0.0687,
+    "over",
+    false,
+    31.5,
+    -122,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "4066259",
+    "De'Aaron Fox",
+    "SA",
+    "LAL",
+    0.1866,
+    "over",
+    true,
+    1.5,
+    152,
+    "fanduel"
+   ]
+  ]
+ },
+ "401909334": {
+  "date": "2026-11-27",
+  "points": [],
+  "threes": []
+ },
+ "401909335": {
+  "date": "2026-11-27",
+  "points": [],
+  "threes": []
+ },
+ "401909336": {
+  "date": "2026-11-27",
+  "points": [],
+  "threes": []
+ },
  "401909877": {
   "date": "2026-10-27",
   "points": [
