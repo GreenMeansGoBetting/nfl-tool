@@ -6944,7 +6944,7 @@ null
 ],
 "spread_odds": [
 -115,
-113
+111
 ],
 "total": 215.5,
 "total_odds": [
@@ -7088,7 +7088,7 @@ null
 ],
 "spread_odds": [
 106,
--113
+-111
 ],
 "total": 227.5,
 "total_odds": [
@@ -7224,7 +7224,7 @@ null
 "book": {
 "ml": [
 133,
--167
+-170
 ],
 "spread": [
 null,
@@ -7361,8 +7361,8 @@ null
 "away": "MIL",
 "book": {
 "ml": [
-335,
--441
+300,
+-456
 ],
 "spread": [
 null,
@@ -7499,7 +7499,7 @@ null
 "away": "PHI",
 "book": {
 "ml": [
--203,
+-213,
 156
 ],
 "spread": [
@@ -7637,7 +7637,7 @@ null
 "away": "BKN",
 "book": {
 "ml": [
-292,
+270,
 -365
 ],
 "spread": [
@@ -7775,7 +7775,7 @@ null
 "away": "ATL",
 "book": {
 "ml": [
-251,
+239,
 -308
 ],
 "spread": [
@@ -7913,7 +7913,7 @@ null
 "away": "MEM",
 "book": {
 "ml": [
-190,
+167,
 -208
 ],
 "spread": [
@@ -8051,8 +8051,8 @@ null
 "away": "DAL",
 "book": {
 "ml": [
--108,
--127
+-150,
+-178
 ],
 "spread": [
 null,
@@ -8189,7 +8189,7 @@ null
 "away": "LAL",
 "book": {
 "ml": [
-138,
+127,
 -174
 ],
 "spread": [
@@ -8327,7 +8327,7 @@ null
 "away": "DEN",
 "book": {
 "ml": [
--471,
+-441,
 365
 ],
 "spread": [
@@ -8466,7 +8466,7 @@ null
 "book": {
 "ml": [
 127,
--170
+-194
 ],
 "spread": [
 null,
@@ -8603,8 +8603,8 @@ null
 "away": "GS",
 "book": {
 "ml": [
-233,
--292
+186,
+-506
 ],
 "spread": [
 null,
@@ -31079,7 +31079,7 @@ null
 "away": "BKN",
 "book": {
 "ml": [
-156,
+163,
 -426
 ],
 "spread": [
@@ -31217,8 +31217,8 @@ null
 "away": "IND",
 "book": {
 "ml": [
-null,
-null
+-163,
+-1090
 ],
 "spread": [
 null,
@@ -31355,8 +31355,8 @@ null
 "away": "OKC",
 "book": {
 "ml": [
-null,
-null
+-852,
+208
 ],
 "spread": [
 null,
