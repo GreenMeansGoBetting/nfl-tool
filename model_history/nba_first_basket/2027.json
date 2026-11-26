@@ -4629,16 +4629,9 @@
    ]
   ],
   "players": {
-   "4066259": [
-    "De'Aaron Fox",
-    0.117,
-    700,
-    false,
-    "hard_rock"
-   ],
    "4395630": [
     "Devin Vassell",
-    0.098,
+    0.1,
     700,
     false,
     "fanduel"
@@ -4680,7 +4673,7 @@
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.139,
+    0.142,
     380,
     false,
     "fanduel"
@@ -4691,6 +4684,13 @@
     1000,
     false,
     "fanduel"
+   ],
+   "6578": [
+    "Harrison Barnes",
+    0.112,
+    null,
+    false,
+    null
    ],
    "6606": [
     "Damian Lillard",
@@ -5355,16 +5355,9 @@
     false,
     null
    ],
-   "4066259": [
-    "De'Aaron Fox",
-    0.114,
-    null,
-    false,
-    null
-   ],
    "4395630": [
     "Devin Vassell",
-    0.096,
+    0.097,
     null,
     false,
     null
@@ -5406,7 +5399,14 @@
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.136,
+    0.139,
+    null,
+    false,
+    null
+   ],
+   "6578": [
+    "Harrison Barnes",
+    0.109,
     null,
     false,
     null
