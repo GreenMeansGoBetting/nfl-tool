@@ -4893,7 +4893,14 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.089,
+    0.097,
+    null,
+    false,
+    null
+   ],
+   "2581018": [
+    "Kentavious Caldwell-Pope",
+    0.072,
     null,
     false,
     null
@@ -4914,14 +4921,7 @@
    ],
    "3912848": [
     "Dean Wade",
-    0.067,
-    null,
-    false,
-    null
-   ],
-   "3917376": [
-    "Jaylen Brown",
-    0.104,
+    0.071,
     null,
     false,
     null
@@ -4949,14 +4949,14 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.103,
+    0.115,
     null,
     false,
     null
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.076,
+    0.083,
     null,
     false,
     null
@@ -24667,7 +24667,14 @@
   "players": {
    "1966": [
     "LeBron James",
-    0.096,
+    0.106,
+    null,
+    false,
+    null
+   ],
+   "2581018": [
+    "Kentavious Caldwell-Pope",
+    0.078,
     null,
     false,
     null
@@ -24688,21 +24695,14 @@
    ],
    "3912848": [
     "Dean Wade",
-    0.072,
-    null,
-    false,
-    null
-   ],
-   "3917376": [
-    "Jaylen Brown",
-    0.113,
+    0.077,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.112,
+    0.124,
     null,
     false,
     null
@@ -24730,7 +24730,7 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.082,
+    0.09,
     null,
     false,
     null
