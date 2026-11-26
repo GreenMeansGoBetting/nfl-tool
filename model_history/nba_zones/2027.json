@@ -7253,8 +7253,8 @@
     -0.1239,
     "under",
     true,
-    7.5,
-    100,
+    8.5,
+    -118,
     "fanduel"
    ],
    [
@@ -7265,8 +7265,20 @@
     0.1281,
     "over",
     true,
-    10.5,
-    102,
+    9.5,
+    -140,
+    "fliff"
+   ],
+   [
+    "3064482",
+    "Bobby Portis",
+    "MIA",
+    "NY",
+    -0.1185,
+    "under",
+    false,
+    5.5,
+    100,
     "fanduel"
    ],
    [
@@ -7282,6 +7294,18 @@
     "fanduel"
    ],
    [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "MIA",
+    -0.0784,
+    "under",
+    false,
+    15.5,
+    -120,
+    "fliff"
+   ],
+   [
     "4066261",
     "Bam Adebayo",
     "MIA",
@@ -7290,11 +7314,35 @@
     "under",
     true,
     17.5,
-    -108,
+    -104,
     "fanduel"
    ]
   ],
   "threes": [
+   [
+    "3062679",
+    "Josh Hart",
+    "NY",
+    "MIA",
+    0.2023,
+    "over",
+    true,
+    1.5,
+    115,
+    "fliff"
+   ],
+   [
+    "3064482",
+    "Bobby Portis",
+    "MIA",
+    "NY",
+    -0.0897,
+    "under",
+    false,
+    0.5,
+    155,
+    "fliff"
+   ],
    [
     "3136195",
     "Karl-Anthony Towns",
@@ -7316,7 +7364,7 @@
     "under",
     false,
     1.5,
-    -102,
+    -104,
     "fanduel"
    ],
    [
@@ -7332,6 +7380,18 @@
     "fliff"
    ],
    [
+    "3934719",
+    "OG Anunoby",
+    "NY",
+    "MIA",
+    -0.05,
+    "under",
+    false,
+    2.5,
+    -190,
+    "fliff"
+   ],
+   [
     "4066261",
     "Bam Adebayo",
     "MIA",
@@ -7340,8 +7400,8 @@
     "over",
     true,
     1.5,
-    160,
-    "fliff"
+    164,
+    "fanduel"
    ],
    [
     "4278053",
@@ -7387,7 +7447,7 @@
     "over",
     true,
     1.5,
-    -145,
+    -150,
     "fliff"
    ]
   ]
@@ -7409,7 +7469,7 @@
     "under",
     false,
     13.5,
-    -125,
+    -130,
     "fliff"
    ],
    [
@@ -7420,9 +7480,9 @@
     -0.0553,
     "under",
     false,
-    13.5,
-    -125,
-    "fliff"
+    12.5,
+    -112,
+    "fanduel"
    ],
    [
     "4278039",
@@ -7433,7 +7493,7 @@
     "under",
     false,
     20.5,
-    -110,
+    -130,
     "fliff"
    ],
    [
@@ -7445,8 +7505,32 @@
     "over",
     false,
     11.5,
-    -120,
+    -135,
     "fliff"
+   ],
+   [
+    "4869342",
+    "Dyson Daniels",
+    "ATL",
+    "BOS",
+    -0.0872,
+    "under",
+    false,
+    9.5,
+    -114,
+    "fanduel"
+   ],
+   [
+    "5149077",
+    "Kingston Flemings",
+    "ATL",
+    "BOS",
+    -0.1058,
+    "under",
+    false,
+    8.5,
+    -125,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -7459,8 +7543,8 @@
     "under",
     true,
     1.5,
-    135,
-    "fliff"
+    146,
+    "fanduel"
    ],
    [
     "4065648",
@@ -7471,8 +7555,8 @@
     "under",
     false,
     3.5,
-    -180,
-    "fliff"
+    -182,
+    "fanduel"
    ],
    [
     "4066354",
@@ -7483,7 +7567,19 @@
     "under",
     true,
     2.5,
-    -170,
+    -200,
+    "fliff"
+   ],
+   [
+    "4397020",
+    "Luguentz Dort",
+    "ATL",
+    "BOS",
+    0.1603,
+    "over",
+    true,
+    1.5,
+    -110,
     "fliff"
    ],
    [
@@ -7495,8 +7591,8 @@
     "over",
     true,
     1.5,
-    115,
-    "fliff"
+    154,
+    "fanduel"
    ]
   ]
  },
@@ -7692,7 +7788,7 @@
     "under",
     false,
     9.5,
-    -122,
+    -112,
     "fanduel"
    ],
    [
@@ -7704,7 +7800,7 @@
     "under",
     false,
     10.5,
-    -122,
+    -114,
     "fanduel"
    ],
    [
@@ -7732,13 +7828,87 @@
     1.5,
     152,
     "fanduel"
+   ],
+   [
+    "4845367",
+    "Stephon Castle",
+    "SA",
+    "LAL",
+    0.1345,
+    "over",
+    true,
+    1.5,
+    -175,
+    "fliff"
+   ],
+   [
+    "5104157",
+    "Victor Wembanyama",
+    "SA",
+    "LAL",
+    0.5247,
+    "over",
+    true,
+    2.5,
+    135,
+    "fliff"
    ]
   ]
  },
  "401909334": {
   "date": "2026-11-27",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4431767",
+    "Christian Braun",
+    "DEN",
+    "UTAH",
+    -0.1532,
+    "under",
+    true,
+    12.5,
+    -120,
+    "fliff"
+   ]
+  ],
+  "threes": [
+   [
+    "3112335",
+    "Nikola Jokic",
+    "DEN",
+    "UTAH",
+    -0.0515,
+    "under",
+    false,
+    1.5,
+    -200,
+    "fliff"
+   ],
+   [
+    "4431767",
+    "Christian Braun",
+    "DEN",
+    "UTAH",
+    -0.2864,
+    "under",
+    true,
+    1.5,
+    -110,
+    "fanatics"
+   ],
+   [
+    "4433627",
+    "Keyonte George",
+    "UTAH",
+    "DEN",
+    -0.0803,
+    "under",
+    false,
+    2.5,
+    -165,
+    "fliff"
+   ]
+  ]
  },
  "401909335": {
   "date": "2026-11-27",
