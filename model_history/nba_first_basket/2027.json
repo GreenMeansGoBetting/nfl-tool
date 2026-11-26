@@ -4077,6 +4077,11 @@
     "bet365"
    ]
   },
+  "result": {
+   "scorer": "4711294",
+   "team": "CHI",
+   "tip": "CHI"
+  },
   "tip_home": 0.5
  },
  "401909319": {
@@ -4700,7 +4705,7 @@
     "fanduel"
    ]
   },
-  "tip_home": 0.295
+  "tip_home": 0.296
  },
  "401909326": {
   "away": "MIA",
@@ -4789,7 +4794,7 @@
     null
    ]
   },
-  "tip_home": 0.386
+  "tip_home": 0.387
  },
  "401909327": {
   "away": "MIL",
@@ -5056,7 +5061,7 @@
     null
    ]
   },
-  "tip_home": 0.59
+  "tip_home": 0.591
  },
  "401909330": {
   "away": "ATL",
@@ -5145,7 +5150,7 @@
     null
    ]
   },
-  "tip_home": 0.473
+  "tip_home": 0.474
  },
  "401909331": {
   "away": "MEM",
@@ -5234,7 +5239,7 @@
     "bet365"
    ]
   },
-  "tip_home": 0.549
+  "tip_home": 0.55
  },
  "401909332": {
   "away": "DAL",
@@ -24393,7 +24398,7 @@
  "401910047": {
   "away": "BKN",
   "date": "2026-11-28",
-  "first_home": 0.478,
+  "first_home": 0.473,
   "home": "CHA",
   "jumpers": [
    [
@@ -24408,162 +24413,165 @@
   "players": {
    "3064514": [
     "Julius Randle",
-    0.124,
+    0.125,
     null,
     false,
     null
    ],
    "4278104": [
     "Michael Porter Jr.",
-    0.105,
+    0.106,
     null,
     false,
     null
    ],
    "4395651": [
     "Coby White",
-    0.106,
+    0.102,
     null,
     false,
     null
    ],
    "4396971": [
     "Naz Reid",
-    0.116,
+    0.113,
     null,
     false,
     null
    ],
    "4432194": [
     "Day'Ron Sharpe",
-    0.093,
+    0.094,
     null,
     false,
     null
    ],
    "4433249": [
     "Moussa Diabate",
-    0.084,
+    0.082,
     null,
     false,
     null
    ],
    "4433287": [
     "Brandon Miller",
-    0.093,
+    0.091,
     null,
     false,
     null
    ],
    "4602025": [
     "Sion James",
-    0.06,
+    0.066,
     null,
     false,
     null
    ],
    "5107173": [
     "Danny Wolf",
-    0.085,
+    0.086,
     null,
     false,
     null
    ],
    "5175643": [
     "Egor Demin",
-    0.095,
+    0.096,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.433
+  "tip_home": 0.419
  },
  "401910048": {
   "away": "IND",
   "date": "2026-11-28",
-  "first_home": 0.5,
+  "first_home": 0.469,
   "home": "CHI",
   "jumpers": [
    [
     "4017837",
     "Ivica Zubac"
    ],
-   null
+   [
+    "4278067",
+    "Nic Claxton"
+   ]
   ],
   "players": {
    "2990984": [
     "Buddy Hield",
-    0.119,
+    0.105,
     null,
     false,
     null
    ],
    "3133603": [
     "Kelly Oubre Jr.",
-    0.099,
+    0.105,
     null,
     false,
     null
    ],
    "3149673": [
     "Pascal Siakam",
-    0.113,
+    0.12,
     null,
     false,
     null
    ],
    "4017837": [
     "Ivica Zubac",
-    0.094,
+    0.1,
     null,
     false,
     null
    ],
    "4278067": [
     "Nic Claxton",
-    0.089,
+    0.08,
     null,
     false,
     null
    ],
    "4395712": [
     "Andrew Nembhard",
-    0.094,
+    0.1,
     null,
     false,
     null
    ],
    "4396909": [
     "Aaron Nesmith",
-    0.08,
+    0.085,
     null,
     false,
     null
    ],
    "4432822": [
     "Isaac Okoro",
-    0.086,
+    0.081,
     null,
     false,
     null
    ],
    "4711294": [
     "Matas Buzelis",
-    0.076,
+    0.081,
     null,
     false,
     null
    ],
    "4871145": [
     "Josh Giddey",
-    0.111,
+    0.103,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.5
+  "tip_home": 0.406
  },
  "401910049": {
   "away": "OKC",
