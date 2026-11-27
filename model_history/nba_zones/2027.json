@@ -7253,8 +7253,8 @@
     -0.1239,
     "under",
     true,
-    8.5,
-    -110,
+    7.5,
+    -102,
     "fanduel"
    ],
    [
@@ -7266,7 +7266,7 @@
     "over",
     true,
     9.5,
-    -117,
+    -104,
     "prophetx"
    ],
    [
@@ -7277,9 +7277,9 @@
     -0.1185,
     "under",
     false,
-    5.5,
-    -105,
-    "fliff"
+    6.5,
+    -118,
+    "draftkings"
    ],
    [
     "3934672",
@@ -7289,9 +7289,9 @@
     0.1189,
     "over",
     false,
-    28.5,
+    27.5,
     -102,
-    "fanduel"
+    "pinnacle"
    ],
    [
     "4066261",
@@ -7303,7 +7303,7 @@
     true,
     17.5,
     -102,
-    "fanduel"
+    "prophetx"
    ]
   ],
   "threes": [
@@ -7316,7 +7316,7 @@
     "over",
     true,
     1.5,
-    127,
+    129,
     "prophetx"
    ],
    [
@@ -7328,8 +7328,8 @@
     "under",
     false,
     0.5,
-    150,
-    "fliff"
+    153,
+    "draftkings"
    ],
    [
     "3136195",
@@ -7340,7 +7340,7 @@
     "over",
     false,
     1.5,
-    -156,
+    -157,
     "prophetx"
    ],
    [
@@ -7352,8 +7352,20 @@
     "under",
     false,
     1.5,
-    -104,
+    -102,
     "fanduel"
+   ],
+   [
+    "3934672",
+    "Jalen Brunson",
+    "NY",
+    "MIA",
+    0.2374,
+    "over",
+    true,
+    3.5,
+    148,
+    "pinnacle"
    ],
    [
     "4066261",
@@ -7364,8 +7376,8 @@
     "over",
     true,
     1.5,
-    168,
-    "fanduel"
+    176,
+    "4cx"
    ],
    [
     "4278053",
@@ -7383,8 +7395,105 @@
  },
  "401909327": {
   "date": "2026-11-27",
-  "points": [],
+  "points": [
+   [
+    "3133628",
+    "Myles Turner",
+    "MIL",
+    "DET",
+    -0.2624,
+    "under",
+    true,
+    8.5,
+    -110,
+    "prophetx"
+   ],
+   [
+    "4395725",
+    "Tyler Herro",
+    "MIL",
+    "DET",
+    -0.1202,
+    "under",
+    true,
+    20.5,
+    -101,
+    "prophetx"
+   ],
+   [
+    "4591725",
+    "Ryan Rollins",
+    "MIL",
+    "DET",
+    -0.0905,
+    "under",
+    false,
+    10.5,
+    -123,
+    "draftkings"
+   ],
+   [
+    "5082206",
+    "Brayden Burries",
+    "MIL",
+    "DET",
+    -0.092,
+    "under",
+    false,
+    9.5,
+    100,
+    "caesars"
+   ]
+  ],
   "threes": [
+   [
+    "3133628",
+    "Myles Turner",
+    "MIL",
+    "DET",
+    -0.4829,
+    "under",
+    true,
+    1.5,
+    -120,
+    "fanduel"
+   ],
+   [
+    "3134907",
+    "Kyle Kuzma",
+    "MIL",
+    "DET",
+    -0.117,
+    "under",
+    false,
+    1.5,
+    -112,
+    "fanduel"
+   ],
+   [
+    "4066372",
+    "Kevin Huerter",
+    "DET",
+    "MIL",
+    0.1432,
+    "over",
+    true,
+    1.5,
+    -170,
+    "fliff"
+   ],
+   [
+    "4395725",
+    "Tyler Herro",
+    "MIL",
+    "DET",
+    -0.112,
+    "under",
+    false,
+    2.5,
+    -114,
+    "prophetx"
+   ],
    [
     "5107199",
     "Daniss Jenkins",
@@ -7394,8 +7503,8 @@
     "over",
     false,
     2.5,
-    152,
-    "fanduel"
+    131,
+    "4cx"
    ]
   ]
  },
@@ -7412,8 +7521,8 @@
     "over",
     false,
     0.5,
-    -185,
-    "fliff"
+    -190,
+    "caesars"
    ],
    [
     "4278355",
@@ -7424,8 +7533,8 @@
     "under",
     false,
     1.5,
-    -132,
-    "fanduel"
+    -129,
+    "prophetx"
    ],
    [
     "4396909",
@@ -7436,8 +7545,8 @@
     "under",
     true,
     1.5,
-    110,
-    "fliff"
+    109,
+    "caesars"
    ],
    [
     "5124612",
@@ -7448,15 +7557,113 @@
     "over",
     true,
     1.5,
-    -150,
-    "fliff"
+    -135,
+    "prophetx"
    ]
   ]
  },
  "401909329": {
   "date": "2026-11-27",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4684272",
+    "Ja'Kobe Walter",
+    "TOR",
+    "BKN",
+    0.0942,
+    "over",
+    false,
+    14.5,
+    110,
+    "4cx"
+   ],
+   [
+    "5093267",
+    "Collin Murray-Boyles",
+    "TOR",
+    "BKN",
+    0.1129,
+    "over",
+    false,
+    10.5,
+    -102,
+    "pinnacle"
+   ],
+   [
+    "5149115",
+    "Allen Graves",
+    "TOR",
+    "BKN",
+    0.1258,
+    "over",
+    true,
+    10.5,
+    -110,
+    "fliff"
+   ]
+  ],
+  "threes": [
+   [
+    "4395724",
+    "Immanuel Quickley",
+    "TOR",
+    "BKN",
+    0.1136,
+    "over",
+    false,
+    2.5,
+    -120,
+    "fanatics"
+   ],
+   [
+    "4432241",
+    "Jamal Shead",
+    "TOR",
+    "BKN",
+    0.1025,
+    "over",
+    false,
+    1.5,
+    140,
+    "fliff"
+   ],
+   [
+    "4433134",
+    "Scottie Barnes",
+    "TOR",
+    "BKN",
+    0.2107,
+    "over",
+    true,
+    0.5,
+    -213,
+    "caesars"
+   ],
+   [
+    "4684272",
+    "Ja'Kobe Walter",
+    "TOR",
+    "BKN",
+    0.1584,
+    "over",
+    true,
+    2.5,
+    -159,
+    "prophetx"
+   ],
+   [
+    "5149115",
+    "Allen Graves",
+    "TOR",
+    "BKN",
+    0.2114,
+    "over",
+    true,
+    1.5,
+    154,
+    "fanduel"
+   ]
+  ]
  },
  "401909330": {
   "date": "2026-11-27",
@@ -7470,8 +7677,8 @@
     "under",
     false,
     12.5,
-    100,
-    "fanduel"
+    -101,
+    "draftkings"
    ],
    [
     "4066354",
@@ -7482,8 +7689,8 @@
     "under",
     false,
     12.5,
-    -104,
-    "draftkings"
+    -108,
+    "caesars"
    ],
    [
     "4278039",
@@ -7493,9 +7700,9 @@
     -0.0836,
     "under",
     false,
-    19.5,
-    -110,
-    "fliff"
+    20.5,
+    -118,
+    "draftkings"
    ],
    [
     "4397424",
@@ -7505,9 +7712,9 @@
     0.0951,
     "over",
     false,
-    12.5,
-    -105,
-    "fliff"
+    11.5,
+    -104,
+    "draftkings"
    ],
    [
     "4869342",
@@ -7518,8 +7725,8 @@
     "under",
     false,
     9.5,
-    -120,
-    "fanduel"
+    -102,
+    "draftkings"
    ],
    [
     "5149077",
@@ -7530,8 +7737,8 @@
     "under",
     false,
     8.5,
-    -125,
-    "fanduel"
+    -110,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -7556,8 +7763,8 @@
     "under",
     false,
     2.5,
-    125,
-    "fliff"
+    132,
+    "draftkings"
    ],
    [
     "4066354",
@@ -7568,8 +7775,8 @@
     "under",
     true,
     2.5,
-    -180,
-    "fanduel"
+    -176,
+    "caesars"
    ],
    [
     "4397020",
@@ -7580,8 +7787,8 @@
     "over",
     true,
     1.5,
-    -110,
-    "fliff"
+    -105,
+    "fanatics"
    ],
    [
     "4701230",
@@ -7592,7 +7799,7 @@
     "over",
     true,
     1.5,
-    154,
+    152,
     "fanduel"
    ]
   ]
@@ -7600,18 +7807,6 @@
  "401909331": {
   "date": "2026-11-27",
   "points": [
-   [
-    "3136196",
-    "Trey Lyles",
-    "MIN",
-    "MEM",
-    -0.1039,
-    "under",
-    false,
-    5.5,
-    100,
-    "fliff"
-   ],
    [
     "4065733",
     "Ty Jerome",
@@ -7621,7 +7816,7 @@
     "under",
     false,
     22.5,
-    -107,
+    -114,
     "prophetx"
    ],
    [
@@ -7633,8 +7828,20 @@
     "under",
     false,
     9.5,
-    105,
-    "4cx"
+    100,
+    "caesars"
+   ],
+   [
+    "4594326",
+    "Kris Murray",
+    "MEM",
+    "MIN",
+    -0.1072,
+    "under",
+    false,
+    6.5,
+    -132,
+    "draftkings"
    ],
    [
     "4903027",
@@ -7645,8 +7852,8 @@
     "under",
     false,
     15.5,
-    -111,
-    "betmgm"
+    -103,
+    "prophetx"
    ],
    [
     "5112087",
@@ -7657,23 +7864,11 @@
     "under",
     false,
     10.5,
-    -104,
-    "draftkings"
+    -119,
+    "prophetx"
    ]
   ],
   "threes": [
-   [
-    "3136196",
-    "Trey Lyles",
-    "MIN",
-    "MEM",
-    -0.1233,
-    "under",
-    true,
-    0.5,
-    145,
-    "fliff"
-   ],
    [
     "4397002",
     "Ayo Dosunmu",
@@ -7682,9 +7877,9 @@
     -0.1755,
     "under",
     true,
-    1.5,
-    145,
-    "caesars"
+    2.5,
+    -167,
+    "draftkings"
    ],
    [
     "4431671",
@@ -7695,20 +7890,8 @@
     "under",
     false,
     1.5,
-    -106,
-    "prophetx"
-   ],
-   [
-    "4432810",
-    "Isaiah Stewart",
-    "MEM",
-    "MIN",
-    -0.1432,
-    "under",
-    true,
-    0.5,
-    -114,
-    "prophetx"
+    107,
+    "draftkings"
    ],
    [
     "4432816",
@@ -7719,44 +7902,20 @@
     "under",
     false,
     3.5,
-    -104,
-    "prophetx"
+    -154,
+    "fanduel"
    ],
    [
-    "4432847",
-    "Terrence Shannon Jr.",
-    "MIN",
-    "MEM",
-    -0.1589,
-    "under",
-    true,
-    1.5,
-    -222,
-    "prophetx"
-   ],
-   [
-    "4592492",
-    "Bones Hyland",
-    "MIN",
-    "MEM",
-    -0.1231,
-    "under",
-    true,
-    1.5,
-    107,
-    "caesars"
-   ],
-   [
-    "4684806",
-    "Taylor Hendricks",
+    "4594326",
+    "Kris Murray",
     "MEM",
     "MIN",
-    -0.1226,
+    -0.1872,
     "under",
     true,
     0.5,
-    176,
-    "fanduel"
+    112,
+    "draftkings"
    ],
    [
     "5112087",
@@ -7767,8 +7926,8 @@
     "under",
     true,
     1.5,
-    140,
-    "betmgm"
+    106,
+    "draftkings"
    ]
   ]
  },
@@ -7784,8 +7943,8 @@
     "over",
     true,
     9.5,
-    -115,
-    "fanatics"
+    -120,
+    "fliff"
    ],
    [
     "4278594",
@@ -7796,7 +7955,7 @@
     "under",
     false,
     9.5,
-    -108,
+    -104,
     "fanduel"
    ],
    [
@@ -7807,9 +7966,9 @@
     -0.1045,
     "under",
     false,
-    24.5,
-    -130,
-    "fliff"
+    23.5,
+    -106,
+    "fanduel"
    ]
   ],
   "threes": []
@@ -7826,8 +7985,8 @@
     "under",
     false,
     9.5,
-    -118,
-    "fanduel"
+    -104,
+    "draftkings"
    ],
    [
     "4395723",
@@ -7837,9 +7996,9 @@
     -0.0902,
     "under",
     false,
-    10.5,
-    -115,
-    "fanatics"
+    9.5,
+    -110,
+    "fliff"
    ],
    [
     "4397014",
@@ -7850,8 +8009,8 @@
     "under",
     false,
     10.5,
-    -104,
-    "fanduel"
+    -101,
+    "draftkings"
    ],
    [
     "4592691",
@@ -7862,8 +8021,8 @@
     "under",
     false,
     5.5,
-    104,
-    "fanduel"
+    103,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -7876,8 +8035,8 @@
     "over",
     true,
     1.5,
-    158,
-    "prophetx"
+    178,
+    "draftkings"
    ],
    [
     "4845367",
@@ -7888,8 +8047,8 @@
     "over",
     true,
     1.5,
-    -175,
-    "fliff"
+    -164,
+    "caesars"
    ],
    [
     "5104157",
@@ -7900,7 +8059,7 @@
     "over",
     true,
     2.5,
-    149,
+    154,
     "prophetx"
    ]
   ]
@@ -7908,6 +8067,18 @@
  "401909334": {
   "date": "2026-11-27",
   "points": [
+   [
+    "4397077",
+    "Jaxson Hayes",
+    "UTAH",
+    "DEN",
+    -0.1285,
+    "under",
+    true,
+    9.5,
+    -130,
+    "caesars"
+   ],
    [
     "4431767",
     "Christian Braun",
@@ -7917,8 +8088,8 @@
     "under",
     true,
     12.5,
-    -135,
-    "fliff"
+    -124,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -7931,8 +8102,20 @@
     "under",
     false,
     1.5,
-    -158,
-    "fanduel"
+    -154,
+    "prophetx"
+   ],
+   [
+    "3978",
+    "DeMar DeRozan",
+    "DEN",
+    "UTAH",
+    -0.4523,
+    "under",
+    true,
+    0.5,
+    -336,
+    "draftkings"
    ],
    [
     "4431767",
@@ -7943,8 +8126,8 @@
     "under",
     true,
     1.5,
-    -152,
-    "fanduel"
+    -148,
+    "draftkings"
    ],
    [
     "4433627",
@@ -7955,14 +8138,62 @@
     "under",
     false,
     2.5,
-    -165,
-    "fliff"
+    -155,
+    "draftkings"
    ]
   ]
  },
  "401909335": {
   "date": "2026-11-27",
   "points": [
+   [
+    "3448",
+    "Brook Lopez",
+    "LAC",
+    "NO",
+    0.0795,
+    "over",
+    false,
+    10.5,
+    -110,
+    "fliff"
+   ],
+   [
+    "3913176",
+    "Brandon Ingram",
+    "LAC",
+    "NO",
+    0.1343,
+    "over",
+    true,
+    17.5,
+    -112,
+    "draftkings"
+   ],
+   [
+    "4066648",
+    "Rui Hachimura",
+    "LAC",
+    "NO",
+    -0.0898,
+    "under",
+    false,
+    13.5,
+    -104,
+    "prophetx"
+   ],
+   [
+    "4277813",
+    "Herbert Jones",
+    "NO",
+    "LAC",
+    0.0853,
+    "over",
+    false,
+    7.5,
+    101,
+    "prophetx"
+   ],
    [
     "4395628",
     "Zion Williamson",
@@ -7971,9 +8202,69 @@
     0.1198,
     "over",
     false,
-    21.5,
-    -115,
-    "fanatics"
+    22.5,
+    -110,
+    "prophetx"
+   ],
+   [
+    "4396907",
+    "Darius Garland",
+    "LAC",
+    "NO",
+    0.0969,
+    "over",
+    false,
+    20.5,
+    -102,
+    "pinnacle"
+   ],
+   [
+    "4397136",
+    "Saddiq Bey",
+    "NO",
+    "LAC",
+    0.0744,
+    "over",
+    false,
+    14.5,
+    -106,
+    "prophetx"
+   ],
+   [
+    "4869780",
+    "Derik Queen",
+    "NO",
+    "LAC",
+    0.1106,
+    "over",
+    false,
+    9.5,
+    -116,
+    "draftkings"
+   ],
+   [
+    "5061589",
+    "Yves Missi",
+    "NO",
+    "LAC",
+    0.1414,
+    "over",
+    true,
+    6.5,
+    106,
+    "prophetx"
+   ],
+   [
+    "5144091",
+    "Jeremiah Fears",
+    "NO",
+    "LAC",
+    0.0708,
+    "over",
+    false,
+    17.5,
+    -107,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -7986,15 +8277,137 @@
     "over",
     true,
     1.5,
-    -110,
-    "fanatics"
+    122,
+    "draftkings"
+   ],
+   [
+    "4396907",
+    "Darius Garland",
+    "LAC",
+    "NO",
+    0.0767,
+    "over",
+    false,
+    2.5,
+    -105,
+    "draftkings"
+   ],
+   [
+    "4869780",
+    "Derik Queen",
+    "NO",
+    "LAC",
+    0.0697,
+    "over",
+    false,
+    0.5,
+    185,
+    "fliff"
    ]
   ]
  },
  "401909336": {
   "date": "2026-11-27",
-  "points": [],
-  "threes": []
+  "points": [
+   [
+    "4066436",
+    "De'Anthony Melton",
+    "GS",
+    "POR",
+    -0.1286,
+    "under",
+    true,
+    11.5,
+    -114,
+    "prophetx"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "POR",
+    -0.078,
+    "under",
+    false,
+    16.5,
+    -121,
+    "prophetx"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "GS",
+    -0.051,
+    "under",
+    false,
+    10.5,
+    102,
+    "draftkings"
+   ],
+   [
+    "6589",
+    "Draymond Green",
+    "GS",
+    "POR",
+    -0.0594,
+    "under",
+    false,
+    5.5,
+    -106,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "4066436",
+    "De'Anthony Melton",
+    "GS",
+    "POR",
+    -0.177,
+    "under",
+    true,
+    2.5,
+    -197,
+    "caesars"
+   ],
+   [
+    "4683021",
+    "Deni Avdija",
+    "POR",
+    "GS",
+    0.0978,
+    "over",
+    false,
+    1.5,
+    -125,
+    "fanatics"
+   ],
+   [
+    "4709138",
+    "Brandin Podziemski",
+    "GS",
+    "POR",
+    -0.1627,
+    "under",
+    true,
+    2.5,
+    -122,
+    "draftkings"
+   ],
+   [
+    "5105565",
+    "Donovan Clingan",
+    "POR",
+    "GS",
+    -0.2799,
+    "under",
+    true,
+    0.5,
+    178,
+    "fanduel"
+   ]
+  ]
  },
  "401909877": {
   "date": "2026-10-27",
