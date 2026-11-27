@@ -14260,42 +14260,42 @@
    },
    {
     "id": "5104157",
-    "lead": 0.1393,
+    "lead": 0.1388,
     "name": "Victor Wembanyama",
     "proj": 45.9,
     "team": "SA"
    },
    {
     "id": "3112335",
-    "lead": 0.1229,
+    "lead": 0.1226,
     "name": "Nikola Jokic",
     "proj": 44.5,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.1104,
+    "lead": 0.1119,
     "name": "Giannis Antetokounmpo",
-    "proj": 44.2,
+    "proj": 44.3,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.0801,
+    "lead": 0.08,
     "name": "Jayson Tatum",
     "proj": 42.1,
     "team": "BOS"
    },
    {
     "id": "3136195",
-    "lead": 0.0366,
+    "lead": 0.0365,
     "name": "Karl-Anthony Towns",
     "proj": 38.3,
     "team": "NY"
    },
    {
     "id": "3934672",
-    "lead": 0.0325,
+    "lead": 0.0324,
     "name": "Jalen Brunson",
     "proj": 38.1,
     "team": "NY"
@@ -14309,7 +14309,7 @@
    },
    {
     "id": "4683021",
-    "lead": 0.0291,
+    "lead": 0.029,
     "name": "Deni Avdija",
     "proj": 38.1,
     "team": "POR"
@@ -14330,7 +14330,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0214,
+    "lead": 0.0213,
     "name": "Cooper Flagg",
     "proj": 35.9,
     "team": "DAL"
@@ -14343,18 +14343,18 @@
     "team": "ATL"
    },
    {
-    "id": "3149673",
-    "lead": 0.0119,
-    "name": "Pascal Siakam",
-    "proj": 33.7,
-    "team": "IND"
-   },
-   {
     "id": "4431678",
     "lead": 0.0118,
     "name": "Tyrese Maxey",
     "proj": 34.1,
     "team": "PHI"
+   },
+   {
+    "id": "3149673",
+    "lead": 0.0118,
+    "name": "Pascal Siakam",
+    "proj": 33.7,
+    "team": "IND"
    },
    {
     "id": "3136193",
@@ -14392,18 +14392,18 @@
     "team": "UTAH"
    },
    {
-    "id": "6442",
-    "lead": 0.0045,
-    "name": "Kyrie Irving",
-    "proj": 30.3,
-    "team": "DAL"
-   },
-   {
     "id": "1966",
     "lead": 0.0044,
     "name": "LeBron James",
     "proj": 31.0,
     "team": "PHI"
+   },
+   {
+    "id": "6442",
+    "lead": 0.0044,
+    "name": "Kyrie Irving",
+    "proj": 30.3,
+    "team": "DAL"
    },
    {
     "id": "4395628",
