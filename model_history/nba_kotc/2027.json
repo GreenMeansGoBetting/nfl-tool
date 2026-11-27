@@ -14260,42 +14260,42 @@
    },
    {
     "id": "5104157",
-    "lead": 0.1392,
+    "lead": 0.1388,
     "name": "Victor Wembanyama",
     "proj": 45.9,
     "team": "SA"
    },
    {
     "id": "3112335",
-    "lead": 0.1244,
+    "lead": 0.1242,
     "name": "Nikola Jokic",
     "proj": 44.6,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.1102,
+    "lead": 0.1116,
     "name": "Giannis Antetokounmpo",
-    "proj": 44.2,
+    "proj": 44.3,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.08,
+    "lead": 0.0799,
     "name": "Jayson Tatum",
     "proj": 42.1,
     "team": "BOS"
    },
    {
     "id": "3136195",
-    "lead": 0.0366,
+    "lead": 0.0365,
     "name": "Karl-Anthony Towns",
     "proj": 38.3,
     "team": "NY"
    },
    {
     "id": "3934672",
-    "lead": 0.0324,
+    "lead": 0.0323,
     "name": "Jalen Brunson",
     "proj": 38.1,
     "team": "NY"
@@ -14330,7 +14330,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0214,
+    "lead": 0.0213,
     "name": "Cooper Flagg",
     "proj": 35.9,
     "team": "DAL"
@@ -14400,7 +14400,7 @@
    },
    {
     "id": "6442",
-    "lead": 0.0044,
+    "lead": 0.0043,
     "name": "Kyrie Irving",
     "proj": 30.3,
     "team": "DAL"
