@@ -4943,6 +4943,13 @@
     false,
     "bet365"
    ],
+   "2581018": [
+    "Kentavious Caldwell-Pope",
+    0.072,
+    1600,
+    true,
+    "hard_rock"
+   ],
    "3059318": [
     "Joel Embiid",
     0.097,
@@ -4963,13 +4970,6 @@
     750,
     false,
     "bet365"
-   ],
-   "3912848": [
-    "Dean Wade",
-    0.072,
-    1100,
-    false,
-    "fanduel"
    ],
    "4017837": [
     "Ivica Zubac",
@@ -4994,7 +4994,7 @@
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.119,
+    0.12,
     700,
     false,
     "bet365"
@@ -24720,6 +24720,13 @@
     false,
     null
    ],
+   "2581018": [
+    "Kentavious Caldwell-Pope",
+    0.077,
+    null,
+    false,
+    null
+   ],
    "2991230": [
     "Fred VanVleet",
     0.087,
@@ -24737,13 +24744,6 @@
    "3202": [
     "Kevin Durant",
     0.102,
-    null,
-    false,
-    null
-   ],
-   "3912848": [
-    "Dean Wade",
-    0.077,
     null,
     false,
     null
