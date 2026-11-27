@@ -14253,7 +14253,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.225,
+    "lead": 0.2251,
     "name": "Luka Doncic",
     "proj": 49.6,
     "team": "LAL"
@@ -14421,9 +14421,9 @@
    },
    {
     "id": "4065733",
-    "lead": 0.0034,
+    "lead": 0.0033,
     "name": "Ty Jerome",
-    "proj": 30.9,
+    "proj": 30.8,
     "team": "MEM"
    },
    {
@@ -14442,9 +14442,9 @@
    },
    {
     "id": "4431671",
-    "lead": 0.0028,
+    "lead": 0.0027,
     "name": "Jaden McDaniels",
-    "proj": 29.8,
+    "proj": 29.7,
     "team": "MIN"
    },
    {
