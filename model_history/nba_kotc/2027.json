@@ -14253,14 +14253,14 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2333,
+    "lead": 0.2331,
     "name": "Luka Doncic",
     "proj": 49.6,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1354,
+    "lead": 0.1352,
     "name": "Victor Wembanyama",
     "proj": 45.9,
     "team": "SA"
@@ -14274,16 +14274,16 @@
    },
    {
     "id": "3032977",
-    "lead": 0.1104,
+    "lead": 0.11,
     "name": "Giannis Antetokounmpo",
     "proj": 44.2,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.0753,
+    "lead": 0.0764,
     "name": "Jayson Tatum",
-    "proj": 42.0,
+    "proj": 42.1,
     "team": "BOS"
    },
    {
@@ -14295,14 +14295,14 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0407,
+    "lead": 0.0405,
     "name": "Karl-Anthony Towns",
     "proj": 38.3,
     "team": "NY"
    },
    {
     "id": "3934672",
-    "lead": 0.0314,
+    "lead": 0.0313,
     "name": "Jalen Brunson",
     "proj": 38.1,
     "team": "NY"
@@ -14365,7 +14365,7 @@
    },
    {
     "id": "3064514",
-    "lead": 0.0069,
+    "lead": 0.0068,
     "name": "Julius Randle",
     "proj": 30.6,
     "team": "BKN"
@@ -14421,9 +14421,9 @@
    },
    {
     "id": "4251",
-    "lead": 0.0033,
+    "lead": 0.0034,
     "name": "Paul George",
-    "proj": 30.6,
+    "proj": 30.7,
     "team": "BOS"
    },
    {
@@ -14546,6 +14546,13 @@
     "team": "IND"
    },
    {
+    "id": "4431680",
+    "lead": 0.0004,
+    "name": "Onyeka Okongwu",
+    "proj": 25.7,
+    "team": "ATL"
+   },
+   {
     "id": "6606",
     "lead": 0.0003,
     "name": "Damian Lillard",
@@ -14558,13 +14565,6 @@
     "name": "VJ Edgecombe",
     "proj": 25.7,
     "team": "PHI"
-   },
-   {
-    "id": "4431680",
-    "lead": 0.0003,
-    "name": "Onyeka Okongwu",
-    "proj": 25.6,
-    "team": "ATL"
    },
    {
     "id": "4066648",
