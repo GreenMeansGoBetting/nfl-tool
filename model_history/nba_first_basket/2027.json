@@ -5205,7 +5205,7 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.089,
+    0.095,
     990,
     false,
     "draftkings"
@@ -5219,24 +5219,17 @@
    ],
    "4397002": [
     "Ayo Dosunmu",
-    0.102,
+    0.108,
     850,
     false,
     "fanduel"
    ],
    "4431671": [
     "Jaden McDaniels",
-    0.102,
+    0.108,
     850,
     false,
     "fanduel"
-   ],
-   "4432816": [
-    "LaMelo Ball",
-    0.116,
-    660,
-    false,
-    "draftkings"
    ],
    "4433083": [
     "Cam Spencer",
@@ -5247,7 +5240,7 @@
    ],
    "4433247": [
     "Jonathan Kuminga",
-    0.086,
+    0.09,
     940,
     false,
     "draftkings"
@@ -5272,6 +5265,13 @@
     1100,
     false,
     "bet365"
+   ],
+   "5279133": [
+    "Joan Beringer",
+    0.093,
+    null,
+    false,
+    null
    ]
   },
   "tip_home": 0.546
@@ -5397,9 +5397,9 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.119,
+    0.111,
     850,
-    true,
+    false,
     "bet365"
    ],
    "4066457": [
@@ -5411,7 +5411,7 @@
    ],
    "4395630": [
     "Devin Vassell",
-    0.096,
+    0.093,
     760,
     false,
     "draftkings"
@@ -5419,6 +5419,13 @@
    "4433136": [
     "Walker Kessler",
     0.068,
+    950,
+    false,
+    "fanduel"
+   ],
+   "4592479": [
+    "Julian Champagnie",
+    0.102,
     950,
     false,
     "fanduel"
@@ -5437,16 +5444,9 @@
     false,
     "fanduel"
    ],
-   "5037871": [
-    "Dylan Harper",
-    0.083,
-    680,
-    false,
-    "draftkings"
-   ],
    "5104157": [
     "Victor Wembanyama",
-    0.138,
+    0.131,
     386,
     false,
     "draftkings"
@@ -24907,7 +24907,7 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.132,
+    0.123,
     null,
     false,
     null
@@ -24921,7 +24921,7 @@
    ],
    "4395630": [
     "Devin Vassell",
-    0.107,
+    0.103,
     null,
     false,
     null
@@ -24929,6 +24929,13 @@
    "4397424": [
     "Neemias Queta",
     0.055,
+    null,
+    false,
+    null
+   ],
+   "4592479": [
+    "Julian Champagnie",
+    0.113,
     null,
     false,
     null
@@ -24947,16 +24954,9 @@
     false,
     null
    ],
-   "5037871": [
-    "Dylan Harper",
-    0.093,
-    null,
-    false,
-    null
-   ],
    "5104157": [
     "Victor Wembanyama",
-    0.154,
+    0.146,
     null,
     false,
     null
@@ -25605,7 +25605,7 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.095,
+    0.101,
     null,
     false,
     null
@@ -25633,28 +25633,21 @@
    ],
    "4397002": [
     "Ayo Dosunmu",
-    0.109,
+    0.115,
     null,
     false,
     null
    ],
    "4431671": [
     "Jaden McDaniels",
-    0.109,
-    null,
-    false,
-    null
-   ],
-   "4432816": [
-    "LaMelo Ball",
-    0.124,
+    0.116,
     null,
     false,
     null
    ],
    "4433247": [
     "Jonathan Kuminga",
-    0.091,
+    0.096,
     null,
     false,
     null
@@ -25669,6 +25662,13 @@
    "5142620": [
     "Darius Acuff Jr.",
     0.094,
+    null,
+    false,
+    null
+   ],
+   "5279133": [
+    "Joan Beringer",
+    0.1,
     null,
     false,
     null
