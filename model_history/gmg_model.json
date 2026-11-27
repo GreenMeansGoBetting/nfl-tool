@@ -2317,10 +2317,76 @@
   "updated": "2026-11-25T21:57Z",
   "week": 12
  },
+ "2026_12_KC_BUF": {
+  "away": "KC",
+  "away_pts": 25.0,
+  "date": "2026-11-26",
+  "final": [
+   10,
+   13
+  ],
+  "frozen": true,
+  "home": "BUF",
+  "home_pts": 26.4,
+  "parts": {
+   "away": {
+    "m": {
+     "epa": 0.878,
+     "explosive": 1.562,
+     "passing": 0.403,
+     "penalties": 2.38,
+     "redzone": 0.574,
+     "rushing": 1.64,
+     "sacks": 1.847,
+     "scheme": 0.98,
+     "third": -0.869,
+     "trenches": -0.27,
+     "turnovers": 0.422
+    },
+    "r": 3.78,
+    "s": 0.878,
+    "t": 1.0
+   },
+   "home": {
+    "m": {
+     "epa": 0.613,
+     "explosive": 1.329,
+     "passing": 0.404,
+     "penalties": 0.118,
+     "redzone": 0.604,
+     "rushing": 1.137,
+     "sacks": 1.336,
+     "scheme": -0.26,
+     "third": 0.408,
+     "trenches": 1.49,
+     "turnovers": -0.958
+    },
+    "r": 2.56,
+    "s": 2.504,
+    "t": 1.0
+   },
+   "league": 23.116
+  },
+  "qb_out": [],
+  "spread": -3.5,
+  "spread_edge": 2.1,
+  "spread_pick": "away",
+  "spread_result": "win",
+  "total": 45.5,
+  "total_edge": 5.9,
+  "total_pick": "over",
+  "total_result": "loss",
+  "updated": "2026-11-26T21:47Z",
+  "week": 12
+ },
  "2026_12_PHI_DAL": {
   "away": "PHI",
   "away_pts": 17.6,
   "date": "2026-11-26",
+  "final": [
+   39,
+   38
+  ],
   "frozen": true,
   "home": "DAL",
   "home_pts": 29.3,
@@ -2369,9 +2435,11 @@
   "spread": -8.5,
   "spread_edge": 3.2,
   "spread_pick": "home",
+  "spread_result": "loss",
   "total": 47.5,
   "total_edge": 0.6,
   "total_pick": "under",
+  "total_result": "loss",
   "updated": "2026-11-26T08:37Z",
   "week": 12
  }

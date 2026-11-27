@@ -14253,7 +14253,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2274,
+    "lead": 0.2275,
     "name": "Luka Doncic",
     "proj": 49.6,
     "team": "LAL"
@@ -14288,7 +14288,7 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0401,
+    "lead": 0.0402,
     "name": "Karl-Anthony Towns",
     "proj": 38.3,
     "team": "NY"
@@ -14309,7 +14309,7 @@
    },
    {
     "id": "4433134",
-    "lead": 0.0316,
+    "lead": 0.0317,
     "name": "Scottie Barnes",
     "proj": 37.3,
     "team": "TOR"
@@ -14325,7 +14325,7 @@
     "id": "3936299",
     "lead": 0.0234,
     "name": "Jamal Murray",
-    "proj": 36.6,
+    "proj": 36.5,
     "team": "DEN"
    },
    {
@@ -14351,9 +14351,9 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0107,
+    "lead": 0.0106,
     "name": "Pascal Siakam",
-    "proj": 33.8,
+    "proj": 33.7,
     "team": "IND"
    },
    {
