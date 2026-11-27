@@ -5397,9 +5397,9 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.111,
+    0.119,
     850,
-    false,
+    true,
     "bet365"
    ],
    "4066457": [
@@ -5411,7 +5411,7 @@
    ],
    "4395630": [
     "Devin Vassell",
-    0.093,
+    0.096,
     760,
     false,
     "draftkings"
@@ -5419,13 +5419,6 @@
    "4433136": [
     "Walker Kessler",
     0.068,
-    950,
-    false,
-    "fanduel"
-   ],
-   "4592479": [
-    "Julian Champagnie",
-    0.102,
     950,
     false,
     "fanduel"
@@ -5444,9 +5437,16 @@
     false,
     "fanduel"
    ],
+   "5037871": [
+    "Dylan Harper",
+    0.083,
+    680,
+    false,
+    "draftkings"
+   ],
    "5104157": [
     "Victor Wembanyama",
-    0.131,
+    0.138,
     386,
     false,
     "draftkings"
@@ -24907,7 +24907,7 @@
    ],
    "4066259": [
     "De'Aaron Fox",
-    0.123,
+    0.132,
     null,
     false,
     null
@@ -24921,7 +24921,7 @@
    ],
    "4395630": [
     "Devin Vassell",
-    0.103,
+    0.107,
     null,
     false,
     null
@@ -24929,13 +24929,6 @@
    "4397424": [
     "Neemias Queta",
     0.055,
-    null,
-    false,
-    null
-   ],
-   "4592479": [
-    "Julian Champagnie",
-    0.113,
     null,
     false,
     null
@@ -24954,9 +24947,16 @@
     false,
     null
    ],
+   "5037871": [
+    "Dylan Harper",
+    0.093,
+    null,
+    false,
+    null
+   ],
    "5104157": [
     "Victor Wembanyama",
-    0.146,
+    0.154,
     null,
     false,
     null
