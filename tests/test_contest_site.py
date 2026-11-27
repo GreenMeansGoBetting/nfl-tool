@@ -183,6 +183,35 @@ class Page(unittest.TestCase):
         self.assertIn("void", tiles.nth(1).get_attribute("class"))
         page.close()
 
+    def test_morning_tds_without_snap_counts_judge_nobody_out(self):
+        # Thanksgiving 2026: nflverse posted TDs (3:37 AM build) hours before snap counts, and every
+        # non-scorer read "didn't play". No snaps for the team that week = wait, a TD still counts.
+        a = {"name": "Achane Fan", "updated": 1, "picks": {"2026_11_MIA_BUF": "MIA|De'Von Achane", "2026_11_CIN_WAS": "CIN|Ja'Marr Chase"}}
+        b = {"name": "Cook Fan", "updated": 2, "picks": {"2026_11_MIA_BUF": "BUF|James Cook", "2026_11_CIN_WAS": "WAS|Terry McLaurin"}}
+        tds = {"11": {"MIA": {"any_td": ["De'Von Achane"]}, "BUF": {"any_td": ["Josh Allen"]}, "WAS": {"any_td": ["Jayden Daniels"]}}}
+        data = {**DATA, "player_snaps": {}, "player_td_results": tds}
+        page, _ = open_page({"contest": {**CONTEST, "lock_at": EARLIER}, "locked": True, "entries": [b, a], "marks": {}}, owner=True, data=data)
+        self.assertEqual(page.locator(".ct-diff").count(), 0)
+        page.locator("[data-tab=track]").click()
+        res = {r.locator(".nm").inner_text(): r.locator(".ct-res").get_attribute("class") for r in page.locator(".ct-trow").all()}
+        self.assertIn("hit", res["De'Von Achane"])
+        for name in ("James Cook", "Ja'Marr Chase", "Terry McLaurin"):
+            self.assertIn("pending", res[name], name)
+        page.close()
+
+    def test_owner_resets_every_hand_result(self):
+        marks = {"2026_11_CIN_WAS": {"CIN|Ja'Marr Chase": "void", "WAS|Terry McLaurin": "void"}}
+        entries = [{"name": "A", "updated": 1, "picks": {"2026_11_MIA_BUF": "MIA|De'Von Achane", "2026_11_CIN_WAS": "WAS|Terry McLaurin"}}]
+        page, posts = open_page({"contest": {**CONTEST, "lock_at": EARLIER}, "locked": True, "entries": entries, "marks": marks}, owner=True)
+        page.on("dialog", lambda d: d.accept())
+        page.locator("[data-act=unmark]").click()
+        page.wait_for_function("() => !document.querySelector('[data-act=unmark]')")
+        self.assertEqual(posts[-1], {"action": "unmark"})
+        page.close()
+        member, _ = open_page({"contest": {**CONTEST, "lock_at": EARLIER}, "locked": True, "entries": entries, "marks": {}})
+        self.assertEqual(member.locator("[data-act=unmark]").count(), 0)
+        member.close()
+
     def test_live_feed_grades_before_the_morning_and_tracking_lists_every_pick(self):
         # Sunday afternoon: data.json has nothing for MIA @ BUF yet (no snaps, no TDs).
         a = {"name": "Achane Fan", "updated": 1, "picks": {"2026_11_MIA_BUF": "MIA|De'Von Achane", "2026_11_CIN_WAS": "CIN|Ja'Marr Chase"}}

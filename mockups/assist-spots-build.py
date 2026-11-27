@@ -43,6 +43,20 @@ opp_rate = opp_att.div(dposs, axis=0) * 100
 lg_rate = opp_att.sum() / dposs.sum() * 100
 pace = PO.groupby('off').size() / PO.groupby('off').game_id.nunique()
 ast_allowed = made.groupby('opp').apply(lambda x: x.assist.notna().mean())
+# mockup 3: positions, team three-point volume, defenses by the shooter's position
+POS = json.load(open('nfl_tool/nba/positions.json'))
+pos_of = lambda pid: POS.get(str(int(pid)), '?')
+asts['pos'] = asts.player.map(pos_of)
+dgames = PO.groupby('def').game_id.nunique()
+def_pos = asts.groupby(['opp', 'pos']).size().unstack(fill_value=0).div(dgames, axis=0)
+t3_share = sh.groupby('team').three.mean()                      # share of his team's shots that are threes
+t3_ast = made[made.three].groupby('team').apply(lambda x: x.assist.notna().mean())  # made threes off a pass
+o3_share = sh.groupby('opp').three.mean()                       # share of shots a defense allows that are threes
+# mockup 4: chances = pace x baskets the defense allows; league numbers for every factor
+mk100 = made.groupby('opp').size() / dposs * 100
+mk100_off = made.groupby('team').size() / PO.groupby('off').size() * 100
+LG = dict(pace=round(float(pace.mean()), 2), mk100=round(float(len(made) / dposs.sum() * 100), 2),
+          dpos={k: round(float(v), 2) for k, v in def_pos.mean().items()})
 
 
 def rank(series, key, high_good=True):
@@ -60,6 +74,10 @@ def opp_of(g, team):
     return abbr.get(int(t[0]), '?') if t else '?'
 
 
+_lh = json.load(open('model_history/nba_lines/2027.json'))
+LINES_THEN = {g: {p: v[3] for p, v in e.get('lines', {}).items() if len(v) > 3 and v[3] is not None} for g, e in _lh.items()}
+
+
 def player_games(pid, team):
     rows = []
     mine = made[(made.team == team) & made['with'].apply(lambda w: pid in w) & (made.player != pid)]
@@ -70,7 +88,7 @@ def player_games(pid, team):
         tsh = allmine[allmine.game_id == g]
         k3 = tsh[tsh.fam == 'k3']
         other = mk[mk.assist.notna() & (mk.assist != pid)].assist.astype(int).value_counts()
-        rows.append(dict(gid=int(g), date=date[g][5:10], opp=opp_of(g, team),
+        rows.append(dict(gid=int(g), date=date[g][5:10], day=date[g][:10], home=r.home_away == 'home', then=LINES_THEN.get(str(int(g)), {}).get(str(pid)), opp=opp_of(g, team),
                          min=int(r.minutes or 0), ast=int(r.assists or 0), ch=len(mk), mine=int((mk.assist == pid).sum()),
                          k3m=int(k3.made.sum()), k3a=len(k3),
                          selfc=float(tsh.kind2.isin(['pullup', 'stepback', 'fade']).mean()) if len(tsh) else 0.0,
@@ -152,6 +170,37 @@ for away, home in slate:
                 if best_t is None or abs(s_on - s_off) > abs(best_t['on'] - best_t['off']):
                     best_t = dict(name=name[t2], on=round(float(s_on), 3), off=round(float(s_off), 3), n_on=len(a_on), n_off=len(a_off),
                                   status=status_of(team_ab, name[t2]))
+            # who he assists and how: top 4 teammates by assists, everyone else folded
+            grid = []
+            byrec = pa.groupby('player').fam.value_counts().unstack(fill_value=0).reindex(columns=FAMS, fill_value=0)
+            byrec = byrec.loc[byrec.sum(axis=1).sort_values(ascending=False).index]
+            for k, v in byrec.head(4).iterrows():
+                ps_ = pos_of(k)
+                grid.append(dict(name=name.get(int(k), '?'), pos=ps_, status=status_of(team_ab, name.get(int(k), '')),
+                                 c={f: int(v[f]) for f in FAMS},
+                                 dpos=rank(def_pos[ps_], opp) if ps_ in def_pos.columns else None,
+                                 dpos_n=round(float(def_pos.loc[opp, ps_]), 1) if ps_ in def_pos.columns else None))
+            rest = byrec.iloc[4:].sum()
+            grid.append(dict(name='Everyone Else', pos=None, status=None, c={f: int(rest.get(f, 0)) for f in FAMS}, dpos=None))
+            # every teammate's on / off split of his share (25+ teammate makes each way)
+            lineup = []
+            tg = bx[bx.team_id == team].drop_duplicates('game_id').sort_values('game_date').game_id.tail(3).tolist()
+            for t2 in agg[agg.team == team].index:
+                if t2 == pid or agg.loc[t2, 'mn'] < 12:
+                    continue
+                withm = mineon['with'].apply(lambda w: t2 in w)
+                a_on, a_off = mineon[withm], mineon[~withm]
+                if len(a_on) < 25 or len(a_off) < 25:
+                    continue
+                lineup.append(dict(name=name[t2], on=round(float((a_on.assist == pid).mean()), 3), off=round(float((a_off.assist == pid).mean()), 3),
+                                   n_on=len(a_on), n_off=len(a_off), status=status_of(team_ab, name[t2]),
+                                   recent=int(bx[(bx.athlete_id == t2) & bx.game_id.isin(tg)].game_id.nunique())))
+            lineup.sort(key=lambda r: -abs(r['on'] - r['off']))
+            vol = dict(t3=round(float(t3_share[team]), 3), t3_rank=rank(t3_share, team), t3_lg=round(float(sh.three.mean()), 3),
+                       t3a=round(float(t3_ast[team]), 3), t3a_rank=rank(t3_ast, team), t3a_lg=round(float(made[made.three].assist.notna().mean()), 3),
+                       o3=round(float(o3_share[opp]), 3), o3_rank=rank(o3_share, opp),
+                       pace_own=round(float(pace[team]), 2), mk100=round(float(mk100[opp]), 2), mk100_rank=rank(mk100, opp),
+                       mk_off=round(float(mk100_off[team]), 2), mk_off_rank=rank(mk100_off, team), pace_own_rank=rank(pace, team))
             ln = lines.get(nm)
             for x in games:
                 tags = []
@@ -179,7 +228,7 @@ for away, home in slate:
             if pr is None:
                 mins = bx[bx.athlete_id == pid].minutes.sum()
                 pr = pd.Series(dict(ch36=len(mineon) / mins * 36 if mins else 0))
-            players.append(dict(
+            players.append(dict(pid=int(pid), pos=pos_of(pid),
                 name=nm, team=team_ab, opp=opp_ab, home=team_ab == home,
                 line=ln[0] if ln else None, over=ln[1] if ln else None, under=ln[2] if ln else None,
                 avg=round(float(a.mean()), 1), l5=round(float(a[-5:].mean()), 1), lo=int(a.min()), hi=int(a.max()),
@@ -192,9 +241,11 @@ for away, home in slate:
                 mix={f: round(float(mix[f]), 3) for f in FAMS}, n_ast=len(pa), recipe=recipe,
                 defidx={f: round(float(didx[f]), 3) for f in FAMS}, defrank={f: rank(opp_rate[f], opp) for f in FAMS},
                 fit=round(fit, 3) if fit is not None else None, fit_rank=fit_rank,
-                receivers=receivers, effect=best_t, bounce=bounce, status=status_of(team_ab, nm)))
+                receivers=receivers, effect=best_t, bounce=bounce, status=status_of(team_ab, nm),
+                grid=grid, lineup=lineup[:6], vol=vol))
 # rank self-created share among the slate's players' teammates later in JS
-res = dict(date='2026-11-05', games=[f'{a} @ {h}' for a, h in slate],
+tdays = {abbr[int(t)]: sorted({(date[int(g)][:10], opp_of(int(g), int(t))) for g in gs}) for t, gs in bx.groupby('team_id').game_id.unique().items() if int(t) in abbr}
+res = dict(tdays=tdays, date='2026-11-05', games=[f'{a} @ {h}' for a, h in slate], lg=LG,
            league_mix={f: round(float(league_mix[f]), 3) for f in FAMS}, players=players)
 json.dump(res, open(out, 'w'), indent=1, default=lambda o: o.item() if hasattr(o, 'item') else str(o))
 for p in players:
