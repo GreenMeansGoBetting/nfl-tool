@@ -7316,8 +7316,8 @@
     "over",
     true,
     1.5,
-    120,
-    "draftkings"
+    109,
+    "prophetx"
    ],
    [
     "3064482",
@@ -7340,7 +7340,7 @@
     "over",
     false,
     1.5,
-    -135,
+    -139,
     "prophetx"
    ],
    [
@@ -7364,8 +7364,8 @@
     "over",
     true,
     2.5,
-    -151,
-    "draftkings"
+    -158,
+    "pinnacle"
    ],
    [
     "4066261",
@@ -7479,8 +7479,8 @@
     "over",
     true,
     1.5,
-    -166,
-    "draftkings"
+    -162,
+    "4cx"
    ],
    [
     "4395725",
@@ -7503,7 +7503,7 @@
     "under",
     true,
     0.5,
-    -114,
+    -106,
     "prophetx"
    ],
    [
@@ -7532,8 +7532,8 @@
     "over",
     true,
     7.5,
-    -109,
-    "caesars"
+    100,
+    "prophetx"
    ]
   ],
   "threes": [
@@ -7546,7 +7546,7 @@
     "over",
     true,
     1.5,
-    147,
+    144,
     "prophetx"
    ],
    [
@@ -7570,7 +7570,7 @@
     "under",
     false,
     1.5,
-    -136,
+    -138,
     "fanduel"
    ],
    [
@@ -7582,7 +7582,7 @@
     "over",
     false,
     1.5,
-    -129,
+    -133,
     "prophetx"
    ],
    [
@@ -7606,8 +7606,8 @@
     "over",
     true,
     1.5,
-    -128,
-    "draftkings"
+    -125,
+    "fanatics"
    ]
   ]
  },
@@ -7726,8 +7726,8 @@
     "under",
     false,
     12.5,
-    -107,
-    "prophetx"
+    -108,
+    "pinnacle"
    ],
    [
     "4066354",
@@ -7738,7 +7738,7 @@
     "under",
     false,
     12.5,
-    -103,
+    -102,
     "prophetx"
    ],
    [
@@ -7762,8 +7762,8 @@
     "under",
     false,
     12.5,
-    -121,
-    "caesars"
+    -116,
+    "prophetx"
    ],
    [
     "4397424",
@@ -7860,7 +7860,7 @@
     "over",
     true,
     1.5,
-    -132,
+    -140,
     "draftkings"
    ],
    [
@@ -7871,9 +7871,9 @@
     -0.1515,
     "under",
     true,
-    0.5,
-    160,
-    "fliff"
+    1.5,
+    -217,
+    "draftkings"
    ],
    [
     "4701230",
@@ -7925,7 +7925,7 @@
     "under",
     false,
     22.5,
-    -115,
+    -120,
     "betmgm"
    ],
    [
@@ -7973,8 +7973,8 @@
     "under",
     false,
     10.5,
-    -105,
-    "betmgm"
+    -121,
+    "draftkings"
    ]
   ],
   "threes": [
@@ -7987,8 +7987,8 @@
     "under",
     true,
     2.5,
-    -175,
-    "betmgm"
+    -178,
+    "prophetx"
    ],
    [
     "4431671",
@@ -8035,8 +8035,8 @@
     "under",
     true,
     1.5,
-    101,
-    "draftkings"
+    105,
+    "betmgm"
    ]
   ]
  },
@@ -8064,7 +8064,7 @@
     "under",
     false,
     9.5,
-    -101,
+    -102,
     "prophetx"
    ],
    [
@@ -8095,7 +8095,7 @@
     false,
     9.5,
     -102,
-    "fanduel"
+    "prophetx"
    ],
    [
     "4395723",
@@ -8118,7 +8118,7 @@
     "under",
     false,
     11.5,
-    -112,
+    -102,
     "fanduel"
    ],
    [
@@ -8130,8 +8130,8 @@
     "under",
     false,
     5.5,
-    102,
-    "pinnacle"
+    104,
+    "fanduel"
    ]
   ],
   "threes": [
@@ -8144,7 +8144,7 @@
     "over",
     true,
     1.5,
-    166,
+    171,
     "draftkings"
    ],
    [
@@ -8223,8 +8223,8 @@
     "under",
     true,
     0.5,
-    -370,
-    "fliff"
+    -372,
+    "draftkings"
    ],
    [
     "4431767",
@@ -8301,7 +8301,7 @@
     false,
     14.5,
     -114,
-    "fanduel"
+    "prophetx"
    ],
    [
     "4277813",
@@ -8360,8 +8360,8 @@
     "over",
     false,
     9.5,
-    -116,
-    "4cx"
+    -118,
+    "draftkings"
    ],
    [
     "5061589",
@@ -8372,7 +8372,7 @@
     "over",
     true,
     6.5,
-    103,
+    101,
     "prophetx"
    ],
    [
@@ -8434,7 +8434,7 @@
     "over",
     false,
     2.5,
-    -103,
+    -102,
     "prophetx"
    ],
    [
@@ -8486,9 +8486,9 @@
     -0.078,
     "under",
     false,
-    15.5,
-    -103,
-    "caesars"
+    16.5,
+    -124,
+    "prophetx"
    ],
    [
     "5105565",

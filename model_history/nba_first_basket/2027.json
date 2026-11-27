@@ -4774,7 +4774,7 @@
    ],
    "3062679": [
     "Josh Hart",
-    0.061,
+    0.062,
     1550,
     false,
     "bet365"
@@ -4793,19 +4793,19 @@
     false,
     "draftkings"
    ],
+   "3914044": [
+    "Landry Shamet",
+    0.1,
+    1000,
+    false,
+    "fanduel"
+   ],
    "3934672": [
     "Jalen Brunson",
     0.116,
     650,
     false,
     "bet365"
-   ],
-   "3934719": [
-    "OG Anunoby",
-    0.1,
-    null,
-    false,
-    null
    ],
    "4066261": [
     "Bam Adebayo",
@@ -25249,7 +25249,7 @@
   "players": {
    "3062679": [
     "Josh Hart",
-    0.067,
+    0.068,
     null,
     false,
     null
@@ -25268,16 +25268,16 @@
     false,
     null
    ],
-   "3934672": [
-    "Jalen Brunson",
-    0.129,
+   "3914044": [
+    "Landry Shamet",
+    0.11,
     null,
     false,
     null
    ],
-   "3934719": [
-    "OG Anunoby",
-    0.111,
+   "3934672": [
+    "Jalen Brunson",
+    0.128,
     null,
     false,
     null
