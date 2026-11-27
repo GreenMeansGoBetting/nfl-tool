@@ -14253,7 +14253,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2275,
+    "lead": 0.2276,
     "name": "Luka Doncic",
     "proj": 49.6,
     "team": "LAL"
@@ -14302,21 +14302,21 @@
    },
    {
     "id": "3934672",
-    "lead": 0.034,
+    "lead": 0.0341,
     "name": "Jalen Brunson",
     "proj": 38.1,
     "team": "NY"
    },
    {
     "id": "4433134",
-    "lead": 0.0317,
+    "lead": 0.0311,
     "name": "Scottie Barnes",
-    "proj": 37.3,
+    "proj": 37.2,
     "team": "TOR"
    },
    {
     "id": "3059318",
-    "lead": 0.0268,
+    "lead": 0.0269,
     "name": "Joel Embiid",
     "proj": 36.6,
     "team": "PHI"
@@ -14330,7 +14330,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.02,
+    "lead": 0.0201,
     "name": "Cooper Flagg",
     "proj": 35.9,
     "team": "DAL"
@@ -14351,7 +14351,7 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0106,
+    "lead": 0.0107,
     "name": "Pascal Siakam",
     "proj": 33.7,
     "team": "IND"
