@@ -14253,7 +14253,7 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2349,
+    "lead": 0.2345,
     "name": "Luka Doncic",
     "proj": 49.6,
     "team": "LAL"
@@ -14267,28 +14267,28 @@
    },
    {
     "id": "3112335",
-    "lead": 0.1242,
+    "lead": 0.124,
     "name": "Nikola Jokic",
     "proj": 44.6,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.1116,
+    "lead": 0.1115,
     "name": "Giannis Antetokounmpo",
     "proj": 44.3,
     "team": "MIA"
    },
    {
     "id": "4065648",
-    "lead": 0.0799,
+    "lead": 0.0797,
     "name": "Jayson Tatum",
     "proj": 42.1,
     "team": "BOS"
    },
    {
     "id": "3136195",
-    "lead": 0.0366,
+    "lead": 0.0365,
     "name": "Karl-Anthony Towns",
     "proj": 38.3,
     "team": "NY"
@@ -14316,14 +14316,14 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0275,
+    "lead": 0.0286,
     "name": "Jamal Murray",
-    "proj": 36.6,
+    "proj": 36.7,
     "team": "DEN"
    },
    {
     "id": "3059318",
-    "lead": 0.023,
+    "lead": 0.0229,
     "name": "Joel Embiid",
     "proj": 36.5,
     "team": "PHI"
@@ -14358,7 +14358,7 @@
    },
    {
     "id": "3136193",
-    "lead": 0.007,
+    "lead": 0.0069,
     "name": "Devin Booker",
     "proj": 32.3,
     "team": "PHX"
@@ -14379,9 +14379,9 @@
    },
    {
     "id": "4433627",
-    "lead": 0.0046,
+    "lead": 0.0047,
     "name": "Keyonte George",
-    "proj": 30.8,
+    "proj": 30.9,
     "team": "UTAH"
    },
    {
@@ -14400,7 +14400,7 @@
    },
    {
     "id": "6442",
-    "lead": 0.0043,
+    "lead": 0.0042,
     "name": "Kyrie Irving",
     "proj": 30.3,
     "team": "DAL"
