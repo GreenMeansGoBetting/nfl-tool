@@ -246,21 +246,8 @@
   }
   function officialPlayed(c, p) {
     const wk = String(c.week);
-<<<<<<< Updated upstream
     const me = normName(p.name);
     return Object.entries((DATA.player_snaps || {})[p.team] || {}).some(([n, s]) => normName(n) === me && s && s.w && s.w[wk] > 0);
-=======
-    const snaps = (DATA.player_snaps || {})[p.team] || {};
-    const scored = ((((DATA.player_td_results || {})[wk] || (DATA.player_td_results || {})[c.week] || {})[p.team]) || {}).any_td || [];
-    const me = normName(p.name);
-    if (scored.some((n) => normName(n) === me)) return "hit";
-    // A miss / didn't-play needs the team's snap counts for the week: nflverse posts TDs (pbp) hours
-    // before snap counts (Thanksgiving 2026: TDs by 3:37 AM, snaps at 7:01 AM), and judging on TDs
-    // alone called every non-scorer "didn't play".
-    if (!Object.values(snaps).some((s) => s && s.w && s.w[wk] != null)) return "pending";
-    const played = Object.entries(snaps).some(([n, s]) => normName(n) === me && s && s.w && s.w[wk] > 0);
-    return played ? "miss" : "void";
->>>>>>> Stashed changes
   }
   function officialRes(c, team) {
     const wk = String(c.week);
@@ -409,12 +396,8 @@
         ${API.contest ? `<button type="button" class="ct-sm" data-act="old">Show Last Contest's Results (Members Still See It)</button>` : ""}</div>`;
     }
     return `<div class="ct-ownerbar"><b>Only You See This.</b> Prices locked ${esc(etLabel(c.priced_at, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))} ET, ${API.entries.length} ${API.entries.length === 1 ? "entry" : "entries"}.
-<<<<<<< Updated upstream
       ${isLocked() ? `<button type="button" class="ct-sm" data-act="new">Start This Week's Contest</button>` : ""}
       ${anyLocked() ? "" : `<button type="button" class="ct-sm" data-act="relock">Re-Lock Prices Now (Keeps Entries)</button><button type="button" class="ct-sm ct-danger" data-act="clear">Re-Lock And Clear All Entries</button>`}</div>`;
-=======
-      ${isLocked() ? (Object.keys(API.marks || {}).length ? `<button type="button" class="ct-sm ct-danger" data-act="unmark">Reset Every Hand Result To Auto</button>` : "") : `<button type="button" class="ct-sm" data-act="relock">Re-Lock Prices Now (Keeps Entries)</button><button type="button" class="ct-sm ct-danger" data-act="clear">Re-Lock And Clear All Entries</button>`}</div>`;
->>>>>>> Stashed changes
   }
 
   function teamBox(s, team, tile, chosen, editable) {
@@ -856,13 +839,6 @@
         if (!r.ok) alert(`Couldn't lock prices (${r.error || "error"}).`);
         else newDraft = null; // the new contest is the saved one now
         return load();
-      }
-      if (what === "unmark") {
-        if (!confirm("Clear every hand result (TD / No TD / Out / Use nflverse / Keep ESPN) and go back to automatic grading?")) return;
-        const r = await post({ action: "unmark" });
-        if (!r.ok) alert(`Couldn't reset (${r.error || "error"}).`);
-        else API.marks = {};
-        return render();
       }
       if (what === "mark") {
         act.disabled = true;

@@ -695,14 +695,6 @@ async function handleContest(request, env, session, json) {
     await env.DB.prepare("DELETE FROM contest_entries WHERE contest = ? AND uid = ?").bind(contest.id, body.uid).run();
     return json({ ok: true });
   }
-  if (action === "unmark") {
-    // The owner's reset: every hand result back to automatic (2026-11-27, after "Use nflverse" on a
-    // morning build that had TDs but no snap counts marked most picks "didn't play").
-    if (!owner) return json({ error: "owner only" }, 403);
-    if (!contest || !locked) return json({ error: "not locked" }, 409);
-    await contestSave(env, contest.id, "marks", {});
-    return json({ ok: true, marks: {} });
-  }
   if (action === "mark") {
     // The owner's hand result for one picked player (Tracking tab): hit / miss / void, null = back to automatic.
     if (!owner) return json({ error: "owner only" }, 403);
