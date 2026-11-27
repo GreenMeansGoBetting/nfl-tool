@@ -68,6 +68,11 @@ price, a miss loses $10, a player with no snaps that week gets the $10 back.
 - **Tracking tab** (after the lock): every picked player by game, the game clock, how many picked
   him, the result and where it came from (Live / Official / Set By GMG). The owner's TD / No TD /
   Out / Auto buttons save `action: "mark"` (kind `marks`), beating the feed and the morning data.
+  "Reset Every Hand Result To Auto" (owner bar, after a lock, while any exist) = `action: "unmark"`.
+- **The morning data calls a miss / didn't-play only once the team's snap counts for the week are
+  in** (`officialSnapsIn`; a TD counts from the TD list alone). nflverse posts TDs hours before snap
+  counts: Thanksgiving 2026's 3:37 AM ET build called every non-scorer "didn't play", and the
+  owner's Use nflverse clicks saved it.
 - Rank: bankroll, then FEWER correct picks, then the
   longest price that hit, then split (the owner's tie rule).
 - The menu pill (top of the NFL menu, sync.js `SPORT_PAGES.nfl`) shows for every member since 2026-11-21 (owner-only before).

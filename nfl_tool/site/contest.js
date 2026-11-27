@@ -244,6 +244,13 @@
     const scored = ((((DATA.player_td_results || {})[wk] || (DATA.player_td_results || {})[c.week] || {})[team]) || {}).any_td || [];
     return Object.values(snaps).some((s) => s && s.w && s.w[wk] != null) || scored.length > 0;
   }
+  // A miss / didn't-play waits for the team's snap counts that week; a TD counts from the TD list
+  // alone. nflverse posts TDs hours before snap counts (Thanksgiving 2026: TDs in the 3:37 AM ET
+  // build, snaps at 7:01 AM), and judging on TDs alone called every non-scorer "didn't play".
+  function officialSnapsIn(c, team) {
+    const wk = String(c.week);
+    return Object.values((DATA.player_snaps || {})[team] || {}).some((s) => s && s.w && s.w[wk] != null);
+  }
   function officialPlayed(c, p) {
     const wk = String(c.week);
     const me = normName(p.name);
@@ -256,12 +263,14 @@
   function officialAny(c, g, p) {
     if (typeof DATA === "undefined" || !DATA || !officialIn(c, p.team)) return "pending";
     if ((officialRes(c, p.team).any_td || []).some((n) => normName(n) === normName(p.name))) return "hit";
+    if (!officialSnapsIn(c, p.team)) return "pending";
     return officialPlayed(c, p) ? "miss" : "void";
   }
   // data.json keeps a game's first TD under the scorer's team (offense only).
   function officialFirst(c, g, p) {
     if (typeof DATA === "undefined" || !DATA || !(officialIn(c, g.away) || officialIn(c, g.home))) return "pending";
     if ((officialRes(c, p.team).first_td || []).some((n) => normName(n) === normName(p.name))) return "hit";
+    if (!officialSnapsIn(c, p.team)) return "pending";
     return officialPlayed(c, p) ? "miss" : "void";
   }
   const liveGrade = (s, p) => (s.kind === "first" ? liveFirst : liveAny)(s.g, p);
@@ -397,6 +406,7 @@
     }
     return `<div class="ct-ownerbar"><b>Only You See This.</b> Prices locked ${esc(etLabel(c.priced_at, { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))} ET, ${API.entries.length} ${API.entries.length === 1 ? "entry" : "entries"}.
       ${isLocked() ? `<button type="button" class="ct-sm" data-act="new">Start This Week's Contest</button>` : ""}
+      ${anyLocked() && Object.keys(API.marks || {}).length ? `<button type="button" class="ct-sm ct-danger" data-act="unmark">Reset Every Hand Result To Auto</button>` : ""}
       ${anyLocked() ? "" : `<button type="button" class="ct-sm" data-act="relock">Re-Lock Prices Now (Keeps Entries)</button><button type="button" class="ct-sm ct-danger" data-act="clear">Re-Lock And Clear All Entries</button>`}</div>`;
   }
 
@@ -839,6 +849,13 @@
         if (!r.ok) alert(`Couldn't lock prices (${r.error || "error"}).`);
         else newDraft = null; // the new contest is the saved one now
         return load();
+      }
+      if (what === "unmark") {
+        if (!confirm("Clear every hand result (TD / No TD / Out / Use nflverse / Keep ESPN) and go back to automatic grading?")) return;
+        const r = await post({ action: "unmark" });
+        if (!r.ok) alert(`Couldn't reset (${r.error || "error"}).`);
+        else API.marks = {};
+        return render();
       }
       if (what === "mark") {
         act.disabled = true;

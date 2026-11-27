@@ -227,6 +227,14 @@ class Contest(unittest.TestCase):
         api(uid=OWNER, method="POST", body={**mark, "result": None})  # Auto: back to the feed
         self.assertEqual(api(uid="456")["body"]["marks"], {})
 
+    def test_owner_resets_every_hand_result(self):
+        self.locked()
+        for k in ("CIN|Ja'Marr Chase", "WAS|Terry McLaurin"):
+            api(uid=OWNER, method="POST", body={"action": "mark", "g": "2026_11_CIN_WAS", "k": k, "result": "void"})
+        self.assertEqual(api(uid="456", method="POST", body={"action": "unmark"})["status"], 403)
+        self.assertEqual(api(uid=OWNER, method="POST", body={"action": "unmark"})["status"], 200)
+        self.assertEqual(api(uid="456")["body"]["marks"], {})
+
     def test_marks_wait_for_the_lock(self):
         self.open()
         mark = {"action": "mark", "g": "2026_11_CIN_WAS", "k": "CIN|Ja'Marr Chase", "result": "hit"}
