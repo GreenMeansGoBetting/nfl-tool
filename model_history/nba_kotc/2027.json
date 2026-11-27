@@ -14288,7 +14288,7 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0365,
+    "lead": 0.0366,
     "name": "Karl-Anthony Towns",
     "proj": 38.3,
     "team": "NY"
@@ -14351,9 +14351,9 @@
    },
    {
     "id": "4431678",
-    "lead": 0.0117,
+    "lead": 0.0114,
     "name": "Tyrese Maxey",
-    "proj": 34.1,
+    "proj": 34.0,
     "team": "PHI"
    },
    {
@@ -14378,6 +14378,13 @@
     "team": "LAL"
    },
    {
+    "id": "4433627",
+    "lead": 0.0046,
+    "name": "Keyonte George",
+    "proj": 30.8,
+    "team": "UTAH"
+   },
+   {
     "id": "4251",
     "lead": 0.0046,
     "name": "Paul George",
@@ -14385,17 +14392,10 @@
     "team": "BOS"
    },
    {
-    "id": "4433627",
-    "lead": 0.0045,
-    "name": "Keyonte George",
-    "proj": 30.8,
-    "team": "UTAH"
-   },
-   {
     "id": "1966",
-    "lead": 0.0044,
+    "lead": 0.0043,
     "name": "LeBron James",
-    "proj": 31.0,
+    "proj": 30.9,
     "team": "PHI"
    },
    {
@@ -14637,18 +14637,18 @@
     "team": "GS"
    },
    {
-    "id": "4017837",
-    "lead": 0.0,
-    "name": "Ivica Zubac",
-    "proj": 22.3,
-    "team": "IND"
-   },
-   {
     "id": "3995",
     "lead": 0.0,
     "name": "Jrue Holiday",
     "proj": 22.3,
     "team": "POR"
+   },
+   {
+    "id": "4017837",
+    "lead": 0.0,
+    "name": "Ivica Zubac",
+    "proj": 22.2,
+    "team": "IND"
    },
    {
     "id": "4873138",
