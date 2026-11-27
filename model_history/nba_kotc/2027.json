@@ -14253,30 +14253,30 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2354,
+    "lead": 0.2349,
     "name": "Luka Doncic",
     "proj": 49.6,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1388,
+    "lead": 0.1392,
     "name": "Victor Wembanyama",
     "proj": 45.9,
     "team": "SA"
    },
    {
     "id": "3112335",
-    "lead": 0.1226,
+    "lead": 0.1244,
     "name": "Nikola Jokic",
-    "proj": 44.5,
+    "proj": 44.6,
     "team": "DEN"
    },
    {
     "id": "3032977",
-    "lead": 0.1119,
+    "lead": 0.1102,
     "name": "Giannis Antetokounmpo",
-    "proj": 44.3,
+    "proj": 44.2,
     "team": "MIA"
    },
    {
@@ -14288,7 +14288,7 @@
    },
    {
     "id": "3136195",
-    "lead": 0.0365,
+    "lead": 0.0366,
     "name": "Karl-Anthony Towns",
     "proj": 38.3,
     "team": "NY"
@@ -14316,45 +14316,45 @@
    },
    {
     "id": "3936299",
-    "lead": 0.0276,
+    "lead": 0.0275,
     "name": "Jamal Murray",
     "proj": 36.6,
     "team": "DEN"
    },
    {
     "id": "3059318",
-    "lead": 0.0235,
+    "lead": 0.023,
     "name": "Joel Embiid",
-    "proj": 36.6,
+    "proj": 36.5,
     "team": "PHI"
    },
    {
     "id": "5041939",
-    "lead": 0.0213,
+    "lead": 0.0214,
     "name": "Cooper Flagg",
     "proj": 35.9,
     "team": "DAL"
    },
    {
     "id": "4701230",
-    "lead": 0.0133,
+    "lead": 0.0137,
     "name": "Jalen Johnson",
-    "proj": 33.5,
+    "proj": 33.6,
     "team": "ATL"
    },
    {
-    "id": "4431678",
-    "lead": 0.0118,
-    "name": "Tyrese Maxey",
-    "proj": 34.1,
-    "team": "PHI"
-   },
-   {
     "id": "3149673",
-    "lead": 0.0118,
+    "lead": 0.0119,
     "name": "Pascal Siakam",
     "proj": 33.7,
     "team": "IND"
+   },
+   {
+    "id": "4431678",
+    "lead": 0.0117,
+    "name": "Tyrese Maxey",
+    "proj": 34.1,
+    "team": "PHI"
    },
    {
     "id": "3136193",
@@ -14407,7 +14407,7 @@
    },
    {
     "id": "4395628",
-    "lead": 0.0043,
+    "lead": 0.0042,
     "name": "Zion Williamson",
     "proj": 30.3,
     "team": "NO"
@@ -14421,28 +14421,28 @@
    },
    {
     "id": "4396907",
-    "lead": 0.0034,
+    "lead": 0.0035,
     "name": "Darius Garland",
     "proj": 30.2,
     "team": "LAC"
    },
    {
     "id": "5144091",
-    "lead": 0.0032,
+    "lead": 0.0031,
     "name": "Jeremiah Fears",
     "proj": 29.1,
     "team": "NO"
    },
    {
     "id": "4431671",
-    "lead": 0.0031,
+    "lead": 0.003,
     "name": "Jaden McDaniels",
     "proj": 29.7,
     "team": "MIN"
    },
    {
     "id": "4845367",
-    "lead": 0.0029,
+    "lead": 0.0028,
     "name": "Stephon Castle",
     "proj": 30.0,
     "team": "SA"
@@ -14484,9 +14484,9 @@
    },
    {
     "id": "4278039",
-    "lead": 0.001,
+    "lead": 0.0011,
     "name": "Nickeil Alexander-Walker",
-    "proj": 27.1,
+    "proj": 27.2,
     "team": "ATL"
    },
    {
@@ -14535,7 +14535,7 @@
     "id": "5041955",
     "lead": 0.0003,
     "name": "Darryn Peterson",
-    "proj": 25.8,
+    "proj": 25.9,
     "team": "UTAH"
    },
    {
@@ -14584,7 +14584,7 @@
     "id": "4869342",
     "lead": 0.0001,
     "name": "Dyson Daniels",
-    "proj": 23.2,
+    "proj": 23.3,
     "team": "ATL"
    },
    {

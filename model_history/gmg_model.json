@@ -2255,6 +2255,64 @@
   "updated": "2026-11-26T08:37Z",
   "week": 12
  },
+ "2026_12_DEN_PIT": {
+  "away": "DEN",
+  "away_pts": 22.4,
+  "date": "2026-11-27",
+  "frozen": true,
+  "home": "PIT",
+  "home_pts": 17.6,
+  "parts": {
+   "away": {
+    "m": {
+     "epa": 0.141,
+     "explosive": -2.394,
+     "passing": -0.475,
+     "penalties": 0.463,
+     "redzone": -0.777,
+     "rushing": -1.004,
+     "sacks": 0.834,
+     "scheme": -1.217,
+     "third": -2.158,
+     "trenches": 1.0,
+     "turnovers": 2.037
+    },
+    "r": 0.87,
+    "s": -0.379,
+    "t": 1.0
+   },
+   "home": {
+    "m": {
+     "epa": -0.921,
+     "explosive": -1.729,
+     "passing": -2.203,
+     "penalties": -0.095,
+     "redzone": -1.128,
+     "rushing": 1.762,
+     "sacks": -2.655,
+     "scheme": -1.146,
+     "third": -0.384,
+     "trenches": -1.21,
+     "turnovers": 0.028
+    },
+    "r": -0.08,
+    "s": -4.004,
+    "t": 1.0
+   },
+   "league": 23.152
+  },
+  "qb_out": [
+   "PIT"
+  ],
+  "spread": 4.5,
+  "spread_edge": 0.3,
+  "spread_pick": "away",
+  "total": 36.5,
+  "total_edge": 3.6,
+  "total_pick": "over",
+  "updated": "2026-11-27T08:49Z",
+  "week": 12
+ },
  "2026_12_GB_LA": {
   "away": "GB",
   "away_pts": 19.1,
