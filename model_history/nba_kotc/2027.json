@@ -14253,35 +14253,35 @@
   "board": [
    {
     "id": "3945274",
-    "lead": 0.2276,
+    "lead": 0.2279,
     "name": "Luka Doncic",
     "proj": 49.6,
     "team": "LAL"
    },
    {
     "id": "5104157",
-    "lead": 0.1463,
+    "lead": 0.1468,
     "name": "Victor Wembanyama",
     "proj": 45.9,
     "team": "SA"
    },
    {
     "id": "3032977",
-    "lead": 0.1125,
+    "lead": 0.1107,
     "name": "Giannis Antetokounmpo",
-    "proj": 44.3,
+    "proj": 44.2,
     "team": "MIA"
    },
    {
     "id": "3112335",
-    "lead": 0.1092,
+    "lead": 0.1095,
     "name": "Nikola Jokic",
     "proj": 44.5,
     "team": "DEN"
    },
    {
     "id": "4065648",
-    "lead": 0.0805,
+    "lead": 0.0806,
     "name": "Jayson Tatum",
     "proj": 42.0,
     "team": "BOS"
@@ -14302,7 +14302,7 @@
    },
    {
     "id": "3934672",
-    "lead": 0.0341,
+    "lead": 0.0342,
     "name": "Jalen Brunson",
     "proj": 38.1,
     "team": "NY"
@@ -14330,7 +14330,7 @@
    },
    {
     "id": "5041939",
-    "lead": 0.0201,
+    "lead": 0.0204,
     "name": "Cooper Flagg",
     "proj": 35.9,
     "team": "DAL"
@@ -14344,7 +14344,7 @@
    },
    {
     "id": "4701230",
-    "lead": 0.0112,
+    "lead": 0.0113,
     "name": "Jalen Johnson",
     "proj": 33.5,
     "team": "ATL"
@@ -14379,14 +14379,14 @@
    },
    {
     "id": "6442",
-    "lead": 0.0048,
+    "lead": 0.0049,
     "name": "Kyrie Irving",
     "proj": 30.4,
     "team": "DAL"
    },
    {
     "id": "4065733",
-    "lead": 0.0043,
+    "lead": 0.0044,
     "name": "Ty Jerome",
     "proj": 30.9,
     "team": "MEM"
@@ -14463,7 +14463,7 @@
    },
    {
     "id": "5175737",
-    "lead": 0.002,
+    "lead": 0.0021,
     "name": "Yaxel Lendeborg",
     "proj": 27.8,
     "team": "GS"
@@ -14574,6 +14574,13 @@
     "team": "LAC"
    },
    {
+    "id": "4066648",
+    "lead": 0.0003,
+    "name": "Rui Hachimura",
+    "proj": 23.9,
+    "team": "LAC"
+   },
+   {
     "id": "5105565",
     "lead": 0.0003,
     "name": "Donovan Clingan",
@@ -14600,13 +14607,6 @@
     "name": "Trey Murphy III",
     "proj": 23.9,
     "team": "NO"
-   },
-   {
-    "id": "4066648",
-    "lead": 0.0002,
-    "name": "Rui Hachimura",
-    "proj": 23.9,
-    "team": "LAC"
    },
    {
     "id": "3995",
