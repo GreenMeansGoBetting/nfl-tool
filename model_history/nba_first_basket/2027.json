@@ -5393,6 +5393,11 @@
     "fanduel"
    ]
   },
+  "result": {
+   "scorer": "4601023",
+   "team": "PHX",
+   "tip": "PHX"
+  },
   "tip_home": 0.445
  },
  "401909333": {
@@ -24374,7 +24379,7 @@
  "401910046": {
   "away": "ORL",
   "date": "2026-11-28",
-  "first_home": 0.501,
+  "first_home": 0.5,
   "home": "WSH",
   "jumpers": [
    [
@@ -24458,12 +24463,12 @@
     "draftkings"
    ]
   },
-  "tip_home": 0.502
+  "tip_home": 0.501
  },
  "401910047": {
   "away": "BKN",
   "date": "2026-11-28",
-  "first_home": 0.48,
+  "first_home": 0.481,
   "home": "CHA",
   "jumpers": [
    [
@@ -24547,7 +24552,7 @@
     null
    ]
   },
-  "tip_home": 0.441
+  "tip_home": 0.442
  },
  "401910048": {
   "away": "IND",
@@ -24641,7 +24646,7 @@
  "401910049": {
   "away": "OKC",
   "date": "2026-11-28",
-  "first_home": 0.503,
+  "first_home": 0.504,
   "home": "MIL",
   "jumpers": [
    [
@@ -24725,7 +24730,7 @@
     null
    ]
   },
-  "tip_home": 0.51
+  "tip_home": 0.511
  },
  "401910050": {
   "away": "PHI",
@@ -24773,7 +24778,7 @@
    ],
    "3202": [
     "Kevin Durant",
-    0.1,
+    0.101,
     null,
     false,
     null
@@ -24814,7 +24819,7 @@
     null
    ]
   },
-  "tip_home": 0.413
+  "tip_home": 0.414
  },
  "401910051": {
   "away": "LAL",
@@ -24862,7 +24867,7 @@
    ],
    "4433083": [
     "Cam Spencer",
-    0.076,
+    0.075,
     null,
     false,
     null
@@ -24883,7 +24888,7 @@
    ],
    "4600663": [
     "Zach Edey",
-    0.082,
+    0.081,
     null,
     false,
     null
@@ -24903,7 +24908,7 @@
     null
    ]
   },
-  "tip_home": 0.326
+  "tip_home": 0.325
  },
  "401910052": {
   "away": "BOS",
@@ -24992,12 +24997,12 @@
     null
    ]
   },
-  "tip_home": 0.806
+  "tip_home": 0.807
  },
  "401910053": {
   "away": "PHX",
   "date": "2026-11-29",
-  "first_home": 0.548,
+  "first_home": 0.54,
   "home": "UTAH",
   "jumpers": [
    [
@@ -25033,21 +25038,21 @@
    ],
    "4397077": [
     "Jaxson Hayes",
-    0.084,
+    0.083,
     850,
     false,
     "hard_rock"
    ],
    "4432811": [
     "Josh Green",
-    0.08,
+    0.079,
     1385,
     true,
     "fliff"
    ],
    "4433627": [
     "Keyonte George",
-    0.137,
+    0.135,
     750,
     true,
     "bet365"
@@ -25061,27 +25066,27 @@
    ],
    "4601023": [
     "Oso Ighodaro",
-    0.063,
+    0.07,
     1200,
     false,
     "fanduel"
    ],
    "4873138": [
     "Ace Bailey",
-    0.11,
+    0.108,
     700,
     false,
     "hard_rock"
    ],
    "5041955": [
     "Darryn Peterson",
-    0.115,
+    0.113,
     830,
     false,
     "draftkings"
    ]
   },
-  "tip_home": 0.644
+  "tip_home": 0.621
  },
  "401910054": {
   "away": "MIA",
@@ -25259,7 +25264,7 @@
     null
    ]
   },
-  "tip_home": 0.346
+  "tip_home": 0.345
  },
  "401910056": {
   "away": "ATL",
@@ -25492,7 +25497,7 @@
    ],
    "4683678": [
     "Scoot Henderson",
-    0.114,
+    0.113,
     null,
     false,
     null
@@ -25526,7 +25531,7 @@
     null
    ]
   },
-  "tip_home": 0.778
+  "tip_home": 0.777
  },
  "401910059": {
   "away": "LAC",
@@ -25635,7 +25640,7 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.1,
+    0.099,
     null,
     false,
     null
@@ -25704,6 +25709,6 @@
     null
    ]
   },
-  "tip_home": 0.336
+  "tip_home": 0.337
  }
 }
