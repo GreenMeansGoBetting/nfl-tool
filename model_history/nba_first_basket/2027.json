@@ -5576,6 +5576,11 @@
     "fanduel"
    ]
   },
+  "result": {
+   "scorer": "3112335",
+   "team": "DEN",
+   "tip": "UTAH"
+  },
   "tip_home": 0.517
  },
  "401909335": {
@@ -24557,7 +24562,7 @@
  "401910048": {
   "away": "IND",
   "date": "2026-11-28",
-  "first_home": 0.431,
+  "first_home": 0.432,
   "home": "CHI",
   "jumpers": [
    [
@@ -24641,7 +24646,7 @@
     null
    ]
   },
-  "tip_home": 0.293
+  "tip_home": 0.294
  },
  "401910049": {
   "away": "OKC",
@@ -24778,7 +24783,7 @@
    ],
    "3202": [
     "Kevin Durant",
-    0.101,
+    0.1,
     null,
     false,
     null
@@ -24819,7 +24824,7 @@
     null
    ]
   },
-  "tip_home": 0.414
+  "tip_home": 0.413
  },
  "401910051": {
   "away": "LAL",
@@ -25045,14 +25050,14 @@
    ],
    "4432811": [
     "Josh Green",
-    0.079,
+    0.078,
     1385,
     true,
     "fliff"
    ],
    "4433627": [
     "Keyonte George",
-    0.135,
+    0.14,
     750,
     true,
     "bet365"
@@ -25073,20 +25078,20 @@
    ],
    "4873138": [
     "Ace Bailey",
-    0.108,
+    0.106,
     700,
     false,
     "hard_rock"
    ],
    "5041955": [
     "Darryn Peterson",
-    0.113,
+    0.111,
     830,
     false,
     "draftkings"
    ]
   },
-  "tip_home": 0.621
+  "tip_home": 0.622
  },
  "401910054": {
   "away": "MIA",
@@ -25358,7 +25363,7 @@
  "401910057": {
   "away": "DEN",
   "date": "2026-11-29",
-  "first_home": 0.532,
+  "first_home": 0.537,
   "home": "TOR",
   "jumpers": [
    [
@@ -25373,14 +25378,14 @@
   "players": {
    "3064290": [
     "Aaron Gordon",
-    0.082,
+    0.079,
     null,
     false,
     null
    ],
    "3112335": [
     "Nikola Jokic",
-    0.096,
+    0.1,
     null,
     false,
     null
@@ -25394,55 +25399,55 @@
    ],
    "3138196": [
     "Cameron Johnson",
-    0.093,
+    0.09,
     null,
     false,
     null
    ],
    "3936299": [
     "Jamal Murray",
-    0.096,
+    0.094,
     null,
     false,
     null
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.091,
+    0.092,
     null,
     false,
     null
    ],
    "4431767": [
     "Christian Braun",
-    0.083,
+    0.081,
     null,
     false,
     null
    ],
    "4432241": [
     "Jamal Shead",
-    0.099,
+    0.1,
     null,
     false,
     null
    ],
    "4433134": [
     "Scottie Barnes",
-    0.129,
+    0.13,
     null,
     false,
     null
    ],
    "5093267": [
     "Collin Murray-Boyles",
-    0.107,
+    0.108,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.597
+  "tip_home": 0.613
  },
  "401910058": {
   "away": "NO",
@@ -25497,7 +25502,7 @@
    ],
    "4683678": [
     "Scoot Henderson",
-    0.113,
+    0.114,
     null,
     false,
     null
