@@ -5764,6 +5764,11 @@
     "fliff"
    ]
   },
+  "result": {
+   "scorer": "3995",
+   "team": "POR",
+   "tip": "POR"
+  },
   "tip_home": 0.807
  },
  "401909843": {
@@ -24656,7 +24661,7 @@
  "401910049": {
   "away": "OKC",
   "date": "2026-11-28",
-  "first_home": 0.504,
+  "first_home": 0.503,
   "home": "MIL",
   "jumpers": [
    [
@@ -24740,7 +24745,7 @@
     null
    ]
   },
-  "tip_home": 0.511
+  "tip_home": 0.51
  },
  "401910050": {
   "away": "PHI",
@@ -25001,13 +25006,13 @@
    ],
    "5104157": [
     "Victor Wembanyama",
-    0.152,
+    0.153,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.807
+  "tip_home": 0.808
  },
  "401910053": {
   "away": "PHX",
@@ -25457,7 +25462,7 @@
  "401910058": {
   "away": "NO",
   "date": "2026-11-29",
-  "first_home": 0.595,
+  "first_home": 0.598,
   "home": "POR",
   "jumpers": [
    [
@@ -25470,16 +25475,23 @@
    ]
   ],
   "players": {
+   "3995": [
+    "Jrue Holiday",
+    0.128,
+    null,
+    false,
+    null
+   ],
    "4277813": [
     "Herbert Jones",
-    0.071,
+    0.07,
     null,
     false,
     null
    ],
    "4395628": [
     "Zion Williamson",
-    0.088,
+    0.087,
     null,
     false,
     null
@@ -25493,21 +25505,14 @@
    ],
    "4431736": [
     "Toumani Camara",
-    0.094,
+    0.093,
     null,
     false,
     null
    ],
    "4683021": [
     "Deni Avdija",
-    0.16,
-    null,
-    false,
-    null
-   ],
-   "4683678": [
-    "Scoot Henderson",
-    0.114,
+    0.157,
     null,
     false,
     null
@@ -25521,27 +25526,27 @@
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.103,
+    0.099,
     null,
     false,
     null
    ],
    "5105565": [
     "Donovan Clingan",
-    0.1,
+    0.098,
     null,
     false,
     null
    ],
    "5144091": [
     "Jeremiah Fears",
-    0.08,
+    0.079,
     null,
     false,
     null
    ]
   },
-  "tip_home": 0.786
+  "tip_home": 0.796
  },
  "401910059": {
   "away": "LAC",
@@ -25617,7 +25622,7 @@
    ],
    "5175737": [
     "Yaxel Lendeborg",
-    0.078,
+    0.077,
     null,
     false,
     null
@@ -25650,7 +25655,7 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.099,
+    0.1,
     null,
     false,
     null
@@ -25719,7 +25724,7 @@
     null
    ]
   },
-  "tip_home": 0.337
+  "tip_home": 0.336
  },
  "401910061": {
   "away": "WSH",
@@ -25884,7 +25889,7 @@
    ],
    "4684742": [
     "Ausar Thompson",
-    0.089,
+    0.088,
     null,
     false,
     null
@@ -25986,7 +25991,7 @@
     null
    ]
   },
-  "tip_home": 0.444
+  "tip_home": 0.443
  },
  "401910064": {
   "away": "LAL",
@@ -26027,7 +26032,7 @@
    ],
    "3945274": [
     "Luka Doncic",
-    0.171,
+    0.172,
     null,
     false,
     null
@@ -26062,7 +26067,7 @@
    ],
    "4684740": [
     "Amen Thompson",
-    0.085,
+    0.084,
     null,
     false,
     null
@@ -26075,7 +26080,7 @@
     null
    ]
   },
-  "tip_home": 0.31
+  "tip_home": 0.309
  },
  "401910065": {
   "away": "BOS",
@@ -26205,7 +26210,7 @@
    ],
    "4395630": [
     "Devin Vassell",
-    0.104,
+    0.105,
     null,
     false,
     null
@@ -26253,7 +26258,7 @@
     null
    ]
   },
-  "tip_home": 0.221
+  "tip_home": 0.22
  },
  "401910067": {
   "away": "NO",
