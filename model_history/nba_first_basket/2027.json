@@ -5322,16 +5322,23 @@
    ],
    "4278049": [
     "Daniel Gafford",
-    0.094,
+    0.093,
     900,
     false,
     "draftkings"
    ],
    "4278078": [
     "P.J. Washington",
-    0.1,
+    0.101,
     950,
     false,
+    "fanduel"
+   ],
+   "4278594": [
+    "Naji Marshall",
+    0.104,
+    1000,
+    true,
     "fanduel"
    ],
    "4437244": [
@@ -5350,17 +5357,10 @@
    ],
    "5041939": [
     "Cooper Flagg",
-    0.118,
+    0.119,
     750,
     false,
     "fanduel"
-   ],
-   "6442": [
-    "Kyrie Irving",
-    0.105,
-    800,
-    false,
-    "thescore"
    ]
   },
   "tip_home": 0.445
