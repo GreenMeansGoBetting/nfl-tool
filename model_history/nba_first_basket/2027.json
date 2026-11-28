@@ -24770,7 +24770,7 @@
   "players": {
    "2581018": [
     "Kentavious Caldwell-Pope",
-    0.075,
+    0.077,
     1300,
     false,
     "bet365"
@@ -24789,16 +24789,23 @@
     false,
     "fanduel"
    ],
+   "3912848": [
+    "Dean Wade",
+    0.077,
+    1380,
+    true,
+    "draftkings"
+   ],
    "4351851": [
     "Anfernee Simons",
-    0.093,
+    0.096,
     null,
     false,
     null
    ],
    "4431678": [
     "Tyrese Maxey",
-    0.121,
+    0.128,
     750,
     false,
     "bet365"
@@ -24817,13 +24824,6 @@
     false,
     "draftkings"
    ],
-   "4870562": [
-    "Dominick Barlow",
-    0.092,
-    1120,
-    true,
-    "draftkings"
-   ],
    "4871144": [
     "Alperen Sengun",
     0.102,
@@ -24833,7 +24833,7 @@
    ],
    "5124612": [
     "VJ Edgecombe",
-    0.084,
+    0.087,
     810,
     false,
     "draftkings"
@@ -25407,7 +25407,7 @@
    ],
    "3134908": [
     "Jakob Poeltl",
-    0.086,
+    0.087,
     null,
     false,
     null
@@ -25428,7 +25428,7 @@
    ],
    "4395724": [
     "Immanuel Quickley",
-    0.092,
+    0.093,
     null,
     false,
     null
@@ -25440,16 +25440,16 @@
     false,
     null
    ],
-   "4432241": [
-    "Jamal Shead",
-    0.1,
+   "4433134": [
+    "Scottie Barnes",
+    0.13,
     null,
     false,
     null
    ],
-   "4433134": [
-    "Scottie Barnes",
-    0.13,
+   "4684272": [
+    "Ja'Kobe Walter",
+    0.098,
     null,
     false,
     null
