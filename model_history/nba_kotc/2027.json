@@ -14685,14 +14685,14 @@
    },
    {
     "id": "4278073",
-    "lead": 0.2176,
+    "lead": 0.2178,
     "name": "Shai Gilgeous-Alexander",
     "proj": 42.3,
     "team": "OKC"
    },
    {
     "id": "6583",
-    "lead": 0.1734,
+    "lead": 0.1736,
     "name": "Anthony Davis",
     "proj": 40.5,
     "team": "WSH"
@@ -14748,23 +14748,23 @@
    },
    {
     "id": "4871145",
-    "lead": 0.0126,
+    "lead": 0.0127,
     "name": "Josh Giddey",
     "proj": 28.4,
     "team": "CHI"
    },
    {
     "id": "5174563",
-    "lead": 0.0106,
+    "lead": 0.0107,
     "name": "Kyshawn George",
     "proj": 27.6,
     "team": "WSH"
    },
    {
     "id": "4222252",
-    "lead": 0.0102,
+    "lead": 0.0097,
     "name": "Isaiah Hartenstein",
-    "proj": 27.5,
+    "proj": 27.4,
     "team": "OKC"
    },
    {
@@ -14804,9 +14804,9 @@
    },
    {
     "id": "4900671",
-    "lead": 0.004,
+    "lead": 0.0039,
     "name": "Ajay Mitchell",
-    "proj": 24.9,
+    "proj": 24.8,
     "team": "OKC"
    },
    {
@@ -14887,13 +14887,6 @@
     "team": "CHA"
    },
    {
-    "id": "5082206",
-    "lead": 0.0004,
-    "name": "Brayden Burries",
-    "proj": 19.9,
-    "team": "MIL"
-   },
-   {
     "id": "4702382",
     "lead": 0.0003,
     "name": "Tristan da Silva",
@@ -14915,6 +14908,13 @@
     "team": "CHA"
    },
    {
+    "id": "5082206",
+    "lead": 0.0003,
+    "name": "Brayden Burries",
+    "proj": 19.8,
+    "team": "MIL"
+   },
+   {
     "id": "5160992",
     "lead": 0.0003,
     "name": "Alex Sarr",
@@ -14925,7 +14925,7 @@
     "id": "4591725",
     "lead": 0.0003,
     "name": "Ryan Rollins",
-    "proj": 17.2,
+    "proj": 17.1,
     "team": "MIL"
    },
    {
@@ -15002,7 +15002,7 @@
     "id": "5105623",
     "lead": 0.0,
     "name": "Kel'el Ware",
-    "proj": 16.7,
+    "proj": 16.6,
     "team": "MIL"
    },
    {
