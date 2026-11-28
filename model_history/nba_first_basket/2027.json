@@ -24770,7 +24770,7 @@
   "players": {
    "2581018": [
     "Kentavious Caldwell-Pope",
-    0.077,
+    0.076,
     1300,
     false,
     "bet365"
@@ -24789,16 +24789,9 @@
     false,
     "fanduel"
    ],
-   "3912848": [
-    "Dean Wade",
-    0.077,
-    1380,
-    true,
-    "draftkings"
-   ],
    "4351851": [
     "Anfernee Simons",
-    0.096,
+    0.094,
     null,
     false,
     null
@@ -24809,6 +24802,13 @@
     750,
     false,
     "bet365"
+   ],
+   "4432446": [
+    "Jabari Walker",
+    0.078,
+    1000,
+    false,
+    "hard_rock"
    ],
    "4432639": [
     "Jabari Smith Jr.",
