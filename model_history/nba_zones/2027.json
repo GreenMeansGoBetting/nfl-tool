@@ -34743,5 +34743,423 @@
     "fliff"
    ]
   ]
+ },
+ "401910046": {
+  "date": "2026-11-28",
+  "points": [
+   [
+    "4277847",
+    "Wendell Carter Jr.",
+    "ORL",
+    "WSH",
+    0.0758,
+    "over",
+    false,
+    11.5,
+    -105,
+    "caesars"
+   ],
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "ORL",
+    0.096,
+    "over",
+    false,
+    15.5,
+    -106,
+    "fanduel"
+   ],
+   [
+    "4432165",
+    "Jalen Suggs",
+    "ORL",
+    "WSH",
+    -0.0503,
+    "under",
+    false,
+    11.5,
+    -102,
+    "fanduel"
+   ],
+   [
+    "5142718",
+    "AJ Dybantsa",
+    "WSH",
+    "ORL",
+    0.1143,
+    "over",
+    false,
+    17.5,
+    -102,
+    "prophetx"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "ORL",
+    -0.1551,
+    "under",
+    true,
+    9.5,
+    -108,
+    "draftkings"
+   ],
+   [
+    "6583",
+    "Anthony Davis",
+    "WSH",
+    "ORL",
+    0.1327,
+    "over",
+    true,
+    22.5,
+    -122,
+    "draftkings"
+   ]
+  ],
+  "threes": [
+   [
+    "4066320",
+    "Desmond Bane",
+    "ORL",
+    "WSH",
+    -0.0615,
+    "under",
+    false,
+    3.5,
+    -132,
+    "fanduel"
+   ],
+   [
+    "4277905",
+    "Trae Young",
+    "WSH",
+    "ORL",
+    0.1855,
+    "over",
+    true,
+    1.5,
+    -147,
+    "prophetx"
+   ],
+   [
+    "4432165",
+    "Jalen Suggs",
+    "ORL",
+    "WSH",
+    -0.1602,
+    "under",
+    true,
+    1.5,
+    104,
+    "prophetx"
+   ],
+   [
+    "4566434",
+    "Franz Wagner",
+    "ORL",
+    "WSH",
+    -0.0663,
+    "under",
+    false,
+    1.5,
+    -148,
+    "fanduel"
+   ],
+   [
+    "4712849",
+    "Anthony Black",
+    "ORL",
+    "WSH",
+    -0.1376,
+    "under",
+    true,
+    1.5,
+    -120,
+    "fanduel"
+   ],
+   [
+    "5142718",
+    "AJ Dybantsa",
+    "WSH",
+    "ORL",
+    0.1111,
+    "over",
+    false,
+    0.5,
+    -225,
+    "fliff"
+   ],
+   [
+    "5160992",
+    "Alex Sarr",
+    "WSH",
+    "ORL",
+    -0.294,
+    "under",
+    true,
+    1.5,
+    -222,
+    "prophetx"
+   ],
+   [
+    "5174563",
+    "Kyshawn George",
+    "WSH",
+    "ORL",
+    0.1712,
+    "over",
+    true,
+    2.5,
+    122,
+    "prophetx"
+   ],
+   [
+    "6583",
+    "Anthony Davis",
+    "WSH",
+    "ORL",
+    0.0811,
+    "over",
+    false,
+    0.5,
+    -120,
+    "fanatics"
+   ]
+  ]
+ },
+ "401910047": {
+  "date": "2026-11-28",
+  "points": [
+   [
+    "4602025",
+    "Sion James",
+    "CHA",
+    "BKN",
+    0.1565,
+    "over",
+    true,
+    5.5,
+    -108,
+    "fanduel"
+   ]
+  ],
+  "threes": [
+   [
+    "4396971",
+    "Naz Reid",
+    "CHA",
+    "BKN",
+    0.2094,
+    "over",
+    true,
+    2.5,
+    -104,
+    "fanduel"
+   ]
+  ]
+ },
+ "401910048": {
+  "date": "2026-11-28",
+  "points": [
+   [
+    "4278067",
+    "Nic Claxton",
+    "CHI",
+    "IND",
+    -0.1,
+    "under",
+    false,
+    8.5,
+    -104,
+    "draftkings"
+   ],
+   [
+    "4395626",
+    "Tre Jones",
+    "CHI",
+    "IND",
+    -0.0716,
+    "under",
+    false,
+    11.5,
+    -112,
+    "caesars"
+   ]
+  ],
+  "threes": [
+   [
+    "2990984",
+    "Buddy Hield",
+    "CHI",
+    "IND",
+    0.0999,
+    "over",
+    false,
+    2.5,
+    -149,
+    "draftkings"
+   ],
+   [
+    "4397189",
+    "Jalen Smith",
+    "CHI",
+    "IND",
+    0.0704,
+    "over",
+    false,
+    1.5,
+    -166,
+    "prophetx"
+   ],
+   [
+    "4432822",
+    "Isaac Okoro",
+    "CHI",
+    "IND",
+    0.079,
+    "over",
+    false,
+    1.5,
+    135,
+    "prophetx"
+   ],
+   [
+    "4871145",
+    "Josh Giddey",
+    "CHI",
+    "IND",
+    0.0743,
+    "over",
+    false,
+    1.5,
+    119,
+    "prophetx"
+   ]
+  ]
+ },
+ "401910049": {
+  "date": "2026-11-28",
+  "points": [],
+  "threes": [
+   [
+    "2991350",
+    "Alex Caruso",
+    "OKC",
+    "MIL",
+    0.0818,
+    "over",
+    false,
+    1.5,
+    127,
+    "caesars"
+   ],
+   [
+    "3133626",
+    "Kenrich Williams",
+    "OKC",
+    "MIL",
+    0.0967,
+    "over",
+    false,
+    1.5,
+    126,
+    "prophetx"
+   ],
+   [
+    "4278073",
+    "Shai Gilgeous-Alexander",
+    "OKC",
+    "MIL",
+    0.0695,
+    "over",
+    false,
+    1.5,
+    -195,
+    "fliff"
+   ],
+   [
+    "4900671",
+    "Ajay Mitchell",
+    "OKC",
+    "MIL",
+    0.1144,
+    "over",
+    false,
+    1.5,
+    164,
+    "fanduel"
+   ],
+   [
+    "5241364",
+    "Bennett Stirtz",
+    "OKC",
+    "MIL",
+    0.0759,
+    "over",
+    false,
+    1.5,
+    -146,
+    "prophetx"
+   ]
+  ]
+ },
+ "401910050": {
+  "date": "2026-11-28",
+  "points": [
+   [
+    "3202",
+    "Kevin Durant",
+    "HOU",
+    "PHI",
+    -0.1604,
+    "under",
+    true,
+    20.5,
+    -120,
+    "fliff"
+   ],
+   [
+    "4431678",
+    "Tyrese Maxey",
+    "PHI",
+    "HOU",
+    0.0731,
+    "over",
+    false,
+    26.5,
+    -120,
+    "fliff"
+   ]
+  ],
+  "threes": [
+   [
+    "1966",
+    "LeBron James",
+    "PHI",
+    "HOU",
+    -0.1688,
+    "under",
+    true,
+    1.5,
+    -125,
+    "fanatics"
+   ],
+   [
+    "4432639",
+    "Jabari Smith Jr.",
+    "HOU",
+    "PHI",
+    -0.0818,
+    "under",
+    false,
+    1.5,
+    120,
+    "fliff"
+   ]
+  ]
  }
 }
