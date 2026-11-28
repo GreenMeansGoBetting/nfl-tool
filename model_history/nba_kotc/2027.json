@@ -14783,9 +14783,9 @@
    },
    {
     "id": "4395712",
-    "lead": 0.0065,
+    "lead": 0.0063,
     "name": "Andrew Nembhard",
-    "proj": 26.2,
+    "proj": 26.1,
     "team": "IND"
    },
    {
@@ -14804,7 +14804,7 @@
    },
    {
     "id": "4277905",
-    "lead": 0.0045,
+    "lead": 0.0046,
     "name": "Trae Young",
     "proj": 25.3,
     "team": "WSH"
@@ -14915,6 +14915,13 @@
     "team": "BKN"
    },
    {
+    "id": "2991230",
+    "lead": 0.0002,
+    "name": "Fred VanVleet",
+    "proj": 21.8,
+    "team": "HOU"
+   },
+   {
     "id": "4702382",
     "lead": 0.0002,
     "name": "Tristan da Silva",
@@ -14948,13 +14955,6 @@
     "name": "Egor Demin",
     "proj": 15.7,
     "team": "BKN"
-   },
-   {
-    "id": "2991230",
-    "lead": 0.0001,
-    "name": "Fred VanVleet",
-    "proj": 21.8,
-    "team": "HOU"
    },
    {
     "id": "4433192",
