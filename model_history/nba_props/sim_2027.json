@@ -74439,10 +74439,23 @@
     "5160992",
     "o",
     1.5,
-    119,
-    "caesars",
+    128,
+    "prophetx",
     0.5721,
-    0.1155,
+    0.1335,
+    "strong",
+    "proof",
+    true,
+    []
+   ],
+   [
+    "5174563",
+    "o",
+    4.5,
+    125,
+    "caesars",
+    0.5404,
+    0.096,
     "strong",
     "proof",
     true,
@@ -74452,10 +74465,10 @@
     "4712849",
     "o",
     4.5,
-    121,
+    124,
     "prophetx",
     0.5361,
-    0.0836,
+    0.0897,
     "strong",
     "proof",
     true,
@@ -74465,10 +74478,10 @@
     "5142718",
     "u",
     3.5,
-    102,
-    "fanduel",
+    121,
+    "caesars",
     0.5372,
-    0.0422,
+    0.0847,
     "strong",
     "proof",
     true,
@@ -74482,23 +74495,10 @@
     "4712849",
     "o",
     4.5,
-    130,
+    118,
     "fanduel",
     0.5422,
-    0.1074,
-    "strong",
-    "proof",
-    true,
-    []
-   ],
-   [
-    "4702382",
-    "u",
-    3.5,
-    114,
-    "draftkings",
-    0.5145,
-    0.0472,
+    0.0835,
     "strong",
     "proof",
     true,
@@ -74510,10 +74510,10 @@
     "5174563",
     "o",
     2.5,
-    122,
-    "prophetx",
+    124,
+    "draftkings",
     0.5619,
-    0.1114,
+    0.1155,
     "strong",
     "proof",
     true,
@@ -74523,10 +74523,10 @@
     "5160992",
     "o",
     1.5,
-    170,
-    "prophetx",
+    173,
+    "draftkings",
     0.4577,
-    0.0873,
+    0.0914,
     "strong",
     "proof",
     true,
@@ -74553,10 +74553,40 @@
     "4395651",
     "o",
     4.5,
-    121,
-    "caesars",
+    127,
+    "prophetx",
     0.4985,
-    0.046,
+    0.058,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4433249",
+    "u",
+    1.5,
+    141,
+    "prophetx",
+    0.4618,
+    0.0469,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4602025",
+    "o",
+    3.5,
+    121,
+    "prophetx",
+    0.4953,
+    0.0428,
     "strong",
     "close",
     true,
@@ -74568,13 +74598,28 @@
   "date": "2026-11-28",
   "rebounds": [
    [
-    "4433249",
+    "4432194",
     "u",
-    10.5,
-    101,
-    "caesars",
-    0.552,
-    0.0545,
+    7.5,
+    104,
+    "fanduel",
+    0.5806,
+    0.0904,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "5107173",
+    "o",
+    4.5,
+    120,
+    "prophetx",
+    0.5105,
+    0.056,
     "strong",
     "proof",
     true,
@@ -74586,12 +74631,27 @@
     "4396971",
     "o",
     8.5,
-    108,
-    "fanduel",
+    113,
+    "prophetx",
     0.5249,
-    0.0441,
+    0.0554,
     "strong",
-    "close",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4433249",
+    "u",
+    10.5,
+    101,
+    "prophetx",
+    0.552,
+    0.0545,
+    "strong",
+    "proof",
     true,
     [
      "rest_edge"
@@ -74600,13 +74660,58 @@
   ],
   "threes": [
    [
+    "5107173",
+    "o",
+    1.5,
+    171,
+    "draftkings",
+    0.5781,
+    0.2091,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
     "4433287",
     "o",
     3.5,
-    107,
+    108,
     "prophetx",
     0.5413,
-    0.0582,
+    0.0605,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4278104",
+    "o",
+    2.5,
+    -105,
+    "fanatics",
+    0.5631,
+    0.0509,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "3064514",
+    "o",
+    1.5,
+    134,
+    "draftkings",
+    0.4782,
+    0.0508,
     "strong",
     "close",
     true,
@@ -74622,16 +74727,32 @@
     "4711294",
     "u",
     1.5,
-    136,
+    140,
     "draftkings",
     0.5308,
-    0.1071,
+    0.1141,
     "strong",
     "proof",
     true,
     [
      "close_win",
      "rest_edge"
+    ]
+   ],
+   [
+    "3149673",
+    "u",
+    3.5,
+    116,
+    "fanduel",
+    0.5265,
+    0.0635,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "close_win"
     ]
    ],
    [
@@ -74658,42 +74779,42 @@
     "4432822",
     "u",
     2.5,
-    132,
+    136,
     "fanduel",
     0.5025,
-    0.0715,
+    0.0788,
     "strong",
     "proof",
     true,
     [
      "close_win",
      "rest_edge"
+    ]
+   ],
+   [
+    "3149673",
+    "u",
+    6.5,
+    -102,
+    "fanduel",
+    0.5669,
+    0.0619,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "close_win"
     ]
    ],
    [
     "4397189",
     "u",
     7.5,
-    114,
-    "fanduel",
+    116,
+    "pinnacle",
     0.5132,
-    0.0459,
-    "strong",
-    "proof",
-    true,
-    [
-     "close_win",
-     "rest_edge"
-    ]
-   ],
-   [
-    "4871145",
-    "u",
-    7.5,
-    -118,
-    "draftkings",
-    0.5834,
-    0.0421,
+    0.0502,
     "strong",
     "proof",
     true,
@@ -74708,10 +74829,10 @@
     "4432822",
     "o",
     1.5,
-    133,
+    135,
     "prophetx",
     0.5958,
-    0.1666,
+    0.1703,
     "strong",
     "proof",
     true,
@@ -74737,13 +74858,29 @@
     ]
    ],
    [
+    "2990984",
+    "u",
+    2.5,
+    134,
+    "fanduel",
+    0.506,
+    0.0786,
+    "strong",
+    "proof",
+    true,
+    [
+     "close_win",
+     "rest_edge"
+    ]
+   ],
+   [
     "4711294",
     "o",
     2.5,
-    107,
-    "prophetx",
+    105,
+    "4cx",
     0.5578,
-    0.0747,
+    0.07,
     "strong",
     "close",
     true,
@@ -74753,19 +74890,19 @@
     ]
    ],
    [
-    "2990984",
+    "4395712",
     "u",
-    2.5,
-    130,
+    1.5,
+    114,
     "fanduel",
-    0.506,
-    0.0712,
+    0.5242,
+    0.0569,
     "strong",
-    "proof",
+    "close",
     true,
     [
-     "close_win",
-     "rest_edge"
+     "rest_edge",
+     "close_win"
     ]
    ]
   ]
@@ -74776,10 +74913,40 @@
     "3134907",
     "o",
     2.5,
-    116,
-    "fanduel",
+    124,
+    "prophetx",
     0.5498,
-    0.0868,
+    0.1034,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "2991350",
+    "o",
+    2.5,
+    129,
+    "prophetx",
+    0.5201,
+    0.0834,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "4591725",
+    "o",
+    4.5,
+    130,
+    "fanduel",
+    0.4994,
+    0.0646,
     "strong",
     "proof",
     true,
@@ -74801,48 +74968,52 @@
     [
      "rest_edge"
     ]
-   ],
+   ]
+  ],
+  "date": "2026-11-28",
+  "points": [
    [
-    "2991350",
+    "4278073",
     "o",
-    2.5,
-    118,
-    "fanduel",
-    0.5201,
-    0.0614,
+    32.5,
+    114,
+    "pinnacle",
+    0.5141,
+    0.0468,
     "strong",
-    "proof",
+    "close",
     true,
     [
      "rest_edge"
     ]
    ]
   ],
-  "date": "2026-11-28",
-  "threes": [
+  "rebounds": [
    [
-    "2991350",
-    "o",
-    1.5,
-    127,
-    "caesars",
-    0.5473,
-    0.1068,
+    "3134907",
+    "u",
+    4.5,
+    112,
+    "fanduel",
+    0.5122,
+    0.0405,
     "strong",
-    "proof",
+    "close",
     true,
     [
      "rest_edge"
     ]
-   ],
+   ]
+  ],
+  "threes": [
    [
-    "3133626",
+    "4278073",
     "o",
-    1.5,
-    127,
-    "prophetx",
-    0.5456,
-    0.1051,
+    2.5,
+    154,
+    "pinnacle",
+    0.5724,
+    0.1787,
     "strong",
     "proof",
     true,
@@ -74854,10 +75025,40 @@
     "4900671",
     "o",
     1.5,
-    163,
-    "caesars",
+    174,
+    "prophetx",
     0.4714,
-    0.0912,
+    0.1064,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "3133626",
+    "o",
+    1.5,
+    124,
+    "prophetx",
+    0.5456,
+    0.0992,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge"
+    ]
+   ],
+   [
+    "2991350",
+    "o",
+    1.5,
+    122,
+    "caesars",
+    0.5473,
+    0.0968,
     "strong",
     "proof",
     true,
@@ -74869,10 +75070,10 @@
     "5241364",
     "u",
     1.5,
-    118,
-    "fanduel",
+    127,
+    "draftkings",
     0.5326,
-    0.0739,
+    0.0921,
     "strong",
     "proof",
     true,
@@ -74884,10 +75085,10 @@
     "4683778",
     "u",
     2.5,
-    -101,
-    "prophetx",
+    -102,
+    "fanduel",
     0.5509,
-    0.0484,
+    0.0459,
     "strong",
     "proof",
     true,
@@ -74898,7 +75099,303 @@
   ]
  },
  "401910050": {
-  "date": "2026-11-28"
+  "assists": [
+   [
+    "5124612",
+    "o",
+    5.5,
+    119,
+    "caesars",
+    0.5384,
+    0.0818,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4351851",
+    "o",
+    2.5,
+    140,
+    "fanduel",
+    0.4785,
+    0.0618,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "3202",
+    "u",
+    3.5,
+    116,
+    "fanduel",
+    0.5085,
+    0.0455,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ]
+  ],
+  "date": "2026-11-28",
+  "points": [
+   [
+    "4870562",
+    "o",
+    8.5,
+    -102,
+    "caesars",
+    0.6822,
+    0.1772,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4432446",
+    "o",
+    9.5,
+    101,
+    "prophetx",
+    0.5864,
+    0.0889,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4431678",
+    "o",
+    27.5,
+    -103,
+    "prophetx",
+    0.5591,
+    0.0517,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ]
+  ],
+  "rebounds": [
+   [
+    "2990992",
+    "o",
+    2.5,
+    116,
+    "fanduel",
+    0.5644,
+    0.1014,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4870562",
+    "o",
+    4.5,
+    -108,
+    "caesars",
+    0.613,
+    0.0938,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "2581018",
+    "o",
+    3.5,
+    120,
+    "fliff",
+    0.5409,
+    0.0864,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4431678",
+    "u",
+    3.5,
+    100,
+    "fanduel",
+    0.5448,
+    0.0448,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4432446",
+    "o",
+    6.5,
+    113,
+    "prophetx",
+    0.5125,
+    0.043,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4351851",
+    "o",
+    2.5,
+    130,
+    "fanduel",
+    0.4775,
+    0.0427,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ]
+  ],
+  "threes": [
+   [
+    "4684740",
+    "o",
+    0.5,
+    268,
+    "draftkings",
+    0.5336,
+    0.2619,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "2990992",
+    "o",
+    1.5,
+    162,
+    "caesars",
+    0.5406,
+    0.1589,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4871144",
+    "u",
+    0.5,
+    118,
+    "draftkings",
+    0.6024,
+    0.1437,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4431678",
+    "o",
+    2.5,
+    142,
+    "draftkings",
+    0.5171,
+    0.1039,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4433192",
+    "u",
+    0.5,
+    174,
+    "fanduel",
+    0.4434,
+    0.0784,
+    "strong",
+    "proof",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ],
+   [
+    "4432639",
+    "u",
+    1.5,
+    133,
+    "draftkings",
+    0.4885,
+    0.0593,
+    "strong",
+    "close",
+    true,
+    [
+     "rest_edge",
+     "big_win"
+    ]
+   ]
+  ]
  },
  "401910051": {
   "date": "2026-11-29"

@@ -2259,6 +2259,10 @@
   "away": "DEN",
   "away_pts": 22.4,
   "date": "2026-11-27",
+  "final": [
+   5,
+   27
+  ],
   "frozen": true,
   "home": "PIT",
   "home_pts": 17.6,
@@ -2307,9 +2311,11 @@
   "spread": 4.5,
   "spread_edge": 0.3,
   "spread_pick": "away",
+  "spread_result": "loss",
   "total": 36.5,
   "total_edge": 3.6,
   "total_pick": "over",
+  "total_result": "loss",
   "updated": "2026-11-27T08:49Z",
   "week": 12
  },

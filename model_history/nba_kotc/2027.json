@@ -14678,21 +14678,21 @@
   "board": [
    {
     "id": "4566434",
-    "lead": 0.2377,
+    "lead": 0.2381,
     "name": "Franz Wagner",
     "proj": 43.1,
     "team": "ORL"
    },
    {
     "id": "4278073",
-    "lead": 0.2136,
+    "lead": 0.2137,
     "name": "Shai Gilgeous-Alexander",
     "proj": 42.4,
     "team": "OKC"
    },
    {
     "id": "6583",
-    "lead": 0.1636,
+    "lead": 0.1638,
     "name": "Anthony Davis",
     "proj": 40.5,
     "team": "WSH"
@@ -14706,16 +14706,16 @@
    },
    {
     "id": "3149673",
-    "lead": 0.0503,
+    "lead": 0.0505,
     "name": "Pascal Siakam",
     "proj": 33.9,
     "team": "IND"
    },
    {
     "id": "3202",
-    "lead": 0.0354,
+    "lead": 0.0345,
     "name": "Kevin Durant",
-    "proj": 32.1,
+    "proj": 32.0,
     "team": "HOU"
    },
    {
@@ -14748,7 +14748,7 @@
    },
    {
     "id": "5142718",
-    "lead": 0.0138,
+    "lead": 0.0139,
     "name": "AJ Dybantsa",
     "proj": 29.0,
     "team": "WSH"
@@ -14897,7 +14897,7 @@
     "id": "4432848",
     "lead": 0.0005,
     "name": "Jaime Jaquez Jr.",
-    "proj": 22.5,
+    "proj": 22.3,
     "team": "MIL"
    },
    {
@@ -14909,9 +14909,9 @@
    },
    {
     "id": "3134907",
-    "lead": 0.0004,
+    "lead": 0.0005,
     "name": "Kyle Kuzma",
-    "proj": 20.5,
+    "proj": 20.8,
     "team": "MIL"
    },
    {
@@ -15058,7 +15058,7 @@
     "id": "4870562",
     "lead": 0.0,
     "name": "Dominick Barlow",
-    "proj": 15.2,
+    "proj": 15.1,
     "team": "PHI"
    },
    {
@@ -15079,7 +15079,7 @@
     "id": "4351851",
     "lead": 0.0,
     "name": "Anfernee Simons",
-    "proj": 14.2,
+    "proj": 14.1,
     "team": "PHI"
    },
    {
@@ -15873,7 +15873,7 @@
     "id": "4432848",
     "lead": 0.0,
     "name": "Jaime Jaquez Jr.",
-    "proj": 20.6,
+    "proj": 20.4,
     "team": "MIL"
    },
    {
@@ -15919,6 +15919,13 @@
     "team": "LAL"
    },
    {
+    "id": "3134907",
+    "lead": 0.0,
+    "name": "Kyle Kuzma",
+    "proj": 19.0,
+    "team": "MIL"
+   },
+   {
     "id": "4395630",
     "lead": 0.0,
     "name": "Devin Vassell",
@@ -15938,13 +15945,6 @@
     "name": "John Collins",
     "proj": 18.8,
     "team": "DET"
-   },
-   {
-    "id": "3134907",
-    "lead": 0.0,
-    "name": "Kyle Kuzma",
-    "proj": 18.8,
-    "team": "MIL"
    }
   ],
   "season_used": "2026-27"
