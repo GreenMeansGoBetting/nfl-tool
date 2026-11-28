@@ -25215,7 +25215,7 @@
   "players": {
    "3908845": [
     "John Collins",
-    0.086,
+    0.084,
     null,
     false,
     null
@@ -25229,7 +25229,7 @@
    ],
    "4066372": [
     "Kevin Huerter",
-    0.083,
+    0.08,
     null,
     false,
     null
@@ -25241,16 +25241,16 @@
     false,
     null
    ],
-   "4278562": [
-    "Paul Reed",
-    0.081,
+   "4432165": [
+    "Jalen Suggs",
+    0.084,
     null,
     false,
     null
    ],
-   "4432165": [
-    "Jalen Suggs",
-    0.084,
+   "4432166": [
+    "Cade Cunningham",
+    0.091,
     null,
     false,
     null
@@ -25264,7 +25264,7 @@
    ],
    "4684742": [
     "Ausar Thompson",
-    0.083,
+    0.081,
     null,
     false,
     null
@@ -25278,7 +25278,7 @@
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.098,
+    0.095,
     null,
     false,
     null
@@ -25480,13 +25480,6 @@
    ]
   ],
   "players": {
-   "3995": [
-    "Jrue Holiday",
-    0.128,
-    null,
-    false,
-    null
-   ],
    "4277813": [
     "Herbert Jones",
     0.07,
@@ -25510,14 +25503,14 @@
    ],
    "4431736": [
     "Toumani Camara",
-    0.093,
+    0.09,
     null,
     false,
     null
    ],
    "4683021": [
     "Deni Avdija",
-    0.157,
+    0.149,
     null,
     false,
     null
@@ -25531,14 +25524,14 @@
    ],
    "5081727": [
     "Sidy Cissoko",
-    0.099,
+    0.097,
     null,
     false,
     null
    ],
    "5105565": [
     "Donovan Clingan",
-    0.098,
+    0.095,
     null,
     false,
     null
@@ -25546,6 +25539,13 @@
    "5144091": [
     "Jeremiah Fears",
     0.079,
+    null,
+    false,
+    null
+   ],
+   "6606": [
+    "Damian Lillard",
+    0.144,
     null,
     false,
     null
@@ -25660,7 +25660,7 @@
   "players": {
    "3032976": [
     "Rudy Gobert",
-    0.1,
+    0.094,
     null,
     false,
     null
@@ -25688,28 +25688,28 @@
    ],
    "4397002": [
     "Ayo Dosunmu",
-    0.122,
+    0.115,
     null,
     false,
     null
    ],
    "4431671": [
     "Jaden McDaniels",
-    0.114,
+    0.108,
     null,
     false,
     null
    ],
-   "4432847": [
-    "Terrence Shannon Jr.",
-    0.102,
+   "4432816": [
+    "LaMelo Ball",
+    0.125,
     null,
     false,
     null
    ],
    "4433247": [
     "Jonathan Kuminga",
-    0.095,
+    0.091,
     null,
     false,
     null
@@ -25859,7 +25859,7 @@
    ],
    "3908845": [
     "John Collins",
-    0.092,
+    0.09,
     null,
     false,
     null
@@ -25873,14 +25873,7 @@
    ],
    "4066372": [
     "Kevin Huerter",
-    0.089,
-    null,
-    false,
-    null
-   ],
-   "4278562": [
-    "Paul Reed",
-    0.087,
+    0.086,
     null,
     false,
     null
@@ -25892,16 +25885,23 @@
     false,
     null
    ],
+   "4432166": [
+    "Cade Cunningham",
+    0.097,
+    null,
+    false,
+    null
+   ],
    "4684742": [
     "Ausar Thompson",
-    0.089,
+    0.086,
     null,
     false,
     null
    ],
    "5107199": [
     "Daniss Jenkins",
-    0.104,
+    0.101,
     null,
     false,
     null
